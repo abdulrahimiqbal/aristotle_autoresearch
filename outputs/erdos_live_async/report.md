@@ -16,7 +16,8 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `QUEUED`: 3
+- `IN_PROGRESS`: 1
+- `QUEUED`: 2
 
 ## Recently completed
 
@@ -307,16 +308,20 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 - move: `counterexample_mode`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `92f77dd5-50db-46c5-ae87-912718ebcc20`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
+- learned summary: remote_status=IN_PROGRESS; proof_outcome=unknown; blocker=unknown
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f2b7403e-3623-4bfc-a042-832638ebe538/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f2b7403e-3623-4bfc-a042-832638ebe538/aristotle_list_stdout.txt` (8766 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f2b7403e-3623-4bfc-a042-832638ebe538/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f2b7403e-3623-4bfc-a042-832638ebe538/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f2b7403e-3623-4bfc-a042-832638ebe538/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f2b7403e-3623-4bfc-a042-832638ebe538/aristotle_list_stderr.txt`
+- notes: Aristotle job 92f77dd5-50db-46c5-ae87-912718ebcc20 is still in progress.
 
 ### 70f20685-52cb-4c24-b9dc-5234d7537ef8
 
@@ -328,10 +333,14 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - external job id: `5ea952f0-f66b-4dbb-92a2-aae7d6de2817`
 - external status: `QUEUED`
 - objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
+- learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/70f20685-52cb-4c24-b9dc-5234d7537ef8/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/70f20685-52cb-4c24-b9dc-5234d7537ef8/aristotle_list_stdout.txt` (8766 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/70f20685-52cb-4c24-b9dc-5234d7537ef8/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/70f20685-52cb-4c24-b9dc-5234d7537ef8/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/70f20685-52cb-4c24-b9dc-5234d7537ef8/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/70f20685-52cb-4c24-b9dc-5234d7537ef8/aristotle_list_stderr.txt`
+- notes: Aristotle job 5ea952f0-f66b-4dbb-92a2-aae7d6de2817 is still queued.
 
 ### 9a354742-ab8b-47ee-b156-eab9d939a3a1
 
@@ -343,24 +352,25 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - external job id: `c8cc8772-9ae8-49a1-aa65-1037d451a9ad`
 - external status: `QUEUED`
 - objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
+- learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/9a354742-ab8b-47ee-b156-eab9d939a3a1/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/9a354742-ab8b-47ee-b156-eab9d939a3a1/aristotle_list_stdout.txt` (8766 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/9a354742-ab8b-47ee-b156-eab9d939a3a1/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/9a354742-ab8b-47ee-b156-eab9d939a3a1/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/9a354742-ab8b-47ee-b156-eab9d939a3a1/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/9a354742-ab8b-47ee-b156-eab9d939a3a1/aristotle_list_stderr.txt`
+- notes: Aristotle job c8cc8772-9ae8-49a1-aa65-1037d451a9ad is still queued.
 
 ## Latest manager decision
 
 - policy path: `fallback`
 - jobs synced: 3
-- jobs submitted: 3
+- jobs submitted: 0
 - active before: 3
 - active after: 3
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.manager_snapshot.json`
-- queued `f2b7403e-3623-4bfc-a042-832638ebe538` for `erdos-123` via `counterexample_mode` (chosen by deterministic fallback policy)
-- queued `70f20685-52cb-4c24-b9dc-5234d7537ef8` for `erdos-181` via `counterexample_mode` (chosen by deterministic fallback policy)
-- queued `9a354742-ab8b-47ee-b156-eab9d939a3a1` for `erdos-44` via `counterexample_mode` (chosen by deterministic fallback policy)
 
 ## Suggested next move
 
-- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
+- Continue assumption perturbation and equivalent reformulations to sharpen the boundary map.
