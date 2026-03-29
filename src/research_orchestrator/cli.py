@@ -7,7 +7,7 @@ from pathlib import Path
 
 from research_orchestrator.charter import load_charter, load_conjecture
 from research_orchestrator.db import Database
-from research_orchestrator.orchestrator import run_one_cycle
+from research_orchestrator.orchestrator import manager_tick, run_one_cycle, submit_one_cycle, sync_provider_results
 from research_orchestrator.reporter import build_report, write_report
 from research_orchestrator.manager import choose_next_experiment
 
@@ -33,11 +33,64 @@ def cmd_run_cycle(args):
         )
 
 
+def cmd_submit_cycle(args):
+    db = Database(args.db)
+    db.initialize()
+    for _ in range(args.max_cycles):
+        result = submit_one_cycle(db, args.project, args.provider, args.workspace)
+        brief = result["brief"]
+        external = f" | external_id={result['result'].external_id}" if result["result"].external_id else ""
+        print(
+            f"Submitted {brief.experiment_id} | move={brief.move} | phase={brief.phase} | status={result['result'].status}{external}"
+        )
+
+
+def cmd_sync_results(args):
+    db = Database(args.db)
+    db.initialize()
+    results = sync_provider_results(db, args.project, args.provider, args.limit)
+    if not results:
+        print("No asynchronous results to sync.")
+        return
+    for item in results:
+        brief = item["brief"]
+        result = item["result"]
+        external = f" | external_id={result.external_id}" if result.external_id else ""
+        print(
+            f"Synced {brief.experiment_id} | status={result.status} | blocker={result.blocker_type}{external}"
+        )
+
+
 def cmd_report(args):
     db = Database(args.db)
     db.initialize()
     write_report(db, args.project, args.output)
     print(f"Wrote report to {args.output}")
+
+
+def cmd_manager_tick(args):
+    db = Database(args.db)
+    db.initialize()
+    report_output = Path(args.report_output)
+    snapshot_output = report_output.with_suffix(".manager_snapshot.json")
+    result = manager_tick(
+        db=db,
+        project_id=args.project,
+        provider_name=args.provider,
+        workspace_root=args.workspace,
+        max_active=args.max_active,
+        max_submit_per_tick=args.max_submit_per_tick,
+        llm_manager_mode=args.llm_manager,
+        report_output=report_output,
+        snapshot_output=snapshot_output,
+    )
+    print(
+        f"Manager tick {result['run_id']} | policy={result['policy_path']} | "
+        f"synced={result['jobs_synced']} | submitted={result['jobs_submitted']} | "
+        f"active_before={result['active_before']} | active_after={result['active_after']}"
+    )
+    print(f"Report: {result['report_output']}")
+    print(f"Snapshot: {result['snapshot_output']}")
 
 
 def cmd_preview_next(args):
@@ -123,6 +176,21 @@ def build_parser():
     run_cycle.add_argument("--max-cycles", type=int, default=1)
     run_cycle.set_defaults(func=cmd_run_cycle)
 
+    submit_cycle = sub.add_parser("submit-cycle", help="Submit one or more research cycles without waiting for asynchronous providers.")
+    submit_cycle.add_argument("--db", required=True)
+    submit_cycle.add_argument("--project", required=True)
+    submit_cycle.add_argument("--provider", choices=["mock", "aristotle-cli"], default="aristotle-cli")
+    submit_cycle.add_argument("--workspace", required=True)
+    submit_cycle.add_argument("--max-cycles", type=int, default=1)
+    submit_cycle.set_defaults(func=cmd_submit_cycle)
+
+    sync_results = sub.add_parser("sync-results", help="Poll asynchronous provider jobs and ingest finished results.")
+    sync_results.add_argument("--db", required=True)
+    sync_results.add_argument("--project", required=True)
+    sync_results.add_argument("--provider", choices=["mock", "aristotle-cli"], default="aristotle-cli")
+    sync_results.add_argument("--limit", type=int, default=None)
+    sync_results.set_defaults(func=cmd_sync_results)
+
     preview_next = sub.add_parser("preview-next", help="Preview the next automatically chosen experiment.")
     preview_next.add_argument("--db", required=True)
     preview_next.add_argument("--project", required=True)
@@ -134,6 +202,17 @@ def build_parser():
     report.add_argument("--project", required=True)
     report.add_argument("--output", required=True)
     report.set_defaults(func=cmd_report)
+
+    manager_tick_parser = sub.add_parser("manager-tick", help="Run one stateless campaign-control iteration: sync, rank, submit, and report.")
+    manager_tick_parser.add_argument("--db", required=True)
+    manager_tick_parser.add_argument("--project", required=True)
+    manager_tick_parser.add_argument("--workspace", required=True)
+    manager_tick_parser.add_argument("--provider", choices=["mock", "aristotle-cli"], default="aristotle-cli")
+    manager_tick_parser.add_argument("--max-active", type=int, default=5)
+    manager_tick_parser.add_argument("--max-submit-per-tick", type=int, default=5)
+    manager_tick_parser.add_argument("--report-output", required=True)
+    manager_tick_parser.add_argument("--llm-manager", choices=["on", "off", "auto"], default="auto")
+    manager_tick_parser.set_defaults(func=cmd_manager_tick)
 
     lint = sub.add_parser("lint-prompts", help="Generate prompts for the next cycle and lint them.")
     lint.add_argument("--db", required=True)

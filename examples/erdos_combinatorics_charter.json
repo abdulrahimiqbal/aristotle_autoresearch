@@ -1,0 +1,46 @@
+{
+  "project_id": "erdos-combo-001",
+  "title": "Hidden-dependency mapping across Erdos combinatorics conjectures",
+  "overarching_problem": "Map the hidden dependency structures shared by open Erdos problems in graph Ramsey theory and additive combinatorics, with emphasis on which assumptions trigger recurring lemmas, which perturbations shift the apparent provability boundary, and which formalizations expose reusable infrastructure across the family.",
+  "success_criteria": [
+    "Surface recurring lemmas that reappear across more than one conjecture or more than one experimental move",
+    "Map which explicit assumptions appear structurally critical versus merely search-sensitive",
+    "Identify boundary points where weakening or reformulating a statement changes the blocker classification",
+    "Produce reusable hidden-dependency sketches that transfer between graph-theoretic and additive-combinatorial variants"
+  ],
+  "non_goals": [
+    "Do not optimize for proving the original conjecture outright",
+    "Do not treat failed or stalled runs as evidence of falsity",
+    "Do not drift outside combinatorics, graph theory, and additive combinatorics"
+  ],
+  "allowed_moves": [
+    "underspecify",
+    "perturb_assumption",
+    "reformulate",
+    "promote_lemma",
+    "counterexample_mode"
+  ],
+  "phase_order": [
+    "mapping",
+    "excavation",
+    "stress_testing",
+    "consolidation"
+  ],
+  "promotion_threshold": 3,
+  "domain_scope": [
+    "combinatorics",
+    "graph theory",
+    "additive combinatorics"
+  ],
+  "evaluator_weights": {
+    "information_gain": 1.2,
+    "novelty": 1.0,
+    "reusability": 1.3,
+    "boundary_sharpness": 1.0,
+    "cost_penalty": 0.4
+  },
+  "human_preferences": {
+    "prefer_information_gain_over_proof_probability": true,
+    "require_reformulation_before_strong_negative_conclusion": true
+  }
+}

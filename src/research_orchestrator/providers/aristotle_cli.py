@@ -14,6 +14,11 @@ from research_orchestrator.types import Conjecture, ExperimentBrief, ProjectChar
 _PATH_PATTERN = re.compile(r"(?P<path>(?:[A-Za-z]:)?(?:/|\.{1,2}/)[^\s'\"`<>]+)")
 _RELATIVE_ARTIFACT_PATTERN = re.compile(r"(?P<path>[A-Za-z0-9._-]+\.(?:tar\.gz|tgz|zip|lean|olean|json|txt|log))")
 _ARTIFACT_HINTS = ("artifact", "artifacts", "output", "result", "saved", "downloaded", "written", "destination")
+_PROJECT_LINE_PATTERN = re.compile(
+    r"^(?P<project_id>[0-9a-f-]{36})\s+(?P<status>[A-Z_]+)\s+",
+    re.MULTILINE,
+)
+_PROJECT_ID_PATTERN = re.compile(r"(?P<project_id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})")
 
 
 def _extract_paths(*chunks: str, base_dir: str | None = None) -> list[str]:
@@ -85,6 +90,7 @@ def _classify_failure(stdout: str, stderr: str) -> tuple[str, str]:
 
 class AristotleCLIProvider(Provider):
     name = "aristotle-cli"
+    supports_async = True
 
     def __init__(self, command_template: List[str] | None = None):
         self.command_template = command_template or [
@@ -95,6 +101,235 @@ class AristotleCLIProvider(Provider):
             "{project_dir}",
             "--wait",
         ]
+        self.submit_template = [
+            "aristotle",
+            "submit",
+            "{objective}",
+            "--project-dir",
+            "{project_dir}",
+        ]
+        self.result_template = [
+            "aristotle",
+            "result",
+            "{external_id}",
+            "--destination",
+            "{destination}",
+        ]
+
+    def _run_command(self, command: List[str], cwd: str):
+        return subprocess.run(
+            command,
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+    def _write_stream_artifacts(self, project_dir: str, prefix: str, stdout: str, stderr: str) -> List[str]:
+        artifacts: List[str] = []
+        stdout_path = Path(project_dir) / f"{prefix}_stdout.txt"
+        stderr_path = Path(project_dir) / f"{prefix}_stderr.txt"
+        stdout_path.write_text(stdout, encoding="utf-8")
+        stderr_path.write_text(stderr, encoding="utf-8")
+        artifacts.extend([str(stdout_path), str(stderr_path)])
+        artifacts.extend(_extract_paths(stdout, stderr, base_dir=project_dir))
+        return artifacts
+
+    def _extract_project_id(self, stdout: str, stderr: str) -> str:
+        match = _PROJECT_ID_PATTERN.search("\n".join([stdout, stderr]))
+        return match.group("project_id") if match else ""
+
+    def _status_for_project(self, project_dir: str, external_id: str) -> tuple[str, str, str]:
+        completed = self._run_command(
+            ["aristotle", "list", "--limit", "100"],
+            cwd=project_dir,
+        )
+        for match in _PROJECT_LINE_PATTERN.finditer(completed.stdout):
+            if match.group("project_id") == external_id:
+                return match.group("status"), completed.stdout, completed.stderr
+        return "UNKNOWN", completed.stdout, completed.stderr
+
+    def submit(
+        self,
+        charter: ProjectCharter,
+        conjecture: Conjecture,
+        brief: ExperimentBrief,
+        worker_prompt: str,
+    ) -> ProviderResult:
+        if not os.environ.get("ARISTOTLE_API_KEY"):
+            return ProviderResult(
+                status="failed",
+                blocker_type="malformed",
+                notes="ARISTOTLE_API_KEY is not set.",
+                confidence=0.0,
+            )
+
+        project_dir = str(Path(brief.workspace_dir).resolve())
+        command = [
+            part.format(
+                objective=brief.objective,
+                project_dir=project_dir,
+                experiment_id=brief.experiment_id,
+            )
+            for part in self.submit_template
+        ]
+
+        try:
+            completed = self._run_command(command, cwd=project_dir)
+        except FileNotFoundError:
+            return ProviderResult(
+                status="failed",
+                blocker_type="malformed",
+                notes="The `aristotle` CLI executable was not found on PATH.",
+                confidence=0.0,
+            )
+
+        artifacts = self._write_stream_artifacts(
+            project_dir=project_dir,
+            prefix="aristotle_submit",
+            stdout=completed.stdout,
+            stderr=completed.stderr,
+        )
+
+        if completed.returncode != 0:
+            blocker_type, failure_note = _classify_failure(completed.stdout, completed.stderr)
+            return ProviderResult(
+                status="failed",
+                blocker_type=blocker_type,
+                notes=failure_note,
+                confidence=0.2,
+                raw_stdout=completed.stdout,
+                raw_stderr=completed.stderr,
+                artifacts=artifacts,
+            )
+
+        external_id = self._extract_project_id(completed.stdout, completed.stderr)
+        if not external_id:
+            return ProviderResult(
+                status="failed",
+                blocker_type="unknown",
+                notes="Aristotle submission succeeded locally, but no remote project id was found in stdout/stderr.",
+                confidence=0.2,
+                raw_stdout=completed.stdout,
+                raw_stderr=completed.stderr,
+                artifacts=artifacts,
+            )
+
+        return ProviderResult(
+            status="submitted",
+            blocker_type="unknown",
+            notes="Submitted Aristotle job without waiting for completion.",
+            confidence=0.6,
+            raw_stdout=completed.stdout,
+            raw_stderr=completed.stderr,
+            artifacts=artifacts,
+            external_id=external_id,
+            external_status="QUEUED",
+        )
+
+    def poll(
+        self,
+        charter: ProjectCharter,
+        conjecture: Conjecture,
+        brief: ExperimentBrief,
+        worker_prompt: str,
+        external_id: str,
+    ) -> ProviderResult:
+        project_dir = str(Path(brief.workspace_dir).resolve())
+        status, list_stdout, list_stderr = self._status_for_project(project_dir, external_id)
+        list_artifacts = self._write_stream_artifacts(
+            project_dir=project_dir,
+            prefix="aristotle_list",
+            stdout=list_stdout,
+            stderr=list_stderr,
+        )
+        if status in {"NOT_STARTED", "QUEUED", "PENDING_RETRY"}:
+            return ProviderResult(
+                status="submitted",
+                blocker_type="unknown",
+                notes=f"Aristotle job {external_id} is still queued.",
+                confidence=0.5,
+                raw_stdout=list_stdout,
+                raw_stderr=list_stderr,
+                artifacts=list_artifacts,
+                external_id=external_id,
+                external_status=status,
+            )
+        if status == "IN_PROGRESS":
+            return ProviderResult(
+                status="in_progress",
+                blocker_type="unknown",
+                notes=f"Aristotle job {external_id} is still in progress.",
+                confidence=0.55,
+                raw_stdout=list_stdout,
+                raw_stderr=list_stderr,
+                artifacts=list_artifacts,
+                external_id=external_id,
+                external_status=status,
+            )
+        if status in {"FAILED", "OUT_OF_BUDGET", "CANCELED", "UNKNOWN"}:
+            return ProviderResult(
+                status="failed",
+                blocker_type="unknown",
+                notes=f"Aristotle job {external_id} finished with remote status {status}.",
+                confidence=0.25,
+                raw_stdout=list_stdout,
+                raw_stderr=list_stderr,
+                artifacts=list_artifacts,
+                external_id=external_id,
+                external_status=status,
+            )
+
+        destination = Path(project_dir) / f"aristotle_result_{external_id}"
+        destination.mkdir(parents=True, exist_ok=True)
+        command = [
+            part.format(external_id=external_id, destination=str(destination))
+            for part in self.result_template
+        ]
+        completed = self._run_command(command, cwd=project_dir)
+        artifacts = list_artifacts + self._write_stream_artifacts(
+            project_dir=project_dir,
+            prefix="aristotle_result",
+            stdout=completed.stdout,
+            stderr=completed.stderr,
+        )
+        artifacts.extend(
+            str(path)
+            for path in destination.rglob("*")
+            if path.is_file()
+        )
+
+        if completed.returncode != 0:
+            blocker_type, failure_note = _classify_failure(completed.stdout, completed.stderr)
+            return ProviderResult(
+                status="failed",
+                blocker_type=blocker_type,
+                notes=failure_note,
+                confidence=0.2,
+                raw_stdout=completed.stdout,
+                raw_stderr=completed.stderr,
+                artifacts=artifacts,
+                external_id=external_id,
+                external_status=status,
+            )
+
+        final_status = "succeeded" if status == "COMPLETE" else "stalled"
+        notes = (
+            "Aristotle result downloaded successfully."
+            if status == "COMPLETE"
+            else f"Aristotle finished with remote status {status}; downloaded whatever artifacts were available."
+        )
+        return ProviderResult(
+            status=final_status,
+            blocker_type="unknown",
+            notes=notes + " Customize result ingestion to extract generated Lean artifacts and intermediate lemmas.",
+            confidence=0.7 if status == "COMPLETE" else 0.45,
+            raw_stdout=completed.stdout,
+            raw_stderr=completed.stderr,
+            artifacts=artifacts,
+            external_id=external_id,
+            external_status=status,
+        )
 
     def run(
         self,
@@ -122,13 +357,7 @@ class AristotleCLIProvider(Provider):
         ]
 
         try:
-            completed = subprocess.run(
-                command,
-                cwd=project_dir,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
+            completed = self._run_command(command, cwd=project_dir)
         except FileNotFoundError:
             return ProviderResult(
                 status="failed",
@@ -137,13 +366,12 @@ class AristotleCLIProvider(Provider):
                 confidence=0.0,
             )
 
-        artifacts = []
-        stdout_path = Path(project_dir) / "aristotle_stdout.txt"
-        stderr_path = Path(project_dir) / "aristotle_stderr.txt"
-        stdout_path.write_text(completed.stdout, encoding="utf-8")
-        stderr_path.write_text(completed.stderr, encoding="utf-8")
-        artifacts.extend([str(stdout_path), str(stderr_path)])
-        artifacts.extend(_extract_paths(completed.stdout, completed.stderr, base_dir=project_dir))
+        artifacts = self._write_stream_artifacts(
+            project_dir=project_dir,
+            prefix="aristotle",
+            stdout=completed.stdout,
+            stderr=completed.stderr,
+        )
 
         if completed.returncode == 0:
             notes = "Aristotle CLI command completed successfully."
@@ -164,6 +392,7 @@ class AristotleCLIProvider(Provider):
                 raw_stdout=completed.stdout,
                 raw_stderr=completed.stderr,
                 artifacts=artifacts,
+                external_status="COMPLETE",
             )
 
         blocker_type, failure_note = _classify_failure(completed.stdout, completed.stderr)
@@ -182,4 +411,5 @@ class AristotleCLIProvider(Provider):
             raw_stdout=completed.stdout,
             raw_stderr=completed.stderr,
             artifacts=artifacts,
+            external_status="FAILED",
         )

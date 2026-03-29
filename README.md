@@ -176,6 +176,37 @@ research-orchestrator run-cycle   --db ./state.sqlite   --project mono-001   --p
 - It stores stdout/stderr as artifacts and classifies the run conservatively.
 - You should customize the parser if your Aristotle workflow returns structured result archives or generated Lean outputs.
 
+## GitHub Actions deployment
+
+The repo includes a scheduled/manual GitHub Actions workflow at `.github/workflows/erdos-manager.yml` for the Erdős campaign manager.
+
+### Required repository secret
+Set this secret in GitHub:
+```bash
+ARISTOTLE_API_KEY
+```
+
+### What the workflow does
+- restores prior campaign state from the `campaign-state` branch
+- creates a fresh virtualenv
+- installs this repo and `aristotlelib`
+- runs `./run_erdos_live_research.sh`, which executes one `manager-tick`
+- commits the updated SQLite/report/snapshot artifacts back to `campaign-state`
+- uploads the latest report, snapshot, and database as workflow artifacts
+
+### Trigger modes
+- scheduled every 30 minutes
+- manual `workflow_dispatch` with optional overrides for:
+  - `max_active`
+  - `max_submit_per_tick`
+  - `llm_manager`
+
+### Deployment model
+This is the intended production shape for the stateless manager:
+- a GitHub-hosted runner executes one tick
+- SQLite/report state lives on the `campaign-state` branch
+- no laptop or always-on local daemon is required
+
 ## Suggested development path
 
 ### Week 1

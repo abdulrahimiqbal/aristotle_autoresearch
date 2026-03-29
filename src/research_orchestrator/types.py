@@ -61,6 +61,9 @@ class ProviderResult:
     raw_stdout: str = ""
     raw_stderr: str = ""
     artifacts: List[str] = field(default_factory=list)
+    external_id: str = ""
+    external_status: str = ""
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

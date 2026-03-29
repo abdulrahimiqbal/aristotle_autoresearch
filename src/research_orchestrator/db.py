@@ -110,6 +110,24 @@ SCHEMA = [
         FOREIGN KEY(experiment_id) REFERENCES experiments(experiment_id)
     )
     """,
+    """
+    CREATE TABLE IF NOT EXISTS manager_runs (
+        run_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        provider TEXT NOT NULL,
+        policy_path TEXT NOT NULL,
+        jobs_synced INTEGER NOT NULL DEFAULT 0,
+        jobs_submitted INTEGER NOT NULL DEFAULT 0,
+        active_before INTEGER NOT NULL DEFAULT 0,
+        active_after INTEGER NOT NULL DEFAULT 0,
+        report_path TEXT,
+        snapshot_path TEXT,
+        summary_json TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        completed_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id)
+    )
+    """,
 ]
 
 
@@ -122,7 +140,24 @@ class Database:
     def initialize(self) -> None:
         for statement in SCHEMA:
             self.conn.execute(statement)
+        self._ensure_experiment_columns()
         self.conn.commit()
+
+    def _ensure_experiment_columns(self) -> None:
+        existing = {
+            row["name"]
+            for row in self.conn.execute("PRAGMA table_info(experiments)").fetchall()
+        }
+        for column_name, column_type in (
+            ("external_id", "TEXT"),
+            ("external_status", "TEXT"),
+            ("submitted_at", "TEXT"),
+            ("last_synced_at", "TEXT"),
+        ):
+            if column_name not in existing:
+                self.conn.execute(
+                    f"ALTER TABLE experiments ADD COLUMN {column_name} {column_type}"
+                )
 
     def close(self) -> None:
         self.conn.close()
@@ -212,8 +247,8 @@ class Database:
             """
             INSERT OR REPLACE INTO experiments(
                 experiment_id, project_id, conjecture_id, phase, move, objective, expected_signal,
-                modification_json, workspace_dir, lean_file, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT created_at FROM experiments WHERE experiment_id = ?), ?))
+                modification_json, workspace_dir, lean_file, external_id, external_status, submitted_at, last_synced_at, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT created_at FROM experiments WHERE experiment_id = ?), ?))
             """,
             (
                 brief["experiment_id"],
@@ -226,8 +261,49 @@ class Database:
                 json.dumps(brief["modification"]),
                 brief["workspace_dir"],
                 brief["lean_file"],
+                brief.get("external_id"),
+                brief.get("external_status"),
+                brief.get("submitted_at"),
+                brief.get("last_synced_at"),
                 brief["experiment_id"],
                 utcnow(),
+            ),
+        )
+        self.conn.commit()
+
+    def update_experiment_result(
+        self,
+        experiment_id: str,
+        provider: str,
+        result: ProviderResult,
+        evaluation: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        outcome_json = {
+            "provider_result": result.__dict__,
+        }
+        if evaluation is not None:
+            outcome_json["evaluation"] = evaluation
+        completed_at = utcnow() if result.status in {"succeeded", "stalled", "failed"} else None
+        submitted_at = utcnow() if result.status == "submitted" and result.external_id else None
+        last_synced_at = utcnow()
+        self.conn.execute(
+            """
+            UPDATE experiments
+            SET provider = ?, status = ?, blocker_type = ?, outcome_json = ?, external_id = ?, external_status = ?,
+                submitted_at = COALESCE(?, submitted_at), last_synced_at = ?, completed_at = COALESCE(?, completed_at)
+            WHERE experiment_id = ?
+            """,
+            (
+                provider,
+                result.status,
+                result.blocker_type,
+                json.dumps(outcome_json),
+                result.external_id or None,
+                result.external_status or None,
+                submitted_at,
+                last_synced_at,
+                completed_at,
+                experiment_id,
             ),
         )
         self.conn.commit()
@@ -239,26 +315,12 @@ class Database:
         result: ProviderResult,
         evaluation: Dict[str, Any],
     ) -> None:
-        outcome_json = {
-            "provider_result": result.__dict__,
-            "evaluation": evaluation,
-        }
-        self.conn.execute(
-            """
-            UPDATE experiments
-            SET provider = ?, status = ?, blocker_type = ?, outcome_json = ?, completed_at = ?
-            WHERE experiment_id = ?
-            """,
-            (
-                provider,
-                result.status,
-                result.blocker_type,
-                json.dumps(outcome_json),
-                utcnow(),
-                experiment_id,
-            ),
+        self.update_experiment_result(
+            experiment_id=experiment_id,
+            provider=provider,
+            result=result,
+            evaluation=evaluation,
         )
-        self.conn.commit()
 
     def get_experiment(self, experiment_id: str) -> Optional[Dict[str, Any]]:
         row = self.conn.execute(
@@ -286,6 +348,120 @@ class Database:
             item["outcome"] = json.loads(item["outcome_json"]) if item["outcome_json"] else None
             results.append(item)
         return results
+
+    def list_active_experiments(self, project_id: str, provider: Optional[str] = None) -> List[Dict[str, Any]]:
+        statuses = ("planned", "submitted", "in_progress")
+        placeholders = ", ".join("?" for _ in statuses)
+        params: List[Any] = [project_id, *statuses]
+        query = (
+            "SELECT * FROM experiments WHERE project_id = ? "
+            f"AND status IN ({placeholders})"
+        )
+        if provider is not None:
+            query += " AND provider = ?"
+            params.append(provider)
+        query += " ORDER BY created_at ASC"
+        rows = self.conn.execute(query, params).fetchall()
+        results = []
+        for row in rows:
+            item = dict(row)
+            item["modification"] = json.loads(item["modification_json"])
+            item["outcome"] = json.loads(item["outcome_json"]) if item["outcome_json"] else None
+            results.append(item)
+        return results
+
+    def count_active_experiments(self, project_id: str, provider: Optional[str] = None) -> int:
+        return len(self.list_active_experiments(project_id, provider=provider))
+
+    def list_completed_experiments(self, project_id: str, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+        statuses = ("succeeded", "stalled", "failed")
+        placeholders = ", ".join("?" for _ in statuses)
+        params: List[Any] = [project_id, *statuses]
+        query = (
+            "SELECT * FROM experiments WHERE project_id = ? "
+            f"AND status IN ({placeholders}) ORDER BY COALESCE(completed_at, created_at) DESC"
+        )
+        if limit is not None:
+            query += " LIMIT ?"
+            params.append(limit)
+        rows = self.conn.execute(query, params).fetchall()
+        results = []
+        for row in rows:
+            item = dict(row)
+            item["modification"] = json.loads(item["modification_json"])
+            item["outcome"] = json.loads(item["outcome_json"]) if item["outcome_json"] else None
+            results.append(item)
+        return results
+
+    def active_experiments_by_external_status(self, project_id: str, provider: Optional[str] = None) -> List[Dict[str, Any]]:
+        active = self.list_active_experiments(project_id, provider=provider)
+        counts: Dict[str, int] = {}
+        for item in active:
+            key = item.get("external_status") or item["status"]
+            counts[key] = counts.get(key, 0) + 1
+        return [
+            {"external_status": status, "count": count}
+            for status, count in sorted(counts.items(), key=lambda pair: pair[0])
+        ]
+
+    def save_manager_run(
+        self,
+        project_id: str,
+        provider: str,
+        policy_path: str,
+        jobs_synced: int,
+        jobs_submitted: int,
+        active_before: int,
+        active_after: int,
+        report_path: Optional[str],
+        snapshot_path: Optional[str],
+        summary: Dict[str, Any],
+    ) -> str:
+        import uuid
+
+        run_id = str(uuid.uuid4())
+        now = utcnow()
+        self.conn.execute(
+            """
+            INSERT INTO manager_runs(
+                run_id, project_id, provider, policy_path, jobs_synced, jobs_submitted,
+                active_before, active_after, report_path, snapshot_path, summary_json, created_at, completed_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                run_id,
+                project_id,
+                provider,
+                policy_path,
+                jobs_synced,
+                jobs_submitted,
+                active_before,
+                active_after,
+                report_path,
+                snapshot_path,
+                json.dumps(summary),
+                now,
+                now,
+            ),
+        )
+        self.conn.commit()
+        return run_id
+
+    def latest_manager_run(self, project_id: str) -> Optional[Dict[str, Any]]:
+        row = self.conn.execute(
+            """
+            SELECT * FROM manager_runs
+            WHERE project_id = ?
+            ORDER BY completed_at DESC, created_at DESC
+            LIMIT 1
+            """,
+            (project_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        item = dict(row)
+        item["summary"] = json.loads(item["summary_json"])
+        return item
 
     def add_note(self, project_id: str, note_markdown: str, structured: Optional[Dict[str, Any]] = None, experiment_id: Optional[str] = None) -> None:
         import uuid
@@ -409,12 +585,15 @@ class Database:
         solved = sum(1 for item in experiments if item["status"] == "succeeded")
         stalled = sum(1 for item in experiments if item["status"] == "stalled")
         failed = sum(1 for item in experiments if item["status"] == "failed")
+        pending = sum(1 for item in experiments if item["status"] in {"planned", "submitted", "in_progress"})
         return {
             "project_id": project_id,
             "num_experiments": len(experiments),
             "solved": solved,
             "stalled": stalled,
             "failed": failed,
+            "pending": pending,
+            "active_by_external_status": self.active_experiments_by_external_status(project_id),
             "recurring_lemmas": self.recurring_lemmas(),
             "assumption_sensitivity": self.assumption_sensitivity(project_id),
         }

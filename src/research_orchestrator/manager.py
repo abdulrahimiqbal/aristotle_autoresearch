@@ -12,6 +12,13 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
     conjectures = db.list_conjectures(project_id)
     experiments = db.list_experiments(project_id)
     recurring = db.recurring_lemmas()
+    counts_by_conjecture = {
+        conjecture.conjecture_id: 0 for conjecture in conjectures
+    }
+    for experiment in experiments:
+        conjecture_id = experiment["conjecture_id"]
+        if conjecture_id in counts_by_conjecture:
+            counts_by_conjecture[conjecture_id] += 1
 
     frontier = []
     for conjecture in conjectures:
@@ -25,6 +32,7 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
         frontier.append({
             "project_id": project_id,
             "conjecture_id": conjecture.conjecture_id,
+            "existing_experiments": counts_by_conjecture.get(conjecture.conjecture_id, 0),
             "phase": candidate.phase,
             "move": candidate.move,
             "objective": candidate.objective,
@@ -41,12 +49,81 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
         frontier=frontier,
     )
 
-    # Heuristic policy: choose the first conjecture's next candidate.
+    # Heuristic policy: balance attention across the theorem family by picking
+    # the least-explored conjecture first, then falling back to conjecture id.
+    chosen_conjecture = min(
+        conjectures,
+        key=lambda conjecture: (
+            counts_by_conjecture.get(conjecture.conjecture_id, 0),
+            conjecture.conjecture_id,
+        ),
+    )
     chosen = materialize_experiment(
         charter=charter,
-        conjecture=conjectures[0],
+        conjecture=chosen_conjecture,
         workspace_root=workspace_root,
         experiments=experiments,
         recurring_lemmas=recurring,
     )
     return chosen, manager_prompt, frontier
+
+
+def generate_frontier(db: Database, project_id: str, workspace_root: str) -> List[Dict[str, object]]:
+    charter = db.get_charter(project_id)
+    conjectures = db.list_conjectures(project_id)
+    experiments = db.list_experiments(project_id)
+    recurring = db.recurring_lemmas()
+    active = db.list_active_experiments(project_id)
+    counts_by_conjecture = {
+        conjecture.conjecture_id: 0 for conjecture in conjectures
+    }
+    active_by_conjecture = {
+        conjecture.conjecture_id: 0 for conjecture in conjectures
+    }
+    active_signatures = {
+        (
+            item["conjecture_id"],
+            item["move"],
+            __import__("json").dumps(item["modification"], sort_keys=True),
+        )
+        for item in active
+    }
+    for experiment in experiments:
+        conjecture_id = experiment["conjecture_id"]
+        if conjecture_id in counts_by_conjecture:
+            counts_by_conjecture[conjecture_id] += 1
+    for experiment in active:
+        conjecture_id = experiment["conjecture_id"]
+        if conjecture_id in active_by_conjecture:
+            active_by_conjecture[conjecture_id] += 1
+
+    frontier = []
+    for conjecture in conjectures:
+        candidate = materialize_experiment(
+            charter=charter,
+            conjecture=conjecture,
+            workspace_root=workspace_root,
+            experiments=experiments,
+            recurring_lemmas=recurring,
+        )
+        signature = (
+            conjecture.conjecture_id,
+            candidate.move,
+            __import__("json").dumps(candidate.modification, sort_keys=True),
+        )
+        frontier.append({
+            "experiment_id": candidate.experiment_id,
+            "project_id": project_id,
+            "conjecture_id": conjecture.conjecture_id,
+            "existing_experiments": counts_by_conjecture.get(conjecture.conjecture_id, 0),
+            "active_count_for_conjecture": active_by_conjecture.get(conjecture.conjecture_id, 0),
+            "phase": candidate.phase,
+            "move": candidate.move,
+            "objective": candidate.objective,
+            "expected_signal": candidate.expected_signal,
+            "modification": candidate.modification,
+            "workspace_dir": candidate.workspace_dir,
+            "lean_file": candidate.lean_file,
+            "duplicate_active_signature": signature in active_signatures,
+        })
+    return frontier

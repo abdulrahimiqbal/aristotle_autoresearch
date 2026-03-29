@@ -1,0 +1,142 @@
+name: Erdos Campaign Manager
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_active:
+        description: "Maximum active Aristotle jobs to maintain"
+        required: false
+        default: "5"
+      max_submit_per_tick:
+        description: "Maximum new submissions to create in this tick"
+        required: false
+        default: "5"
+      llm_manager:
+        description: "Manager policy mode"
+        required: false
+        default: "auto"
+  schedule:
+    - cron: "*/30 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: erdos-campaign-manager
+  cancel-in-progress: false
+
+jobs:
+  manager-tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      STATE_BRANCH: campaign-state
+      STATE_DIR: outputs/erdos_live_async
+      MAX_ACTIVE: ${{ github.event.inputs.max_active || '5' }}
+      MAX_SUBMIT_PER_TICK: ${{ github.event.inputs.max_submit_per_tick || '5' }}
+      LLM_MANAGER: ${{ github.event.inputs.llm_manager || 'auto' }}
+    steps:
+      - name: Check out main branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Create virtualenv and install repo
+        run: |
+          python -m venv .venv_erdos
+          ./.venv_erdos/bin/python -m pip install --upgrade pip
+          ./.venv_erdos/bin/python -m pip install --no-build-isolation -e .
+          ./.venv_erdos/bin/python -m pip install aristotlelib
+
+      - name: Restore campaign state branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          STATE_CLONE="$(mktemp -d)"
+          echo "STATE_CLONE=$STATE_CLONE" >> "$GITHUB_ENV"
+
+          if git clone --depth 1 --branch "${STATE_BRANCH}" "${REPO_URL}" "${STATE_CLONE}" >/dev/null 2>&1; then
+            echo "Restored existing ${STATE_BRANCH} branch."
+          else
+            git clone --depth 1 "${REPO_URL}" "${STATE_CLONE}"
+            (
+              cd "${STATE_CLONE}"
+              git switch --orphan "${STATE_BRANCH}"
+              git rm -rf . >/dev/null 2>&1 || true
+              mkdir -p "${STATE_DIR}"
+              cat > README.md <<'EOF'
+# Campaign State
+
+This branch stores generated SQLite/report artifacts for the scheduled Aristotle research manager.
+EOF
+              git add README.md "${STATE_DIR}"
+              git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Initialize campaign state branch"
+              git push origin "${STATE_BRANCH}"
+            )
+          fi
+
+          mkdir -p "${STATE_DIR}"
+          if [ -d "${STATE_CLONE}/${STATE_DIR}" ]; then
+            rsync -a "${STATE_CLONE}/${STATE_DIR}/" "${STATE_DIR}/"
+          fi
+
+      - name: Run manager tick
+        env:
+          ARISTOTLE_API_KEY: ${{ secrets.ARISTOTLE_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ARISTOTLE_API_KEY:-}" ]; then
+            echo "ARISTOTLE_API_KEY secret is not configured." >&2
+            exit 1
+          fi
+          ./run_erdos_live_research.sh
+
+      - name: Persist updated campaign state
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          STATE_CLONE="${STATE_CLONE:?missing state clone}"
+          mkdir -p "${STATE_CLONE}/${STATE_DIR}"
+          rsync -a --delete "${STATE_DIR}/" "${STATE_CLONE}/${STATE_DIR}/"
+
+          (
+            cd "${STATE_CLONE}"
+            git add "${STATE_DIR}" README.md
+            if git diff --cached --quiet; then
+              echo "No campaign-state changes to commit."
+            else
+              git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Update campaign state"
+              git push origin "${STATE_BRANCH}"
+            fi
+          )
+
+      - name: Upload latest report artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erdos-campaign-state
+          path: |
+            outputs/erdos_live_async/report.md
+            outputs/erdos_live_async/report.manager_snapshot.json
+            outputs/erdos_live_async/state.sqlite
+          if-no-files-found: warn
+
+      - name: Append report to workflow summary
+        if: always()
+        run: |
+          if [ -f outputs/erdos_live_async/report.md ]; then
+            {
+              echo "## Erdos campaign report"
+              echo
+              sed -n '1,200p' outputs/erdos_live_async/report.md
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
