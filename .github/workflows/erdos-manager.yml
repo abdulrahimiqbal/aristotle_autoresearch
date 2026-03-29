@@ -27,6 +27,7 @@ jobs:
       MAX_ACTIVE: "5"
       MAX_SUBMIT_PER_TICK: "5"
       LLM_MANAGER: "auto"
+      ARISTOTLE_BIN_DIR: ${{ github.workspace }}/.venv_erdos/bin
     steps:
       - name: Check out main branch
         uses: actions/checkout@v4

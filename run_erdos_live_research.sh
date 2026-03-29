@@ -3,7 +3,6 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RO_BIN="${RO_BIN:-$ROOT_DIR/.venv_erdos/bin/research-orchestrator}"
-ARISTOTLE_BIN_DIR="${ARISTOTLE_BIN_DIR:-$ROOT_DIR/.venv/bin}"
 DB_PATH="${DB_PATH:-$ROOT_DIR/outputs/erdos_live_async/state.sqlite}"
 WORKSPACE_PATH="${WORKSPACE_PATH:-$ROOT_DIR/outputs/erdos_live_async/work}"
 REPORT_PATH="${REPORT_PATH:-$ROOT_DIR/outputs/erdos_live_async/report.md}"
@@ -12,12 +11,22 @@ MAX_ACTIVE="${MAX_ACTIVE:-5}"
 MAX_SUBMIT_PER_TICK="${MAX_SUBMIT_PER_TICK:-5}"
 LLM_MANAGER="${LLM_MANAGER:-auto}"
 
+if [[ -n "${ARISTOTLE_BIN_DIR:-}" ]]; then
+  RESOLVED_ARISTOTLE_BIN_DIR="$ARISTOTLE_BIN_DIR"
+elif [[ -x "$ROOT_DIR/.venv_erdos/bin/aristotle" ]]; then
+  RESOLVED_ARISTOTLE_BIN_DIR="$ROOT_DIR/.venv_erdos/bin"
+elif [[ -x "$ROOT_DIR/.venv/bin/aristotle" ]]; then
+  RESOLVED_ARISTOTLE_BIN_DIR="$ROOT_DIR/.venv/bin"
+else
+  RESOLVED_ARISTOTLE_BIN_DIR="$ROOT_DIR/.venv_erdos/bin"
+fi
+
 if [[ -z "${ARISTOTLE_API_KEY:-}" ]]; then
   echo "ARISTOTLE_API_KEY is not set." >&2
   exit 1
 fi
 
-export PATH="$ARISTOTLE_BIN_DIR:$PATH"
+export PATH="$RESOLVED_ARISTOTLE_BIN_DIR:$PATH"
 
 mkdir -p "$(dirname "$DB_PATH")" "$WORKSPACE_PATH"
 
