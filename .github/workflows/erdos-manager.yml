@@ -63,11 +63,7 @@ jobs:
               git switch --orphan "${STATE_BRANCH}"
               git rm -rf . >/dev/null 2>&1 || true
               mkdir -p "${STATE_DIR}"
-              cat > README.md <<'EOF'
-# Campaign State
-
-This branch stores generated SQLite/report artifacts for the scheduled Aristotle research manager.
-EOF
+              printf '# Campaign State\n\nThis branch stores generated SQLite/report artifacts for the scheduled Aristotle research manager.\n' > README.md
               git add README.md "${STATE_DIR}"
               git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Initialize campaign state branch"
               git push origin "${STATE_BRANCH}"
