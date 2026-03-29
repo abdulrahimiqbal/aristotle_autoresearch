@@ -20,6 +20,14 @@ from research_orchestrator.types import ProviderResult
 
 
 class AristotleCLIProviderTest(unittest.TestCase):
+    def test_invalid_api_key_is_classified_as_malformed(self):
+        blocker_type, note = _classify_failure(
+            "",
+            "ERROR - Invalid API key. Please check your API key and try again.",
+        )
+        self.assertEqual(blocker_type, "malformed")
+        self.assertIn("api key", note.lower())
+
     def test_connectivity_failure_is_classified_as_dns_failure(self):
         blocker_type, note = _classify_failure(
             "",

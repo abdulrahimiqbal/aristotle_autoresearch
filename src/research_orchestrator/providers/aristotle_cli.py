@@ -57,6 +57,11 @@ def _extract_paths(*chunks: str, base_dir: str | None = None) -> list[str]:
 
 def _classify_failure(stdout: str, stderr: str) -> tuple[str, str]:
     text = "\n".join(part for part in (stdout, stderr) if part).lower()
+    if "invalid api key" in text or "check your api key" in text or "get a valid api key" in text:
+        return (
+            "malformed",
+            "Aristotle rejected the configured API key. Refresh ARISTOTLE_API_KEY and retry.",
+        )
     if "nodename nor servname provided" in text or "could not resolve host" in text or "bio_lookup_ex" in text:
         return (
             "dns_failure",
