@@ -32,6 +32,8 @@ class AsyncProviderStub:
             status="succeeded",
             blocker_type="unknown",
             notes="done",
+            raw_stdout="Proof complete. All goals solved.",
+            proved_lemmas=["async_demo_lemma : True"],
             external_id=external_id,
             external_status="COMPLETE",
             artifacts=[str(Path(brief.workspace_dir) / "result.lean")],

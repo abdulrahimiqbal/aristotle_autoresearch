@@ -52,9 +52,15 @@ class ExperimentBrief:
 class ProviderResult:
     status: str
     blocker_type: str
+    proof_outcome: str = "unknown"
+    signal_summary: str = ""
     generated_lemmas: List[str] = field(default_factory=list)
     proved_lemmas: List[str] = field(default_factory=list)
+    candidate_lemmas: List[str] = field(default_factory=list)
     unresolved_goals: List[str] = field(default_factory=list)
+    blocked_on: List[str] = field(default_factory=list)
+    missing_assumptions: List[str] = field(default_factory=list)
+    artifact_inventory: List[Dict[str, Any]] = field(default_factory=list)
     suspected_missing_assumptions: List[str] = field(default_factory=list)
     notes: str = ""
     confidence: float = 0.5

@@ -105,6 +105,7 @@ class AristotleCLIProviderTest(unittest.TestCase):
             shim.write_text(
                 "#!/bin/sh\n"
                 "echo 'shim stdout: objective=$1'\n"
+                "echo 'Proof complete. All goals solved.'\n"
                 "OUT=\"$PWD/lean_output/Main.lean\"\n"
                 "echo \"shim stderr: artifact saved at $OUT\" 1>&2\n"
                 "mkdir -p ./lean_output\n"

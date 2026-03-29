@@ -11,6 +11,7 @@ from research_orchestrator.manager_policy import choose_candidates_for_submissio
 from research_orchestrator.prompt_linter import lint_manager_prompt, lint_worker_prompt
 from research_orchestrator.prompts import build_worker_prompt
 from research_orchestrator.provider_registry import get_provider
+from research_orchestrator.result_ingestion import ingest_provider_result
 from research_orchestrator.types import ExperimentBrief
 
 
@@ -97,6 +98,7 @@ def _finalize_result(
     manager_lint,
     worker_lint,
 ):
+    result = ingest_provider_result(result)
     evaluation = score_result(db.get_charter(project_id), result)
     db.update_experiment_result(
         experiment_id=brief.experiment_id,
@@ -109,20 +111,32 @@ def _finalize_result(
         conjecture_id=brief.conjecture_id,
         generated=result.generated_lemmas,
         proved=result.proved_lemmas,
+        candidate=result.candidate_lemmas,
+    )
+    db.record_result_ingestion(
+        project_id=project_id,
+        conjecture_id=brief.conjecture_id,
+        experiment_id=brief.experiment_id,
+        proof_outcome=result.proof_outcome,
+        blocker_type=result.blocker_type,
+        unresolved_goals=result.unresolved_goals,
+        artifact_inventory=result.artifact_inventory,
+        signal_summary=result.signal_summary,
     )
 
     if brief.move == "perturb_assumption":
         assumption = brief.modification.get("assumption")
         if assumption:
-            sensitivity_score = 1.0 if result.blocker_type == "structural" else 0.45 if result.blocker_type == "search" else 0.2
-            db.record_assumption_observation(
-                project_id=project_id,
-                conjecture_id=brief.conjecture_id,
-                experiment_id=brief.experiment_id,
-                assumption_name=assumption,
-                outcome=result.status,
-                sensitivity_score=sensitivity_score,
-            )
+            if result.proof_outcome not in {"infra_failure", "auth_failure", "malformed"}:
+                sensitivity_score = 1.0 if result.blocker_type == "structural" else 0.45 if result.blocker_type == "search" else 0.2
+                db.record_assumption_observation(
+                    project_id=project_id,
+                    conjecture_id=brief.conjecture_id,
+                    experiment_id=brief.experiment_id,
+                    assumption_name=assumption,
+                    outcome=result.status,
+                    sensitivity_score=sensitivity_score,
+                )
 
     memo = {
         "experiment_id": brief.experiment_id,
@@ -130,6 +144,7 @@ def _finalize_result(
         "move": brief.move,
         "phase": brief.phase,
         "status": result.status,
+        "proof_outcome": result.proof_outcome,
         "blocker_type": result.blocker_type,
         "manager_prompt_lint_ok": manager_lint.ok,
         "worker_prompt_lint_ok": worker_lint.ok,
@@ -190,6 +205,7 @@ def submit_one_cycle(db: Database, project_id: str, provider_name: str, workspac
         brief=brief,
         worker_prompt=prepared["worker_prompt"],
     )
+    result = ingest_provider_result(result)
     db.update_experiment_result(
         experiment_id=brief.experiment_id,
         provider=provider.name,
@@ -202,6 +218,7 @@ def submit_one_cycle(db: Database, project_id: str, provider_name: str, workspac
         "move": brief.move,
         "phase": brief.phase,
         "status": result.status,
+        "proof_outcome": result.proof_outcome,
         "blocker_type": result.blocker_type,
         "external_id": result.external_id,
         "external_status": result.external_status,
@@ -257,6 +274,7 @@ def sync_provider_results(db: Database, project_id: str, provider_name: str, lim
             worker_prompt=worker_prompt,
             external_id=external_id,
         )
+        result = ingest_provider_result(result)
         if result.status in {"submitted", "in_progress"}:
             db.update_experiment_result(
                 experiment_id=brief.experiment_id,

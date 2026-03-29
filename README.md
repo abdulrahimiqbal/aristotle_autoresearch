@@ -207,6 +207,30 @@ This is the intended production shape for the stateless manager:
 - SQLite/report state lives on the `campaign-state` branch
 - no laptop or always-on local daemon is required
 
+### Canonical live-state workflow
+For live Aristotle campaigns, treat GitHub as the source of truth:
+- GitHub Actions owns submission and polling
+- the `campaign-state` branch is the canonical live state
+- local inspection should begin by syncing those artifacts down before reading reports or the DB
+
+Sync the canonical state locally with:
+```bash
+research-orchestrator sync-github-state \
+  --repo abdulrahimiqbal/aristotle_autoresearch \
+  --ref campaign-state \
+  --state-dir outputs/erdos_live_async
+```
+
+That downloads only the canonical live-state artifacts:
+- `outputs/erdos_live_async/state.sqlite`
+- `outputs/erdos_live_async/report.md`
+- `outputs/erdos_live_async/report.manager_snapshot.json`
+
+Recommended practice:
+- do not run local `manager-tick` against a live campaign unless you intentionally want a separate campaign
+- run `sync-github-state` before inspecting live status locally
+- use the local DB for mock runs or for read-only inspection of the GitHub-managed live campaign
+
 ## Suggested development path
 
 ### Week 1

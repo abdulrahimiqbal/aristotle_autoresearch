@@ -7,6 +7,7 @@ from pathlib import Path
 
 from research_orchestrator.charter import load_charter, load_conjecture
 from research_orchestrator.db import Database
+from research_orchestrator.github_state import sync_github_state
 from research_orchestrator.orchestrator import manager_tick, run_one_cycle, submit_one_cycle, sync_provider_results
 from research_orchestrator.reporter import build_report, write_report
 from research_orchestrator.manager import choose_next_experiment
@@ -158,6 +159,17 @@ def cmd_demo(args):
     print(f"Demo complete. Report: {report_path}")
 
 
+def cmd_sync_github_state(args):
+    written = sync_github_state(
+        repo=args.repo,
+        ref=args.ref,
+        state_dir=args.state_dir,
+    )
+    print(f"Synced {len(written)} canonical state files from {args.repo}@{args.ref}")
+    for path in written:
+        print(path)
+
+
 def build_parser():
     parser = argparse.ArgumentParser(prog="research-orchestrator")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -213,6 +225,15 @@ def build_parser():
     manager_tick_parser.add_argument("--report-output", required=True)
     manager_tick_parser.add_argument("--llm-manager", choices=["on", "off", "auto"], default="auto")
     manager_tick_parser.set_defaults(func=cmd_manager_tick)
+
+    sync_github = sub.add_parser(
+        "sync-github-state",
+        help="Download the canonical live campaign state from GitHub into the local state directory.",
+    )
+    sync_github.add_argument("--repo", default="abdulrahimiqbal/aristotle_autoresearch")
+    sync_github.add_argument("--ref", default="campaign-state")
+    sync_github.add_argument("--state-dir", default="outputs/erdos_live_async")
+    sync_github.set_defaults(func=cmd_sync_github_state)
 
     lint = sub.add_parser("lint-prompts", help="Generate prompts for the next cycle and lint them.")
     lint.add_argument("--db", required=True)

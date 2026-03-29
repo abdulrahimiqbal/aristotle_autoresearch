@@ -6,18 +6,30 @@ from research_orchestrator.types import EvaluationScore, ProviderResult, Project
 
 
 def score_result(charter: ProjectCharter, result: ProviderResult) -> EvaluationScore:
-    info_gain = float(len(result.generated_lemmas) + len(result.suspected_missing_assumptions))
-    novelty = float(len(set(result.generated_lemmas + result.proved_lemmas)))
-    reusability = float(len(result.proved_lemmas) * 1.5 + len(result.generated_lemmas) * 0.5)
-    if result.blocker_type in {"dns_failure", "network_unavailable"}:
+    info_gain = float(
+        len(result.generated_lemmas)
+        + len(result.candidate_lemmas)
+        + len(result.unresolved_goals)
+        + len(result.missing_assumptions or result.suspected_missing_assumptions)
+    )
+    novelty = float(len(set(result.generated_lemmas + result.proved_lemmas + result.candidate_lemmas)))
+    reusability = float(
+        len(result.proved_lemmas) * 1.5
+        + len(result.generated_lemmas) * 0.75
+        + len(result.candidate_lemmas) * 0.5
+        + len(result.unresolved_goals) * 0.25
+    )
+    if result.proof_outcome in {"infra_failure", "auth_failure"} or result.blocker_type in {"dns_failure", "network_unavailable"}:
         boundary = 0.0
+    elif result.proof_outcome == "disproved":
+        boundary = 1.8
     elif result.blocker_type in {"structural", "malformed"}:
         boundary = 1.5
     elif result.blocker_type in {"search", "formalization"}:
         boundary = 0.8
     else:
         boundary = 0.5
-    cost_penalty = 0.5 if result.status == "failed" else 0.2
+    cost_penalty = 0.6 if result.proof_outcome in {"infra_failure", "auth_failure"} else 0.5 if result.status == "failed" else 0.2
 
     weights = charter.evaluator_weights or {}
     total = (
@@ -31,8 +43,13 @@ def score_result(charter: ProjectCharter, result: ProviderResult) -> EvaluationS
     notes: List[str] = []
     if result.generated_lemmas:
         notes.append(f"generated_lemmas={len(result.generated_lemmas)}")
-    if result.suspected_missing_assumptions:
-        notes.append(f"missing_assumptions={len(result.suspected_missing_assumptions)}")
+    if result.candidate_lemmas:
+        notes.append(f"candidate_lemmas={len(result.candidate_lemmas)}")
+    if result.unresolved_goals:
+        notes.append(f"unresolved_goals={len(result.unresolved_goals)}")
+    if result.missing_assumptions or result.suspected_missing_assumptions:
+        notes.append(f"missing_assumptions={len(result.missing_assumptions or result.suspected_missing_assumptions)}")
+    notes.append(f"proof_outcome={result.proof_outcome}")
     notes.append(f"blocker={result.blocker_type}")
 
     return EvaluationScore(

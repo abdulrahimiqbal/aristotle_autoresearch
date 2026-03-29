@@ -12,6 +12,8 @@ def build_report(db: Database, project_id: str) -> str:
     active = db.list_active_experiments(project_id)
     recent_completed = db.list_completed_experiments(project_id, limit=5)
     recurring = db.recurring_lemmas()
+    recurring_subgoals = db.recurring_subgoals(project_id)
+    blocker_summary = db.blocker_summary(project_id)
     sensitivity = db.assumption_sensitivity(project_id)
     latest_manager_run = db.latest_manager_run(project_id)
 
@@ -58,6 +60,25 @@ def build_report(db: Database, project_id: str) -> str:
     else:
         lines.append("- None yet.")
     lines.append("")
+    lines.append("## What we learned")
+    lines.append("")
+    if recurring:
+        lines.append("- recurring lemmas are beginning to cluster across runs")
+    else:
+        lines.append("- no recurring lemmas have stabilized yet")
+    if recurring_subgoals:
+        for item in recurring_subgoals[:5]:
+            lines.append(f"- repeated subgoal `{item['statement']}` across {item['observations']} runs")
+    else:
+        lines.append("- no repeated subgoals captured yet")
+    if blocker_summary:
+        for item in blocker_summary[:5]:
+            lines.append(
+                f"- blocker pattern `{item['blocker_type']}` / `{item['proof_outcome']}` appeared {item['observations']} times"
+            )
+    else:
+        lines.append("- no blocker patterns aggregated yet")
+    lines.append("")
     lines.append("## Assumption sensitivity")
     lines.append("")
     if sensitivity:
@@ -76,6 +97,8 @@ def build_report(db: Database, project_id: str) -> str:
         lines.append(f"- move: `{experiment['move']}`")
         lines.append(f"- phase: `{experiment['phase']}`")
         lines.append(f"- status: `{experiment['status']}`")
+        if experiment.get("proof_outcome"):
+            lines.append(f"- proof outcome: `{experiment['proof_outcome']}`")
         lines.append(f"- blocker: `{experiment['blocker_type']}`")
         if experiment.get("external_id"):
             lines.append(f"- external job id: `{experiment['external_id']}`")
@@ -85,6 +108,9 @@ def build_report(db: Database, project_id: str) -> str:
         if experiment.get("outcome"):
             provider_result = experiment["outcome"]["provider_result"]
             evaluation = experiment["outcome"].get("evaluation")
+            ingestion = experiment.get("ingestion") or {}
+            if ingestion.get("signal_summary"):
+                lines.append(f"- learned summary: {ingestion['signal_summary']}")
             if provider_result.get("generated_lemmas"):
                 lines.append("- generated lemmas:")
                 for lemma in provider_result["generated_lemmas"]:
@@ -93,10 +119,28 @@ def build_report(db: Database, project_id: str) -> str:
                 lines.append("- proved lemmas:")
                 for lemma in provider_result["proved_lemmas"]:
                     lines.append(f"  - `{lemma}`")
-            if provider_result.get("suspected_missing_assumptions"):
+            if provider_result.get("candidate_lemmas"):
+                lines.append("- candidate lemmas:")
+                for lemma in provider_result["candidate_lemmas"]:
+                    lines.append(f"  - `{lemma}`")
+            if provider_result.get("unresolved_goals"):
+                lines.append("- unresolved goals:")
+                for goal in provider_result["unresolved_goals"]:
+                    lines.append(f"  - `{goal}`")
+            if provider_result.get("blocked_on"):
+                lines.append("- blocked on:")
+                for item in provider_result["blocked_on"]:
+                    lines.append(f"  - `{item}`")
+            if provider_result.get("missing_assumptions") or provider_result.get("suspected_missing_assumptions"):
                 lines.append("- suspected missing assumptions:")
-                for assumption in provider_result["suspected_missing_assumptions"]:
+                for assumption in provider_result.get("missing_assumptions") or provider_result.get("suspected_missing_assumptions") or []:
                     lines.append(f"  - `{assumption}`")
+            if ingestion.get("artifact_inventory"):
+                lines.append("- artifact inventory:")
+                for artifact in ingestion["artifact_inventory"][:10]:
+                    lines.append(
+                        f"  - `{artifact['kind']}` `{artifact['path']}` ({artifact['size_bytes']} bytes)"
+                    )
             if provider_result.get("artifacts"):
                 lines.append("- artifacts:")
                 for artifact in provider_result["artifacts"]:

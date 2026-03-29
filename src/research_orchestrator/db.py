@@ -128,6 +128,46 @@ SCHEMA = [
         FOREIGN KEY(project_id) REFERENCES projects(project_id)
     )
     """,
+    """
+    CREATE TABLE IF NOT EXISTS extracted_subgoals (
+        subgoal_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        conjecture_id TEXT NOT NULL,
+        experiment_id TEXT NOT NULL,
+        statement TEXT NOT NULL,
+        source TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id),
+        FOREIGN KEY(conjecture_id) REFERENCES conjectures(conjecture_id),
+        FOREIGN KEY(experiment_id) REFERENCES experiments(experiment_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS artifact_metadata (
+        artifact_id TEXT PRIMARY KEY,
+        experiment_id TEXT NOT NULL,
+        path TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        size_bytes INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(experiment_id) REFERENCES experiments(experiment_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS blocker_observations (
+        blocker_observation_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        conjecture_id TEXT NOT NULL,
+        experiment_id TEXT NOT NULL,
+        blocker_type TEXT NOT NULL,
+        proof_outcome TEXT NOT NULL,
+        detail TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id),
+        FOREIGN KEY(conjecture_id) REFERENCES conjectures(conjecture_id),
+        FOREIGN KEY(experiment_id) REFERENCES experiments(experiment_id)
+    )
+    """,
 ]
 
 
@@ -153,6 +193,9 @@ class Database:
             ("external_status", "TEXT"),
             ("submitted_at", "TEXT"),
             ("last_synced_at", "TEXT"),
+            ("proof_outcome", "TEXT"),
+            ("signal_summary", "TEXT"),
+            ("ingestion_json", "TEXT"),
         ):
             if column_name not in existing:
                 self.conn.execute(
@@ -281,6 +324,15 @@ class Database:
         outcome_json = {
             "provider_result": result.__dict__,
         }
+        ingestion_json = {
+            "proof_outcome": result.proof_outcome,
+            "signal_summary": result.signal_summary,
+            "candidate_lemmas": result.candidate_lemmas,
+            "unresolved_goals": result.unresolved_goals,
+            "blocked_on": result.blocked_on,
+            "missing_assumptions": result.missing_assumptions or result.suspected_missing_assumptions,
+            "artifact_inventory": result.artifact_inventory,
+        }
         if evaluation is not None:
             outcome_json["evaluation"] = evaluation
         completed_at = utcnow() if result.status in {"succeeded", "stalled", "failed"} else None
@@ -289,7 +341,7 @@ class Database:
         self.conn.execute(
             """
             UPDATE experiments
-            SET provider = ?, status = ?, blocker_type = ?, outcome_json = ?, external_id = ?, external_status = ?,
+            SET provider = ?, status = ?, blocker_type = ?, outcome_json = ?, ingestion_json = ?, proof_outcome = ?, signal_summary = ?, external_id = ?, external_status = ?,
                 submitted_at = COALESCE(?, submitted_at), last_synced_at = ?, completed_at = COALESCE(?, completed_at)
             WHERE experiment_id = ?
             """,
@@ -298,6 +350,9 @@ class Database:
                 result.status,
                 result.blocker_type,
                 json.dumps(outcome_json),
+                json.dumps(ingestion_json),
+                result.proof_outcome,
+                result.signal_summary,
                 result.external_id or None,
                 result.external_status or None,
                 submitted_at,
@@ -334,6 +389,7 @@ class Database:
             data["outcome"] = json.loads(data["outcome_json"])
         else:
             data["outcome"] = None
+        data["ingestion"] = json.loads(data["ingestion_json"]) if data.get("ingestion_json") else None
         return data
 
     def list_experiments(self, project_id: str) -> List[Dict[str, Any]]:
@@ -346,6 +402,7 @@ class Database:
             item = dict(row)
             item["modification"] = json.loads(item["modification_json"])
             item["outcome"] = json.loads(item["outcome_json"]) if item["outcome_json"] else None
+            item["ingestion"] = json.loads(item["ingestion_json"]) if item.get("ingestion_json") else None
             results.append(item)
         return results
 
@@ -367,6 +424,7 @@ class Database:
             item = dict(row)
             item["modification"] = json.loads(item["modification_json"])
             item["outcome"] = json.loads(item["outcome_json"]) if item["outcome_json"] else None
+            item["ingestion"] = json.loads(item["ingestion_json"]) if item.get("ingestion_json") else None
             results.append(item)
         return results
 
@@ -390,6 +448,7 @@ class Database:
             item = dict(row)
             item["modification"] = json.loads(item["modification_json"])
             item["outcome"] = json.loads(item["outcome_json"]) if item["outcome_json"] else None
+            item["ingestion"] = json.loads(item["ingestion_json"]) if item.get("ingestion_json") else None
             results.append(item)
         return results
 
@@ -482,14 +541,22 @@ class Database:
         )
         self.conn.commit()
 
-    def save_lemma_occurrences(self, experiment_id: str, conjecture_id: str, generated: Iterable[str], proved: Iterable[str]) -> None:
+    def save_lemma_occurrences(
+        self,
+        experiment_id: str,
+        conjecture_id: str,
+        generated: Iterable[str],
+        proved: Iterable[str],
+        candidate: Iterable[str] = (),
+    ) -> None:
         import uuid
 
-        all_items: List[tuple[str, bool]] = []
-        all_items.extend((item, False) for item in generated)
-        all_items.extend((item, True) for item in proved)
+        all_items: List[tuple[str, str]] = []
+        all_items.extend((item, "generated") for item in generated)
+        all_items.extend((item, "proved") for item in proved)
+        all_items.extend((item, "candidate") for item in candidate)
 
-        for statement, proved_flag in all_items:
+        for statement, role in all_items:
             normalized, digest = lemma_fingerprint(statement)
             existing = self.conn.execute(
                 "SELECT lemma_id, reuse_count FROM lemmas WHERE normalized_hash = ?",
@@ -525,13 +592,81 @@ class Database:
                     lemma_id,
                     experiment_id,
                     conjecture_id,
-                    "proved" if proved_flag else "generated",
-                    1 if proved_flag else 0,
+                    role,
+                    1 if role == "proved" else 0,
                     statement,
                     utcnow(),
                 ),
             )
 
+        self.conn.commit()
+
+    def record_result_ingestion(
+        self,
+        project_id: str,
+        conjecture_id: str,
+        experiment_id: str,
+        proof_outcome: str,
+        blocker_type: str,
+        unresolved_goals: Iterable[str],
+        artifact_inventory: Iterable[Dict[str, Any]],
+        signal_summary: str,
+    ) -> None:
+        import uuid
+
+        self.conn.execute("DELETE FROM extracted_subgoals WHERE experiment_id = ?", (experiment_id,))
+        self.conn.execute("DELETE FROM artifact_metadata WHERE experiment_id = ?", (experiment_id,))
+        self.conn.execute("DELETE FROM blocker_observations WHERE experiment_id = ?", (experiment_id,))
+
+        for goal in unresolved_goals:
+            self.conn.execute(
+                """
+                INSERT INTO extracted_subgoals(subgoal_id, project_id, conjecture_id, experiment_id, statement, source, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(uuid.uuid4()),
+                    project_id,
+                    conjecture_id,
+                    experiment_id,
+                    goal,
+                    "result_ingestion",
+                    utcnow(),
+                ),
+            )
+
+        for artifact in artifact_inventory:
+            self.conn.execute(
+                """
+                INSERT INTO artifact_metadata(artifact_id, experiment_id, path, kind, size_bytes, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(uuid.uuid4()),
+                    experiment_id,
+                    artifact.get("path", ""),
+                    artifact.get("kind", "file"),
+                    int(artifact.get("size_bytes", 0) or 0),
+                    utcnow(),
+                ),
+            )
+
+        self.conn.execute(
+            """
+            INSERT INTO blocker_observations(blocker_observation_id, project_id, conjecture_id, experiment_id, blocker_type, proof_outcome, detail, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                str(uuid.uuid4()),
+                project_id,
+                conjecture_id,
+                experiment_id,
+                blocker_type,
+                proof_outcome,
+                signal_summary,
+                utcnow(),
+            ),
+        )
         self.conn.commit()
 
     def record_assumption_observation(self, project_id: str, conjecture_id: str, experiment_id: str, assumption_name: str, outcome: str, sensitivity_score: float) -> None:
@@ -558,14 +693,22 @@ class Database:
     def recurring_lemmas(self, minimum_reuse: int = 2) -> List[Dict[str, Any]]:
         rows = self.conn.execute(
             """
-            SELECT lemma_id, representative_statement, normalized_statement, reuse_count
-            FROM lemmas
-            WHERE reuse_count >= ?
+            SELECT l.lemma_id, l.representative_statement, l.normalized_statement, l.reuse_count,
+                   GROUP_CONCAT(DISTINCT lo.conjecture_id) AS conjecture_ids
+            FROM lemmas l
+            JOIN lemma_occurrences lo ON lo.lemma_id = l.lemma_id
+            WHERE l.reuse_count >= ?
+            GROUP BY l.lemma_id, l.representative_statement, l.normalized_statement, l.reuse_count
             ORDER BY reuse_count DESC, representative_statement ASC
             """,
             (minimum_reuse,),
         ).fetchall()
-        return [dict(row) for row in rows]
+        items = []
+        for row in rows:
+            item = dict(row)
+            item["conjecture_ids"] = item["conjecture_ids"].split(",") if item.get("conjecture_ids") else []
+            items.append(item)
+        return items
 
     def assumption_sensitivity(self, project_id: str) -> List[Dict[str, Any]]:
         rows = self.conn.execute(
@@ -575,6 +718,33 @@ class Database:
             WHERE project_id = ?
             GROUP BY assumption_name
             ORDER BY avg_sensitivity DESC, observations DESC, assumption_name ASC
+            """,
+            (project_id,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def recurring_subgoals(self, project_id: str, minimum_reuse: int = 2) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT statement, COUNT(*) AS observations
+            FROM extracted_subgoals
+            WHERE project_id = ?
+            GROUP BY statement
+            HAVING COUNT(*) >= ?
+            ORDER BY observations DESC, statement ASC
+            """,
+            (project_id, minimum_reuse),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def blocker_summary(self, project_id: str) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT blocker_type, proof_outcome, COUNT(*) AS observations
+            FROM blocker_observations
+            WHERE project_id = ?
+            GROUP BY blocker_type, proof_outcome
+            ORDER BY observations DESC, blocker_type ASC, proof_outcome ASC
             """,
             (project_id,),
         ).fetchall()
@@ -595,5 +765,7 @@ class Database:
             "pending": pending,
             "active_by_external_status": self.active_experiments_by_external_status(project_id),
             "recurring_lemmas": self.recurring_lemmas(),
+            "recurring_subgoals": self.recurring_subgoals(project_id),
+            "blocker_summary": self.blocker_summary(project_id),
             "assumption_sensitivity": self.assumption_sensitivity(project_id),
         }

@@ -26,12 +26,21 @@ def choose_move(
     experiments: List[dict],
     recurring_lemmas: List[dict],
 ) -> tuple[str, Dict[str, str], str, str]:
-    seen_moves = [item["move"] for item in experiments if item["conjecture_id"] == conjecture.conjecture_id]
+    conjecture_experiments = [item for item in experiments if item["conjecture_id"] == conjecture.conjecture_id]
+    seen_moves = [item["move"] for item in conjecture_experiments]
     tested_assumptions = {
         item["modification"].get("assumption")
         for item in experiments
         if item["move"] == "perturb_assumption" and item["modification"].get("assumption")
     }
+    structural_count = sum(
+        1
+        for item in conjecture_experiments
+        if item["status"] in {"failed", "stalled"} and item.get("blocker_type") == "structural"
+    )
+    recurring_for_conjecture = [
+        item for item in recurring_lemmas if conjecture.conjecture_id in item.get("conjecture_ids", [conjecture.conjecture_id])
+    ]
 
     if "underspecify" not in seen_moves:
         return (
@@ -50,8 +59,8 @@ def choose_move(
                 "Measure assumption sensitivity and classify the blocker.",
             )
 
-    if any(item["reuse_count"] >= charter.promotion_threshold for item in recurring_lemmas) and "promote_lemma" not in seen_moves:
-        lemma = sorted(recurring_lemmas, key=lambda x: (-x["reuse_count"], x["representative_statement"]))[0]
+    if any(item["reuse_count"] >= charter.promotion_threshold for item in recurring_for_conjecture or recurring_lemmas) and "promote_lemma" not in seen_moves:
+        lemma = sorted(recurring_for_conjecture or recurring_lemmas, key=lambda x: (-x["reuse_count"], x["representative_statement"]))[0]
         return (
             "promote_lemma",
             {"lemma_statement": lemma["representative_statement"]},
@@ -66,6 +75,14 @@ def choose_move(
             {"form": form},
             f"Re-express the conjecture as a {form}.",
             "Separate structural difficulty from representation-specific difficulty.",
+        )
+
+    if structural_count >= 2:
+        return (
+            "counterexample_mode",
+            {"target": "most_fragile_variant"},
+            "Seek a falsifying or independence-style witness for the most fragile observed variant.",
+            "Disambiguate falsehood from search failure after repeated structural blockers.",
         )
 
     return (
