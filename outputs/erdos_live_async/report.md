@@ -8,15 +8,15 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Summary
 
-- Experiments: 18
+- Experiments: 21
 - Succeeded: 0
 - Stalled: 0
 - Failed: 18
-- Pending: 0
+- Pending: 3
 
 ## Active jobs
 
-- None active.
+- `QUEUED`: 3
 
 ## Recently completed
 
@@ -216,18 +216,60 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/ace7b855-da46-4293-822e-f736eef6baff/aristotle_submit_stderr.txt`
 - notes: Aristotle submission succeeded locally, but no remote project id was found in stdout/stderr.
 
+### b8a93291-8fe5-46bb-b590-842aaa6c99d1
+
+- move: `reformulate`
+- phase: `consolidation`
+- status: `submitted`
+- blocker: `unknown`
+- external job id: `1b2d49f3-d8da-40e5-8d49-7895a1bc3d10`
+- external status: `QUEUED`
+- objective: Re-express the conjecture as a the set {a^k b^l c^m : k, l, m >= 0} is d-complete.
+- artifacts:
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/b8a93291-8fe5-46bb-b590-842aaa6c99d1/aristotle_submit_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/b8a93291-8fe5-46bb-b590-842aaa6c99d1/aristotle_submit_stderr.txt`
+- notes: Submitted Aristotle job without waiting for completion.
+
+### 4a5341f3-55a3-4dd4-9a22-88b11597448f
+
+- move: `reformulate`
+- phase: `consolidation`
+- status: `submitted`
+- blocker: `unknown`
+- external job id: `7136ba1e-2909-4d34-a48e-8ac5fcb5795c`
+- external status: `QUEUED`
+- objective: Re-express the conjecture as a every finite Sidon set can be completed to a near-extremal Sidon set after enlarging the ambient interval.
+- artifacts:
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/4a5341f3-55a3-4dd4-9a22-88b11597448f/aristotle_submit_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/4a5341f3-55a3-4dd4-9a22-88b11597448f/aristotle_submit_stderr.txt`
+- notes: Submitted Aristotle job without waiting for completion.
+
+### 7a1440ba-0f7c-49b7-a47e-7d614b3840a6
+
+- move: `counterexample_mode`
+- phase: `consolidation`
+- status: `submitted`
+- blocker: `unknown`
+- external job id: `2a66c4e5-db3d-4a9e-ab2b-11b7fab6d4da`
+- external status: `QUEUED`
+- objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
+- artifacts:
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/7a1440ba-0f7c-49b7-a47e-7d614b3840a6/aristotle_submit_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/7a1440ba-0f7c-49b7-a47e-7d614b3840a6/aristotle_submit_stderr.txt`
+- notes: Submitted Aristotle job without waiting for completion.
+
 ## Latest manager decision
 
 - policy path: `fallback`
 - jobs synced: 0
 - jobs submitted: 3
 - active before: 0
-- active after: 0
+- active after: 3
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.manager_snapshot.json`
-- queued `b5d29873-cd24-487d-b51c-9d4f66079862` for `erdos-123` via `perturb_assumption` (chosen by deterministic fallback policy)
-- queued `6d17890b-1a5c-4a01-8c9c-2be87fa64b68` for `erdos-44` via `perturb_assumption` (chosen by deterministic fallback policy)
-- queued `ace7b855-da46-4293-822e-f736eef6baff` for `erdos-181` via `reformulate` (chosen by deterministic fallback policy)
+- queued `b8a93291-8fe5-46bb-b590-842aaa6c99d1` for `erdos-123` via `reformulate` (chosen by deterministic fallback policy)
+- queued `4a5341f3-55a3-4dd4-9a22-88b11597448f` for `erdos-44` via `reformulate` (chosen by deterministic fallback policy)
+- queued `7a1440ba-0f7c-49b7-a47e-7d614b3840a6` for `erdos-181` via `counterexample_mode` (chosen by deterministic fallback policy)
 
 ## Suggested next move
 
