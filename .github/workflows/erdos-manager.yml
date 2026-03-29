@@ -2,19 +2,6 @@ name: Erdos Campaign Manager
 
 on:
   workflow_dispatch:
-    inputs:
-      max_active:
-        description: "Maximum active Aristotle jobs to maintain"
-        required: false
-        default: "5"
-      max_submit_per_tick:
-        description: "Maximum new submissions to create in this tick"
-        required: false
-        default: "5"
-      llm_manager:
-        description: "Manager policy mode"
-        required: false
-        default: "auto"
   schedule:
     - cron: "*/30 * * * *"
 
@@ -32,9 +19,9 @@ jobs:
     env:
       STATE_BRANCH: campaign-state
       STATE_DIR: outputs/erdos_live_async
-      MAX_ACTIVE: ${{ github.event.inputs.max_active || '5' }}
-      MAX_SUBMIT_PER_TICK: ${{ github.event.inputs.max_submit_per_tick || '5' }}
-      LLM_MANAGER: ${{ github.event.inputs.llm_manager || 'auto' }}
+      MAX_ACTIVE: "5"
+      MAX_SUBMIT_PER_TICK: "5"
+      LLM_MANAGER: "auto"
     steps:
       - name: Check out main branch
         uses: actions/checkout@v4
