@@ -8,10 +8,10 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Summary
 
-- Experiments: 15
+- Experiments: 18
 - Succeeded: 0
 - Stalled: 0
-- Failed: 15
+- Failed: 18
 - Pending: 0
 
 ## Active jobs
@@ -20,11 +20,11 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Recently completed
 
+- `ace7b855-da46-4293-822e-f736eef6baff` on `erdos-181` -> `failed`
+- `6d17890b-1a5c-4a01-8c9c-2be87fa64b68` on `erdos-44` -> `failed`
+- `b5d29873-cd24-487d-b51c-9d4f66079862` on `erdos-123` -> `failed`
 - `eab7ca25-2fa7-4a27-ae80-2c13d8c20379` on `erdos-44` -> `failed`
 - `492cd1f2-b1b5-4bbb-8410-aa58224bd35a` on `erdos-181` -> `failed`
-- `535b0629-7220-4a2b-96cd-918f1ebb2dec` on `erdos-123` -> `failed`
-- `cd3ea9e4-0ed2-4f18-b3a8-528491d53fcd` on `erdos-44` -> `failed`
-- `ade1e128-c154-4782-8e9f-c8e90cf7b71c` on `erdos-181` -> `failed`
 
 ## Recurring lemmas
 
@@ -180,6 +180,42 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/eab7ca25-2fa7-4a27-ae80-2c13d8c20379/aristotle_submit_stderr.txt`
 - notes: Aristotle submission succeeded locally, but no remote project id was found in stdout/stderr.
 
+### b5d29873-cd24-487d-b51c-9d4f66079862
+
+- move: `perturb_assumption`
+- phase: `consolidation`
+- status: `failed`
+- blocker: `unknown`
+- objective: Remove assumption `the representation is required only for sufficiently large integers` and test whether the theorem landscape changes sharply.
+- artifacts:
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/b5d29873-cd24-487d-b51c-9d4f66079862/aristotle_submit_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/b5d29873-cd24-487d-b51c-9d4f66079862/aristotle_submit_stderr.txt`
+- notes: Aristotle submission succeeded locally, but no remote project id was found in stdout/stderr.
+
+### 6d17890b-1a5c-4a01-8c9c-2be87fa64b68
+
+- move: `perturb_assumption`
+- phase: `consolidation`
+- status: `failed`
+- blocker: `unknown`
+- objective: Remove assumption `target density is measured against M^(1/2)` and test whether the theorem landscape changes sharply.
+- artifacts:
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6d17890b-1a5c-4a01-8c9c-2be87fa64b68/aristotle_submit_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6d17890b-1a5c-4a01-8c9c-2be87fa64b68/aristotle_submit_stderr.txt`
+- notes: Aristotle submission succeeded locally, but no remote project id was found in stdout/stderr.
+
+### ace7b855-da46-4293-822e-f736eef6baff
+
+- move: `reformulate`
+- phase: `consolidation`
+- status: `failed`
+- blocker: `unknown`
+- objective: Re-express the conjecture as a there exists C > 0 with R(Q_n) <= C * 2^n for all n.
+- artifacts:
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/ace7b855-da46-4293-822e-f736eef6baff/aristotle_submit_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/ace7b855-da46-4293-822e-f736eef6baff/aristotle_submit_stderr.txt`
+- notes: Aristotle submission succeeded locally, but no remote project id was found in stdout/stderr.
+
 ## Latest manager decision
 
 - policy path: `fallback`
@@ -189,9 +225,9 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - active after: 0
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.manager_snapshot.json`
-- queued `535b0629-7220-4a2b-96cd-918f1ebb2dec` for `erdos-123` via `perturb_assumption` (chosen by deterministic fallback policy)
-- queued `492cd1f2-b1b5-4bbb-8410-aa58224bd35a` for `erdos-181` via `perturb_assumption` (chosen by deterministic fallback policy)
-- queued `eab7ca25-2fa7-4a27-ae80-2c13d8c20379` for `erdos-44` via `perturb_assumption` (chosen by deterministic fallback policy)
+- queued `b5d29873-cd24-487d-b51c-9d4f66079862` for `erdos-123` via `perturb_assumption` (chosen by deterministic fallback policy)
+- queued `6d17890b-1a5c-4a01-8c9c-2be87fa64b68` for `erdos-44` via `perturb_assumption` (chosen by deterministic fallback policy)
+- queued `ace7b855-da46-4293-822e-f736eef6baff` for `erdos-181` via `reformulate` (chosen by deterministic fallback policy)
 
 ## Suggested next move
 
