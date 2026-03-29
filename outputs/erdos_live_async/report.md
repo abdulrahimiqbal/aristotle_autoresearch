@@ -8,10 +8,10 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Summary
 
-- Experiments: 6
+- Experiments: 9
 - Succeeded: 0
 - Stalled: 0
-- Failed: 6
+- Failed: 9
 - Pending: 0
 
 ## Active jobs
@@ -20,11 +20,11 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Recently completed
 
+- `4c15c113-9018-45b1-b67c-10769b3cbd76` on `erdos-44` -> `failed`
+- `43cec7bd-2517-4565-9655-eeb932f722fe` on `erdos-181` -> `failed`
+- `89fe9865-982b-49fd-ae4e-ccfc498584a0` on `erdos-123` -> `failed`
 - `74713603-cbb1-478b-a2d6-ac2712dfc303` on `erdos-44` -> `failed`
 - `8411e6cd-b186-41f4-8773-6d2472f38733` on `erdos-181` -> `failed`
-- `07f80faa-31b2-494b-a590-3154b8d1bea4` on `erdos-123` -> `failed`
-- `bf7074a1-e390-4710-9d2b-869768dbebbe` on `erdos-44` -> `failed`
-- `dfb4fca8-3ed3-45a0-9bdd-a10c0310b84e` on `erdos-181` -> `failed`
 
 ## Recurring lemmas
 
@@ -90,6 +90,33 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - objective: Remove assumption `finite interval model A ⊆ {1, ..., N}` and test whether the theorem landscape changes sharply.
 - notes: The `aristotle` CLI executable was not found on PATH.
 
+### 89fe9865-982b-49fd-ae4e-ccfc498584a0
+
+- move: `perturb_assumption`
+- phase: `consolidation`
+- status: `failed`
+- blocker: `malformed`
+- objective: Remove assumption `a, b, c are pairwise coprime` and test whether the theorem landscape changes sharply.
+- notes: The `aristotle` CLI executable was not found on PATH.
+
+### 43cec7bd-2517-4565-9655-eeb932f722fe
+
+- move: `perturb_assumption`
+- phase: `consolidation`
+- status: `failed`
+- blocker: `malformed`
+- objective: Remove assumption `Q_n has exactly 2^n vertices` and test whether the theorem landscape changes sharply.
+- notes: The `aristotle` CLI executable was not found on PATH.
+
+### 4c15c113-9018-45b1-b67c-10769b3cbd76
+
+- move: `perturb_assumption`
+- phase: `consolidation`
+- status: `failed`
+- blocker: `malformed`
+- objective: Remove assumption `A is already Sidon` and test whether the theorem landscape changes sharply.
+- notes: The `aristotle` CLI executable was not found on PATH.
+
 ## Latest manager decision
 
 - policy path: `fallback`
@@ -99,9 +126,9 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - active after: 0
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.manager_snapshot.json`
-- queued `07f80faa-31b2-494b-a590-3154b8d1bea4` for `erdos-123` via `perturb_assumption` (chosen by deterministic fallback policy)
-- queued `8411e6cd-b186-41f4-8773-6d2472f38733` for `erdos-181` via `perturb_assumption` (chosen by deterministic fallback policy)
-- queued `74713603-cbb1-478b-a2d6-ac2712dfc303` for `erdos-44` via `perturb_assumption` (chosen by deterministic fallback policy)
+- queued `89fe9865-982b-49fd-ae4e-ccfc498584a0` for `erdos-123` via `perturb_assumption` (chosen by deterministic fallback policy)
+- queued `43cec7bd-2517-4565-9655-eeb932f722fe` for `erdos-181` via `perturb_assumption` (chosen by deterministic fallback policy)
+- queued `4c15c113-9018-45b1-b67c-10769b3cbd76` for `erdos-44` via `perturb_assumption` (chosen by deterministic fallback policy)
 
 ## Suggested next move
 
