@@ -1,0 +1,11 @@
+{
+  "provider": "aristotle-cli",
+  "command": [
+    "aristotle",
+    "submit",
+    "{objective}",
+    "--project-dir",
+    "{project_dir}",
+    "--wait"
+  ]
+}

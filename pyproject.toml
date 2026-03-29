@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "research-orchestrator"
+version = "0.1.0"
+description = "Research orchestration layer around Aristotle for dependency mapping, lemma archaeology, and assumption stress testing."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{name = "OpenAI prototype generator"}]
+dependencies = []
+
+[project.scripts]
+research-orchestrator = "research_orchestrator.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

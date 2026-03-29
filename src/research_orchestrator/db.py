@@ -1,0 +1,420 @@
+from __future__ import annotations
+
+import json
+import sqlite3
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Optional
+
+from research_orchestrator.lemma_utils import lemma_fingerprint
+from research_orchestrator.types import Conjecture, ProjectCharter, ProviderResult
+
+
+def utcnow() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+SCHEMA = [
+    """
+    CREATE TABLE IF NOT EXISTS projects (
+        project_id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        charter_json TEXT NOT NULL,
+        created_at TEXT NOT NULL
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS conjectures (
+        conjecture_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        domain TEXT NOT NULL,
+        natural_language TEXT NOT NULL,
+        lean_statement TEXT NOT NULL,
+        metadata_json TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS experiments (
+        experiment_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        conjecture_id TEXT NOT NULL,
+        phase TEXT NOT NULL,
+        move TEXT NOT NULL,
+        objective TEXT NOT NULL,
+        expected_signal TEXT NOT NULL,
+        modification_json TEXT NOT NULL,
+        workspace_dir TEXT NOT NULL,
+        lean_file TEXT NOT NULL,
+        provider TEXT,
+        status TEXT DEFAULT 'planned',
+        blocker_type TEXT DEFAULT 'unknown',
+        outcome_json TEXT,
+        created_at TEXT NOT NULL,
+        completed_at TEXT,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id),
+        FOREIGN KEY(conjecture_id) REFERENCES conjectures(conjecture_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS lemmas (
+        lemma_id TEXT PRIMARY KEY,
+        normalized_hash TEXT UNIQUE NOT NULL,
+        normalized_statement TEXT NOT NULL,
+        representative_statement TEXT NOT NULL,
+        reuse_count INTEGER NOT NULL DEFAULT 0,
+        first_seen_at TEXT NOT NULL,
+        last_seen_at TEXT NOT NULL
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS lemma_occurrences (
+        occurrence_id TEXT PRIMARY KEY,
+        lemma_id TEXT NOT NULL,
+        experiment_id TEXT NOT NULL,
+        conjecture_id TEXT NOT NULL,
+        role TEXT NOT NULL,
+        proved INTEGER NOT NULL DEFAULT 0,
+        raw_statement TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(lemma_id) REFERENCES lemmas(lemma_id),
+        FOREIGN KEY(experiment_id) REFERENCES experiments(experiment_id),
+        FOREIGN KEY(conjecture_id) REFERENCES conjectures(conjecture_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS research_notes (
+        note_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        experiment_id TEXT,
+        note_markdown TEXT NOT NULL,
+        structured_json TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS assumption_observations (
+        observation_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        conjecture_id TEXT NOT NULL,
+        assumption_name TEXT NOT NULL,
+        experiment_id TEXT NOT NULL,
+        outcome TEXT NOT NULL,
+        sensitivity_score REAL NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id),
+        FOREIGN KEY(conjecture_id) REFERENCES conjectures(conjecture_id),
+        FOREIGN KEY(experiment_id) REFERENCES experiments(experiment_id)
+    )
+    """,
+]
+
+
+class Database:
+    def __init__(self, path: str | Path):
+        self.path = str(path)
+        self.conn = sqlite3.connect(self.path)
+        self.conn.row_factory = sqlite3.Row
+
+    def initialize(self) -> None:
+        for statement in SCHEMA:
+            self.conn.execute(statement)
+        self.conn.commit()
+
+    def close(self) -> None:
+        self.conn.close()
+
+    def save_project(self, charter: ProjectCharter) -> None:
+        self.conn.execute(
+            """
+            INSERT OR REPLACE INTO projects(project_id, title, charter_json, created_at)
+            VALUES (?, ?, ?, COALESCE((SELECT created_at FROM projects WHERE project_id = ?), ?))
+            """,
+            (
+                charter.project_id,
+                charter.title,
+                json.dumps(charter.__dict__),
+                charter.project_id,
+                utcnow(),
+            ),
+        )
+        self.conn.commit()
+
+    def save_conjecture(self, conjecture: Conjecture) -> None:
+        metadata = {
+            "assumptions": conjecture.assumptions,
+            "critical_assumptions": conjecture.critical_assumptions,
+            "hidden_dependencies": conjecture.hidden_dependencies,
+            "equivalent_forms": conjecture.equivalent_forms,
+            "candidate_transfer_domains": conjecture.candidate_transfer_domains,
+        }
+        self.conn.execute(
+            """
+            INSERT OR REPLACE INTO conjectures(
+                conjecture_id, project_id, name, domain, natural_language, lean_statement, metadata_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT created_at FROM conjectures WHERE conjecture_id = ?), ?))
+            """,
+            (
+                conjecture.conjecture_id,
+                conjecture.project_id,
+                conjecture.name,
+                conjecture.domain,
+                conjecture.natural_language,
+                conjecture.lean_statement,
+                json.dumps(metadata),
+                conjecture.conjecture_id,
+                utcnow(),
+            ),
+        )
+        self.conn.commit()
+
+    def get_charter(self, project_id: str) -> ProjectCharter:
+        row = self.conn.execute(
+            "SELECT charter_json FROM projects WHERE project_id = ?", (project_id,)
+        ).fetchone()
+        if row is None:
+            raise KeyError(f"Unknown project_id: {project_id}")
+        return ProjectCharter(**json.loads(row["charter_json"]))
+
+    def get_conjecture(self, conjecture_id: str) -> Conjecture:
+        row = self.conn.execute(
+            "SELECT * FROM conjectures WHERE conjecture_id = ?", (conjecture_id,)
+        ).fetchone()
+        if row is None:
+            raise KeyError(f"Unknown conjecture_id: {conjecture_id}")
+        metadata = json.loads(row["metadata_json"])
+        return Conjecture(
+            conjecture_id=row["conjecture_id"],
+            project_id=row["project_id"],
+            name=row["name"],
+            domain=row["domain"],
+            natural_language=row["natural_language"],
+            lean_statement=row["lean_statement"],
+            assumptions=metadata.get("assumptions", []),
+            critical_assumptions=metadata.get("critical_assumptions", []),
+            hidden_dependencies=metadata.get("hidden_dependencies", []),
+            equivalent_forms=metadata.get("equivalent_forms", []),
+            candidate_transfer_domains=metadata.get("candidate_transfer_domains", []),
+        )
+
+    def list_conjectures(self, project_id: str) -> List[Conjecture]:
+        rows = self.conn.execute(
+            "SELECT conjecture_id FROM conjectures WHERE project_id = ? ORDER BY conjecture_id",
+            (project_id,),
+        ).fetchall()
+        return [self.get_conjecture(row["conjecture_id"]) for row in rows]
+
+    def save_experiment_plan(self, brief: Dict[str, Any]) -> None:
+        self.conn.execute(
+            """
+            INSERT OR REPLACE INTO experiments(
+                experiment_id, project_id, conjecture_id, phase, move, objective, expected_signal,
+                modification_json, workspace_dir, lean_file, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT created_at FROM experiments WHERE experiment_id = ?), ?))
+            """,
+            (
+                brief["experiment_id"],
+                brief["project_id"],
+                brief["conjecture_id"],
+                brief["phase"],
+                brief["move"],
+                brief["objective"],
+                brief["expected_signal"],
+                json.dumps(brief["modification"]),
+                brief["workspace_dir"],
+                brief["lean_file"],
+                brief["experiment_id"],
+                utcnow(),
+            ),
+        )
+        self.conn.commit()
+
+    def complete_experiment(
+        self,
+        experiment_id: str,
+        provider: str,
+        result: ProviderResult,
+        evaluation: Dict[str, Any],
+    ) -> None:
+        outcome_json = {
+            "provider_result": result.__dict__,
+            "evaluation": evaluation,
+        }
+        self.conn.execute(
+            """
+            UPDATE experiments
+            SET provider = ?, status = ?, blocker_type = ?, outcome_json = ?, completed_at = ?
+            WHERE experiment_id = ?
+            """,
+            (
+                provider,
+                result.status,
+                result.blocker_type,
+                json.dumps(outcome_json),
+                utcnow(),
+                experiment_id,
+            ),
+        )
+        self.conn.commit()
+
+    def get_experiment(self, experiment_id: str) -> Optional[Dict[str, Any]]:
+        row = self.conn.execute(
+            "SELECT * FROM experiments WHERE experiment_id = ?", (experiment_id,)
+        ).fetchone()
+        if row is None:
+            return None
+        data = dict(row)
+        data["modification"] = json.loads(data["modification_json"])
+        if data.get("outcome_json"):
+            data["outcome"] = json.loads(data["outcome_json"])
+        else:
+            data["outcome"] = None
+        return data
+
+    def list_experiments(self, project_id: str) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            "SELECT * FROM experiments WHERE project_id = ? ORDER BY created_at ASC",
+            (project_id,),
+        ).fetchall()
+        results = []
+        for row in rows:
+            item = dict(row)
+            item["modification"] = json.loads(item["modification_json"])
+            item["outcome"] = json.loads(item["outcome_json"]) if item["outcome_json"] else None
+            results.append(item)
+        return results
+
+    def add_note(self, project_id: str, note_markdown: str, structured: Optional[Dict[str, Any]] = None, experiment_id: Optional[str] = None) -> None:
+        import uuid
+
+        self.conn.execute(
+            """
+            INSERT INTO research_notes(note_id, project_id, experiment_id, note_markdown, structured_json, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                str(uuid.uuid4()),
+                project_id,
+                experiment_id,
+                note_markdown,
+                json.dumps(structured) if structured is not None else None,
+                utcnow(),
+            ),
+        )
+        self.conn.commit()
+
+    def save_lemma_occurrences(self, experiment_id: str, conjecture_id: str, generated: Iterable[str], proved: Iterable[str]) -> None:
+        import uuid
+
+        all_items: List[tuple[str, bool]] = []
+        all_items.extend((item, False) for item in generated)
+        all_items.extend((item, True) for item in proved)
+
+        for statement, proved_flag in all_items:
+            normalized, digest = lemma_fingerprint(statement)
+            existing = self.conn.execute(
+                "SELECT lemma_id, reuse_count FROM lemmas WHERE normalized_hash = ?",
+                (digest,),
+            ).fetchone()
+            if existing is None:
+                lemma_id = str(uuid.uuid4())
+                self.conn.execute(
+                    """
+                    INSERT INTO lemmas(lemma_id, normalized_hash, normalized_statement, representative_statement, reuse_count, first_seen_at, last_seen_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (lemma_id, digest, normalized, statement, 1, utcnow(), utcnow()),
+                )
+            else:
+                lemma_id = existing["lemma_id"]
+                self.conn.execute(
+                    """
+                    UPDATE lemmas
+                    SET reuse_count = reuse_count + 1, last_seen_at = ?
+                    WHERE lemma_id = ?
+                    """,
+                    (utcnow(), lemma_id),
+                )
+
+            self.conn.execute(
+                """
+                INSERT INTO lemma_occurrences(occurrence_id, lemma_id, experiment_id, conjecture_id, role, proved, raw_statement, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(uuid.uuid4()),
+                    lemma_id,
+                    experiment_id,
+                    conjecture_id,
+                    "proved" if proved_flag else "generated",
+                    1 if proved_flag else 0,
+                    statement,
+                    utcnow(),
+                ),
+            )
+
+        self.conn.commit()
+
+    def record_assumption_observation(self, project_id: str, conjecture_id: str, experiment_id: str, assumption_name: str, outcome: str, sensitivity_score: float) -> None:
+        import uuid
+
+        self.conn.execute(
+            """
+            INSERT INTO assumption_observations(observation_id, project_id, conjecture_id, assumption_name, experiment_id, outcome, sensitivity_score, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                str(uuid.uuid4()),
+                project_id,
+                conjecture_id,
+                assumption_name,
+                experiment_id,
+                outcome,
+                sensitivity_score,
+                utcnow(),
+            ),
+        )
+        self.conn.commit()
+
+    def recurring_lemmas(self, minimum_reuse: int = 2) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT lemma_id, representative_statement, normalized_statement, reuse_count
+            FROM lemmas
+            WHERE reuse_count >= ?
+            ORDER BY reuse_count DESC, representative_statement ASC
+            """,
+            (minimum_reuse,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def assumption_sensitivity(self, project_id: str) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT assumption_name, ROUND(AVG(sensitivity_score), 3) AS avg_sensitivity, COUNT(*) AS observations
+            FROM assumption_observations
+            WHERE project_id = ?
+            GROUP BY assumption_name
+            ORDER BY avg_sensitivity DESC, observations DESC, assumption_name ASC
+            """,
+            (project_id,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def project_summary(self, project_id: str) -> Dict[str, Any]:
+        experiments = self.list_experiments(project_id)
+        solved = sum(1 for item in experiments if item["status"] == "succeeded")
+        stalled = sum(1 for item in experiments if item["status"] == "stalled")
+        failed = sum(1 for item in experiments if item["status"] == "failed")
+        return {
+            "project_id": project_id,
+            "num_experiments": len(experiments),
+            "solved": solved,
+            "stalled": stalled,
+            "failed": failed,
+            "recurring_lemmas": self.recurring_lemmas(),
+            "assumption_sensitivity": self.assumption_sensitivity(project_id),
+        }

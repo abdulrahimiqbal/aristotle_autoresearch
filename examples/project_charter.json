@@ -1,0 +1,45 @@
+{
+  "project_id": "mono-001",
+  "title": "Hidden-structure discovery in weighted monotone subsequence problems",
+  "overarching_problem": "Identify hidden assumptions and recurring lemmas that govern provability across a family of weighted monotone subsequence conjectures.",
+  "success_criteria": [
+    "Surface recurring unnamed lemmas across related runs",
+    "Map which assumptions are structurally necessary",
+    "Identify boundary points where tiny statement changes alter provability",
+    "Propose candidate generalizations worth human review"
+  ],
+  "non_goals": [
+    "Do not optimize only for proving the original theorem",
+    "Do not treat one failed run as evidence of falsity",
+    "Do not wander into unrelated theorem families"
+  ],
+  "allowed_moves": [
+    "underspecify",
+    "perturb_assumption",
+    "reformulate",
+    "promote_lemma",
+    "counterexample_mode"
+  ],
+  "phase_order": [
+    "mapping",
+    "excavation",
+    "stress_testing",
+    "consolidation"
+  ],
+  "promotion_threshold": 3,
+  "domain_scope": [
+    "combinatorics",
+    "order theory"
+  ],
+  "evaluator_weights": {
+    "information_gain": 1.0,
+    "novelty": 1.0,
+    "reusability": 1.2,
+    "boundary_sharpness": 1.1,
+    "cost_penalty": 0.4
+  },
+  "human_preferences": {
+    "prefer_information_gain_over_proof_probability": true,
+    "require_reformulation_before_strong_negative_conclusion": true
+  }
+}

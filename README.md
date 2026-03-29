@@ -1,0 +1,235 @@
+# Aristotle Research Orchestrator
+
+A research orchestration prototype for running **structured theorem-discovery workflows around Aristotle**.
+
+It does **not** try to replace Aristotle. Instead, it adds the missing layers you asked for:
+
+- persistent **project charter**
+- explicit **research phases**
+- controlled **experiment generation**
+- cross-run **lemma memory**
+- **assumption sensitivity** tracking
+- research-grade **prompt contracts**
+- a deterministic **mock provider** so you can test the full system locally
+- a shell-based **Aristotle CLI adapter** you can swap in once you have API access
+
+## What this repo gives you
+
+- A working manager/worker architecture
+- SQLite-backed research memory
+- Prompt generation + prompt linting
+- A sample project around a weighted monotone subsequence theorem family
+- A demo command that runs a full mini research cycle
+- Unit tests for the orchestration core
+
+## What is mocked vs live
+
+### Working now
+The full orchestration loop works end-to-end with the `mock` provider:
+- creates experiments
+- generates prompts
+- simulates Aristotle-style outcomes
+- stores lemmas and experiment outcomes
+- produces a research memo
+
+### Live Aristotle integration
+The `aristotle-cli` provider is a **real shell adapter boundary**:
+- it calls the public Aristotle CLI with a project directory and objective prompt
+- it captures stdout/stderr and stores artifacts
+- it is intentionally conservative about parsing outputs
+
+You will likely want to customize its result ingestion for your own Aristotle workflow.
+
+## Quick start
+
+### 1) Create a virtual environment
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+### 2) Install the package
+```bash
+pip install -e .
+```
+
+### 3) Run the full local demo
+```bash
+research-orchestrator demo --workspace ./demo_run
+```
+
+This will:
+- create a SQLite database
+- register the sample project
+- import the sample conjecture
+- run several research cycles with the mock provider
+- write a markdown report into `./demo_run/report.md`
+
+### 4) Inspect the report
+Open:
+```bash
+./demo_run/report.md
+```
+
+## Core commands
+
+### Initialize a project
+```bash
+research-orchestrator init-project   --db ./state.sqlite   --charter ./examples/project_charter.json   --conjecture ./examples/conjectures/weighted_monotone.json
+```
+
+### Run one automatic research cycle
+```bash
+research-orchestrator run-cycle   --db ./state.sqlite   --project mono-001   --provider mock   --workspace ./work
+```
+
+### Run multiple cycles
+```bash
+research-orchestrator run-cycle   --db ./state.sqlite   --project mono-001   --provider mock   --workspace ./work   --max-cycles 5
+```
+
+### Preview prompts for the next planned experiment
+```bash
+research-orchestrator preview-next   --db ./state.sqlite   --project mono-001
+```
+
+### Generate a research report
+```bash
+research-orchestrator report   --db ./state.sqlite   --project mono-001   --output ./report.md
+```
+
+### Lint prompt contracts
+```bash
+research-orchestrator lint-prompts   --db ./state.sqlite   --project mono-001
+```
+
+## Testing the full ability of the system
+
+This repo is set up so you can test three things separately.
+
+### A. Orchestration quality
+Run:
+```bash
+research-orchestrator demo --workspace ./demo_run
+```
+Then inspect:
+- `report.md`
+- the SQLite database
+- the generated workspace directories
+
+You should see:
+- recurring lemmas
+- assumption sensitivity changes
+- manager-selected next experiments
+- clearly classified blockers
+
+### B. Prompt discipline
+Run:
+```bash
+research-orchestrator lint-prompts   --db ./demo_run/state.sqlite   --project mono-001
+```
+
+This verifies the generated manager and worker prompts contain hard constraints such as:
+- do not conclude falsity from one failed proof attempt
+- stay within the theorem family
+- return structured outputs
+- distinguish structural from search/formalization blockers
+
+### C. Code-level tests
+Run:
+```bash
+python -m unittest discover -s tests -v
+```
+
+This checks:
+- prompt contracts
+- lemma normalization
+- manager behavior
+- demo orchestration flow
+
+## Using the live Aristotle CLI
+
+The public `aristotlelib` package documents installation and commands such as:
+- `uv pip install aristotlelib`
+- `aristotle submit "Fill in all sorries" --project-dir ./my-lean-project --wait`
+- `aristotle formalize paper.tex --wait --destination output.tar.gz` citeturn430475search0
+
+### 1) Install the Aristotle CLI
+```bash
+uv pip install aristotlelib
+```
+
+### 2) Set your API key
+```bash
+export ARISTOTLE_API_KEY="your-api-key-here"
+```
+
+The PyPI package says the key can also be passed directly with `--api-key`, and that Python 3.10+ is required. citeturn430475search0
+
+### 3) Run with the CLI provider
+```bash
+research-orchestrator run-cycle   --db ./state.sqlite   --project mono-001   --provider aristotle-cli   --workspace ./work
+```
+
+### Notes on live use
+- The adapter currently shells out to `aristotle submit ... --project-dir ... --wait`.
+- It stores stdout/stderr as artifacts and classifies the run conservatively.
+- You should customize the parser if your Aristotle workflow returns structured result archives or generated Lean outputs.
+
+## Suggested development path
+
+### Week 1
+- Run the demo
+- Read the database tables
+- Adjust the project charter and sample conjecture metadata
+
+### Week 2
+- Add a second theorem family
+- Improve lemma normalization
+- Add a second provider or more experiment moves
+
+### Week 3
+- Customize the Aristotle CLI parser
+- Connect actual Lean project outputs
+- Add counterexample mode
+
+### Week 4
+- Build an eval set of theorem families
+- Track prompt versions and compare decision quality
+
+## File overview
+
+- `src/research_orchestrator/charter.py` — project charter loading and validation
+- `src/research_orchestrator/db.py` — SQLite schema and persistence
+- `src/research_orchestrator/manager.py` — research manager policy
+- `src/research_orchestrator/experiment_generator.py` — allowed research moves
+- `src/research_orchestrator/prompts.py` — project/manager/worker prompt construction
+- `src/research_orchestrator/prompt_linter.py` — prompt contract checks
+- `src/research_orchestrator/providers/mock.py` — deterministic local provider
+- `src/research_orchestrator/providers/aristotle_cli.py` — shell adapter to the Aristotle CLI
+- `src/research_orchestrator/reporter.py` — markdown research memos
+
+## Research-grade prompt design principles in this repo
+
+Prompts are not treated as magic. The system uses:
+- project charters as a constitution
+- explicit allowed moves
+- structured run briefs
+- output schemas
+- prompt linting
+- deterministic tests
+
+That is how you keep “research quality” behavior from drifting.
+
+## Limitations
+
+- The mock provider is only a simulation of proof-search outcomes.
+- The live Aristotle adapter is real but conservative; it is not a complete parser for every possible Aristotle output layout.
+- Lean statement transformation in this prototype is intentionally lightweight and metadata-driven rather than a full theorem parser.
+
+## Recommended next upgrades
+
+- Add canonicalization with a Lean-aware normalizer
+- Add a richer evaluator using proof cost and recurrence gain
+- Add a proper result ingester for `aristotle result`
+- Add a dashboard over the SQLite database

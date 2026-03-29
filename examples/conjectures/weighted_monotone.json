@@ -1,0 +1,29 @@
+{
+  "conjecture_id": "c17",
+  "project_id": "mono-001",
+  "name": "Weighted monotone subsequence boundary theorem",
+  "domain": "combinatorics",
+  "natural_language": "For weighted monotone subsequence instances with positive weights on a finite ordered structure, there exists a threshold bound controlled by a monotone chain decomposition.",
+  "lean_statement": "theorem weighted_monotone_boundary (\u03b1 : Type) [Preorder \u03b1] (s : Finset \u03b1) (w : \u03b1 -> Nat) : True := by\n  sorry\n",
+  "assumptions": [
+    "finite_support",
+    "positive_weights",
+    "preorder_structure"
+  ],
+  "critical_assumptions": [
+    "positive_weights"
+  ],
+  "hidden_dependencies": [
+    "weighted_chain_monotonicity",
+    "embedding_respects_weight_order",
+    "chain_decomposition_bound"
+  ],
+  "equivalent_forms": [
+    "geometric packing formulation",
+    "chain cover formulation"
+  ],
+  "candidate_transfer_domains": [
+    "lattice theory",
+    "matroid rank analogues"
+  ]
+}
