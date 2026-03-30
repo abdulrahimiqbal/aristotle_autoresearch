@@ -3,12 +3,24 @@ from __future__ import annotations
 from dataclasses import asdict
 import json
 import sqlite3
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
 from research_orchestrator.lemma_utils import goal_fingerprint, lemma_fingerprint
-from research_orchestrator.schema_versions import EVALUATOR_VERSION, SEMANTIC_MEMORY_VERSION, VERIFICATION_PARSER_VERSION, VERIFICATION_SCHEMA_VERSION
+from research_orchestrator.schema_versions import (
+    EVALUATOR_VERSION,
+    MANAGER_POLICY_VERSION,
+    MOVE_REGISTRY_VERSION,
+    PROMPT_TEMPLATE_VERSION,
+    REPLAY_MANIFEST_VERSION,
+    RUNTIME_POLICY_VERSION,
+    SEMANTIC_MEMORY_VERSION,
+    THEOREM_FAMILY_VERSION,
+    VERIFICATION_PARSER_VERSION,
+    VERIFICATION_SCHEMA_VERSION,
+)
 from research_orchestrator.semantic_memory import canonicalize_text, hydrate_semantic_summary
 from research_orchestrator.types import (
     CampaignSpec,
@@ -37,6 +49,37 @@ def parse_timestamp(value: str | None) -> datetime | None:
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=timezone.utc)
     return parsed.astimezone(timezone.utc)
+
+
+def current_version_bundle() -> Dict[str, str]:
+    return {
+        "manifest_version": REPLAY_MANIFEST_VERSION,
+        "prompt_version": PROMPT_TEMPLATE_VERSION,
+        "parser_version": VERIFICATION_PARSER_VERSION,
+        "evaluator_version": EVALUATOR_VERSION,
+        "semantic_memory_version": SEMANTIC_MEMORY_VERSION,
+        "verification_schema_version": VERIFICATION_SCHEMA_VERSION,
+        "policy_version": MANAGER_POLICY_VERSION,
+        "move_registry_version": MOVE_REGISTRY_VERSION,
+        "theorem_family_version": THEOREM_FAMILY_VERSION,
+        "runtime_policy_version": RUNTIME_POLICY_VERSION,
+    }
+
+
+def _best_effort_git_branch(cwd: str) -> str:
+    try:
+        completed = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return ""
+    if completed.returncode != 0:
+        return ""
+    return completed.stdout.strip()
 
 
 SCHEMA = [
@@ -352,6 +395,56 @@ SCHEMA = [
         FOREIGN KEY(experiment_id) REFERENCES experiments(experiment_id)
     )
     """,
+    """
+    CREATE TABLE IF NOT EXISTS experiment_manifests (
+        snapshot_id TEXT PRIMARY KEY,
+        experiment_id TEXT NOT NULL,
+        project_id TEXT NOT NULL,
+        snapshot_kind TEXT NOT NULL,
+        manifest_version TEXT NOT NULL,
+        prompt_version TEXT NOT NULL,
+        parser_version TEXT NOT NULL,
+        evaluator_version TEXT NOT NULL,
+        semantic_memory_version TEXT NOT NULL,
+        verification_schema_version TEXT NOT NULL,
+        policy_version TEXT NOT NULL,
+        move_registry_version TEXT NOT NULL,
+        theorem_family_version TEXT NOT NULL,
+        manifest_json TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(experiment_id) REFERENCES experiments(experiment_id),
+        FOREIGN KEY(project_id) REFERENCES projects(project_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS manager_candidate_audits (
+        audit_id TEXT PRIMARY KEY,
+        run_id TEXT NOT NULL,
+        project_id TEXT NOT NULL,
+        experiment_id TEXT NOT NULL,
+        conjecture_id TEXT NOT NULL,
+        rank_position INTEGER NOT NULL,
+        selected INTEGER NOT NULL DEFAULT 0,
+        selection_reason TEXT NOT NULL DEFAULT '',
+        policy_score REAL NOT NULL DEFAULT 0,
+        score_breakdown_json TEXT NOT NULL DEFAULT '{}',
+        candidate_json TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(run_id) REFERENCES manager_runs(run_id),
+        FOREIGN KEY(project_id) REFERENCES projects(project_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS campaign_health_snapshots (
+        snapshot_id TEXT PRIMARY KEY,
+        run_id TEXT NOT NULL,
+        project_id TEXT NOT NULL,
+        health_json TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(run_id) REFERENCES manager_runs(run_id),
+        FOREIGN KEY(project_id) REFERENCES projects(project_id)
+    )
+    """,
 ]
 
 
@@ -366,6 +459,25 @@ class Database:
             self.conn.execute(statement)
         self._ensure_experiment_columns()
         self.conn.commit()
+
+    def _decode_experiment_row(self, row: sqlite3.Row | Dict[str, Any]) -> Dict[str, Any]:
+        item = dict(row)
+        item["modification"] = json.loads(item["modification_json"])
+        item["candidate_metadata"] = json.loads(item["candidate_metadata_json"]) if item.get("candidate_metadata_json") else {}
+        item["outcome"] = json.loads(item["outcome_json"]) if item.get("outcome_json") else None
+        item["ingestion"] = json.loads(item["ingestion_json"]) if item.get("ingestion_json") else None
+        return item
+
+    def _decode_manifest_row(self, row: sqlite3.Row | Dict[str, Any]) -> Dict[str, Any]:
+        item = dict(row)
+        item["manifest"] = json.loads(item["manifest_json"])
+        return item
+
+    def _decode_manager_candidate_audit(self, row: sqlite3.Row | Dict[str, Any]) -> Dict[str, Any]:
+        item = dict(row)
+        item["score_breakdown"] = json.loads(item["score_breakdown_json"])
+        item["candidate"] = json.loads(item["candidate_json"])
+        return item
 
     def _ensure_experiment_columns(self) -> None:
         existing = {
@@ -582,6 +694,146 @@ class Database:
         )
         self.conn.commit()
 
+    def build_experiment_manifest(
+        self,
+        brief: Dict[str, Any],
+        *,
+        snapshot_kind: str,
+        provider_name: str = "",
+        result: Optional[ProviderResult] = None,
+        policy_context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        conjecture = self.get_conjecture(brief["conjecture_id"])
+        versions = current_version_bundle()
+        result_versions = {
+            "parser_version": result.verification_record.run.parser_version if result and result.verification_record else versions["parser_version"],
+            "evaluator_version": result.verification_record.run.evaluator_version if result and result.verification_record else versions["evaluator_version"],
+            "semantic_memory_version": result.verification_record.run.semantic_memory_version if result and result.verification_record else versions["semantic_memory_version"],
+            "verification_schema_version": result.verification_record.schema_version if result and result.verification_record else versions["verification_schema_version"],
+        }
+        workspace_dir = str(Path(brief["workspace_dir"]).resolve())
+        artifact_inventory = result.artifact_inventory if result is not None else []
+        provider_metadata = {
+            "provider_name": provider_name or (result.metadata.get("provider_name", "") if result is not None else ""),
+            "external_id": result.external_id if result is not None else brief.get("external_id", ""),
+            "external_status": result.external_status if result is not None else brief.get("external_status", ""),
+            "metadata": result.metadata if result is not None else {},
+        }
+        manifest = {
+            "experiment_id": brief["experiment_id"],
+            "project_id": brief["project_id"],
+            "conjecture_id": brief["conjecture_id"],
+            "campaign_id": brief["project_id"],
+            "snapshot_kind": snapshot_kind,
+            "phase": brief["phase"],
+            "move": brief["move"],
+            "move_family": brief.get("move_family", brief["move"]),
+            "move_family_version": brief.get("move_family_version", "v1"),
+            "move_title": brief.get("move_title", ""),
+            "move_parameters": brief["modification"],
+            "theorem_family_id": brief.get("theorem_family_id") or conjecture.theorem_family_id or conjecture.domain,
+            "candidate_metadata": brief.get("candidate_metadata", {}),
+            "ranking_rationale": brief.get("rationale", ""),
+            "discovery_question_id": brief.get("discovery_question_id", ""),
+            "workspace": {
+                "workspace_dir": workspace_dir,
+                "lean_file": str(Path(brief["lean_file"]).resolve()),
+                "workspace_parent": str(Path(workspace_dir).parent),
+                "git_branch": _best_effort_git_branch(workspace_dir),
+            },
+            "provider": provider_metadata,
+            "versions": {
+                **versions,
+                **result_versions,
+                "move_family_version": brief.get("move_family_version", "v1"),
+            },
+            "prompts": {
+                "prompt_version": versions["prompt_version"],
+                "manager_prompt_version": versions["prompt_version"],
+                "worker_prompt_version": versions["prompt_version"],
+            },
+            "environment": {
+                "db_path": self.path,
+                "cwd": str(Path.cwd()),
+            },
+            "artifacts": artifact_inventory,
+            "provenance": {
+                "result_artifacts": list(result.artifacts) if result is not None else [],
+                "policy_context": policy_context or {},
+            },
+            "created_at": utcnow(),
+        }
+        if result is not None:
+            manifest["result"] = {
+                "status": result.status,
+                "proof_outcome": result.proof_outcome,
+                "blocker_type": result.blocker_type,
+                "signal_summary": result.signal_summary,
+                "new_signal_count": result.new_signal_count,
+                "reused_signal_count": result.reused_signal_count,
+            }
+        return manifest
+
+    def record_experiment_manifest(
+        self,
+        experiment_id: str,
+        project_id: str,
+        snapshot_kind: str,
+        manifest: Dict[str, Any],
+    ) -> None:
+        import uuid
+
+        versions = manifest.get("versions", {})
+        self.conn.execute(
+            """
+            INSERT INTO experiment_manifests(
+                snapshot_id, experiment_id, project_id, snapshot_kind, manifest_version,
+                prompt_version, parser_version, evaluator_version, semantic_memory_version,
+                verification_schema_version, policy_version, move_registry_version,
+                theorem_family_version, manifest_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                str(uuid.uuid4()),
+                experiment_id,
+                project_id,
+                snapshot_kind,
+                versions.get("manifest_version", REPLAY_MANIFEST_VERSION),
+                versions.get("prompt_version", PROMPT_TEMPLATE_VERSION),
+                versions.get("parser_version", VERIFICATION_PARSER_VERSION),
+                versions.get("evaluator_version", EVALUATOR_VERSION),
+                versions.get("semantic_memory_version", SEMANTIC_MEMORY_VERSION),
+                versions.get("verification_schema_version", VERIFICATION_SCHEMA_VERSION),
+                versions.get("policy_version", MANAGER_POLICY_VERSION),
+                versions.get("move_registry_version", MOVE_REGISTRY_VERSION),
+                versions.get("theorem_family_version", THEOREM_FAMILY_VERSION),
+                json.dumps(manifest),
+                utcnow(),
+            ),
+        )
+        self.conn.commit()
+
+    def latest_experiment_manifest(self, experiment_id: str, snapshot_kind: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        params: List[Any] = [experiment_id]
+        query = "SELECT * FROM experiment_manifests WHERE experiment_id = ?"
+        if snapshot_kind is not None:
+            query += " AND snapshot_kind = ?"
+            params.append(snapshot_kind)
+        query += " ORDER BY created_at DESC LIMIT 1"
+        row = self.conn.execute(query, params).fetchone()
+        return self._decode_manifest_row(row) if row is not None else None
+
+    def list_experiment_manifests(self, experiment_id: str) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT * FROM experiment_manifests
+            WHERE experiment_id = ?
+            ORDER BY created_at ASC
+            """,
+            (experiment_id,),
+        ).fetchall()
+        return [self._decode_manifest_row(row) for row in rows]
+
     def save_experiment_plan(self, brief: Dict[str, Any]) -> None:
         self.conn.execute(
             """
@@ -619,6 +871,17 @@ class Database:
             ),
         )
         self.conn.commit()
+        manifest = self.build_experiment_manifest(
+            brief,
+            snapshot_kind="planned",
+            provider_name=brief.get("provider", ""),
+        )
+        self.record_experiment_manifest(
+            experiment_id=brief["experiment_id"],
+            project_id=brief["project_id"],
+            snapshot_kind="planned",
+            manifest=manifest,
+        )
 
     def _provider_result_payload(self, result: ProviderResult) -> Dict[str, Any]:
         payload = asdict(result)
@@ -694,6 +957,21 @@ class Database:
             ),
         )
         self.conn.commit()
+        experiment = self.get_experiment(experiment_id)
+        if experiment is not None:
+            snapshot_kind = "submitted" if result.status in {"submitted", "in_progress"} else "finalized"
+            manifest = self.build_experiment_manifest(
+                experiment,
+                snapshot_kind=snapshot_kind,
+                provider_name=provider,
+                result=result,
+            )
+            self.record_experiment_manifest(
+                experiment_id=experiment_id,
+                project_id=experiment["project_id"],
+                snapshot_kind=snapshot_kind,
+                manifest=manifest,
+            )
 
     def complete_experiment(
         self,
@@ -715,30 +993,14 @@ class Database:
         ).fetchone()
         if row is None:
             return None
-        data = dict(row)
-        data["modification"] = json.loads(data["modification_json"])
-        data["candidate_metadata"] = json.loads(data["candidate_metadata_json"]) if data.get("candidate_metadata_json") else {}
-        if data.get("outcome_json"):
-            data["outcome"] = json.loads(data["outcome_json"])
-        else:
-            data["outcome"] = None
-        data["ingestion"] = json.loads(data["ingestion_json"]) if data.get("ingestion_json") else None
-        return data
+        return self._decode_experiment_row(row)
 
     def list_experiments(self, project_id: str) -> List[Dict[str, Any]]:
         rows = self.conn.execute(
             "SELECT * FROM experiments WHERE project_id = ? ORDER BY created_at ASC",
             (project_id,),
         ).fetchall()
-        results = []
-        for row in rows:
-            item = dict(row)
-            item["modification"] = json.loads(item["modification_json"])
-            item["candidate_metadata"] = json.loads(item["candidate_metadata_json"]) if item.get("candidate_metadata_json") else {}
-            item["outcome"] = json.loads(item["outcome_json"]) if item["outcome_json"] else None
-            item["ingestion"] = json.loads(item["ingestion_json"]) if item.get("ingestion_json") else None
-            results.append(item)
-        return results
+        return [self._decode_experiment_row(row) for row in rows]
 
     def add_audit_event(self, project_id: str, event_type: str, detail: Dict[str, Any], experiment_id: str = "") -> None:
         import uuid
@@ -797,6 +1059,191 @@ class Database:
             ),
         )
         self.conn.commit()
+
+    def ensure_open_incident(
+        self,
+        project_id: str,
+        incident_type: str,
+        detail: str,
+        *,
+        experiment_id: str = "",
+        severity: str = "warning",
+    ) -> None:
+        row = self.conn.execute(
+            """
+            SELECT incident_id FROM incidents
+            WHERE project_id = ? AND experiment_id = ? AND incident_type = ? AND status = 'open'
+            ORDER BY updated_at DESC
+            LIMIT 1
+            """,
+            (project_id, experiment_id, incident_type),
+        ).fetchone()
+        if row is not None:
+            self.conn.execute(
+                """
+                UPDATE incidents
+                SET detail = ?, severity = ?, updated_at = ?
+                WHERE incident_id = ?
+                """,
+                (detail, severity, utcnow(), row["incident_id"]),
+            )
+            self.conn.commit()
+            return
+        self.create_incident(
+            project_id=project_id,
+            experiment_id=experiment_id,
+            incident_type=incident_type,
+            detail=detail,
+            severity=severity,
+        )
+
+    def detect_stuck_runs(
+        self,
+        project_id: str,
+        *,
+        stale_run_timeout_seconds: int,
+        stuck_run_timeout_seconds: int,
+    ) -> List[Dict[str, Any]]:
+        now = datetime.now(timezone.utc)
+        stuck: List[Dict[str, Any]] = []
+        for experiment in self.list_active_experiments(project_id):
+            submitted_at = parse_timestamp(experiment.get("submitted_at")) or parse_timestamp(experiment.get("created_at"))
+            last_synced_at = parse_timestamp(experiment.get("last_synced_at")) or submitted_at
+            if submitted_at is None or last_synced_at is None:
+                continue
+            submitted_age = int((now - submitted_at).total_seconds())
+            sync_age = int((now - last_synced_at).total_seconds())
+            is_stuck = experiment["status"] == "planned" and submitted_age >= stuck_run_timeout_seconds
+            is_stale = experiment["status"] in {"submitted", "in_progress"} and sync_age >= stale_run_timeout_seconds
+            if not is_stuck and not is_stale:
+                continue
+            stuck.append(
+                {
+                    "experiment_id": experiment["experiment_id"],
+                    "status": experiment["status"],
+                    "submitted_age_seconds": submitted_age,
+                    "sync_age_seconds": sync_age,
+                    "external_id": experiment.get("external_id", ""),
+                    "conjecture_id": experiment["conjecture_id"],
+                    "move_family": experiment.get("move_family", experiment["move"]),
+                    "classification": "stale_remote" if is_stale else "planned_stuck",
+                }
+            )
+        return stuck
+
+    def enforce_retry_budget(
+        self,
+        project_id: str,
+        *,
+        max_attempts_per_experiment: int,
+    ) -> List[Dict[str, Any]]:
+        exhausted: List[Dict[str, Any]] = []
+        for experiment in self.list_experiments(project_id):
+            if experiment["status"] not in {"failed", "stalled", "submitted", "in_progress"}:
+                continue
+            if (experiment.get("attempt_count") or 0) < max_attempts_per_experiment:
+                continue
+            exhausted.append(experiment)
+            self.ensure_open_incident(
+                project_id=project_id,
+                experiment_id=experiment["experiment_id"],
+                incident_type="retry_budget_exhausted",
+                severity="warning",
+                detail=(
+                    f"Experiment {experiment['experiment_id']} reached retry budget "
+                    f"({experiment.get('attempt_count', 0)} attempts)."
+                ),
+            )
+        return exhausted
+
+    def escalate_operational_incidents(
+        self,
+        project_id: str,
+        *,
+        repeated_failure_threshold: int,
+        repeated_no_signal_threshold: int,
+        stale_run_timeout_seconds: int,
+        stuck_run_timeout_seconds: int,
+        max_attempts_per_experiment: int,
+    ) -> Dict[str, Any]:
+        stuck_runs = self.detect_stuck_runs(
+            project_id,
+            stale_run_timeout_seconds=stale_run_timeout_seconds,
+            stuck_run_timeout_seconds=stuck_run_timeout_seconds,
+        )
+        for item in stuck_runs:
+            self.ensure_open_incident(
+                project_id=project_id,
+                experiment_id=item["experiment_id"],
+                incident_type=f"stuck_run_{item['classification']}",
+                severity="warning",
+                detail=(
+                    f"Experiment {item['experiment_id']} is {item['classification']} "
+                    f"(submitted_age={item['submitted_age_seconds']}s, sync_age={item['sync_age_seconds']}s)."
+                ),
+            )
+
+        exhausted = self.enforce_retry_budget(
+            project_id,
+            max_attempts_per_experiment=max_attempts_per_experiment,
+        )
+
+        repeated_failure_types = {
+            "malformed": 0,
+            "parser_validation": 0,
+            "provider_failure": 0,
+        }
+        for experiment in self.list_completed_experiments(project_id, limit=25):
+            proof_outcome = experiment.get("proof_outcome") or ""
+            blocker_type = experiment.get("blocker_type") or ""
+            if proof_outcome == "malformed" or blocker_type == "malformed":
+                repeated_failure_types["malformed"] += 1
+            if experiment.get("ingestion", {}).get("verification_record", {}).get("validation_issues"):
+                repeated_failure_types["parser_validation"] += 1
+            if blocker_type in {"dns_failure", "network_unavailable", "auth_failure", "unknown"}:
+                repeated_failure_types["provider_failure"] += 1
+
+        if repeated_failure_types["malformed"] >= repeated_failure_threshold:
+            self.ensure_open_incident(
+                project_id=project_id,
+                incident_type="repeated_malformed_runs",
+                severity="error",
+                detail=f"Malformed run count reached {repeated_failure_types['malformed']} in recent completed experiments.",
+            )
+        if repeated_failure_types["parser_validation"] >= repeated_failure_threshold:
+            self.ensure_open_incident(
+                project_id=project_id,
+                incident_type="repeated_parser_validation_failures",
+                severity="warning",
+                detail=f"Parser validation issues reached {repeated_failure_types['parser_validation']} in recent completed experiments.",
+            )
+        if repeated_failure_types["provider_failure"] >= repeated_failure_threshold:
+            self.ensure_open_incident(
+                project_id=project_id,
+                incident_type="repeated_provider_failures",
+                severity="warning",
+                detail=f"Provider-side failures reached {repeated_failure_types['provider_failure']} in recent completed experiments.",
+            )
+
+        repeated_no_signal = [
+            item for item in self.no_signal_branches(project_id, threshold=repeated_no_signal_threshold)
+        ]
+        for item in repeated_no_signal:
+            self.ensure_open_incident(
+                project_id=project_id,
+                incident_type="repeated_no_signal_branch",
+                severity="warning",
+                detail=(
+                    f"No-signal branch {item['conjecture_id']} / {item['move']} repeated "
+                    f"{item['observations']} times."
+                ),
+            )
+        return {
+            "stuck_runs": stuck_runs,
+            "retry_budget_exhausted": [item["experiment_id"] for item in exhausted],
+            "repeated_failure_types": repeated_failure_types,
+            "repeated_no_signal_branches": repeated_no_signal,
+        }
 
     def expire_stale_active_experiments(self, project_id: str, max_age_seconds: int) -> int:
         now = datetime.now(timezone.utc)
@@ -1063,15 +1510,7 @@ class Database:
             params.append(provider)
         query += " ORDER BY created_at ASC"
         rows = self.conn.execute(query, params).fetchall()
-        results = []
-        for row in rows:
-            item = dict(row)
-            item["modification"] = json.loads(item["modification_json"])
-            item["candidate_metadata"] = json.loads(item["candidate_metadata_json"]) if item.get("candidate_metadata_json") else {}
-            item["outcome"] = json.loads(item["outcome_json"]) if item["outcome_json"] else None
-            item["ingestion"] = json.loads(item["ingestion_json"]) if item.get("ingestion_json") else None
-            results.append(item)
-        return results
+        return [self._decode_experiment_row(row) for row in rows]
 
     def count_active_experiments(self, project_id: str, provider: Optional[str] = None) -> int:
         return len(self.list_active_experiments(project_id, provider=provider))
@@ -1088,15 +1527,7 @@ class Database:
             query += " LIMIT ?"
             params.append(limit)
         rows = self.conn.execute(query, params).fetchall()
-        results = []
-        for row in rows:
-            item = dict(row)
-            item["modification"] = json.loads(item["modification_json"])
-            item["candidate_metadata"] = json.loads(item["candidate_metadata_json"]) if item.get("candidate_metadata_json") else {}
-            item["outcome"] = json.loads(item["outcome_json"]) if item["outcome_json"] else None
-            item["ingestion"] = json.loads(item["ingestion_json"]) if item.get("ingestion_json") else None
-            results.append(item)
-        return results
+        return [self._decode_experiment_row(row) for row in rows]
 
     def list_backfillable_experiments(
         self,
@@ -1125,15 +1556,7 @@ class Database:
             query += " LIMIT ?"
             params.append(limit)
         rows = self.conn.execute(query, params).fetchall()
-        results = []
-        for row in rows:
-            item = dict(row)
-            item["modification"] = json.loads(item["modification_json"])
-            item["candidate_metadata"] = json.loads(item["candidate_metadata_json"]) if item.get("candidate_metadata_json") else {}
-            item["outcome"] = json.loads(item["outcome_json"]) if item["outcome_json"] else None
-            item["ingestion"] = json.loads(item["ingestion_json"]) if item.get("ingestion_json") else None
-            results.append(item)
-        return results
+        return [self._decode_experiment_row(row) for row in rows]
 
     def active_experiments_by_external_status(self, project_id: str, provider: Optional[str] = None) -> List[Dict[str, Any]]:
         active = self.list_active_experiments(project_id, provider=provider)
@@ -1188,6 +1611,79 @@ class Database:
         )
         self.conn.commit()
         return run_id
+
+    def save_manager_candidate_audits(
+        self,
+        run_id: str,
+        project_id: str,
+        rows: List[Dict[str, Any]],
+    ) -> None:
+        import uuid
+
+        for item in rows:
+            self.conn.execute(
+                """
+                INSERT INTO manager_candidate_audits(
+                    audit_id, run_id, project_id, experiment_id, conjecture_id,
+                    rank_position, selected, selection_reason, policy_score,
+                    score_breakdown_json, candidate_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(uuid.uuid4()),
+                    run_id,
+                    project_id,
+                    item["experiment_id"],
+                    item["conjecture_id"],
+                    int(item["rank_position"]),
+                    1 if item.get("selected") else 0,
+                    item.get("selection_reason", ""),
+                    float(item.get("policy_score", 0.0)),
+                    json.dumps(item.get("score_breakdown", {})),
+                    json.dumps(item.get("candidate", {})),
+                    utcnow(),
+                ),
+            )
+        self.conn.commit()
+
+    def list_manager_candidate_audits(self, run_id: str) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT * FROM manager_candidate_audits
+            WHERE run_id = ?
+            ORDER BY rank_position ASC, created_at ASC
+            """,
+            (run_id,),
+        ).fetchall()
+        return [self._decode_manager_candidate_audit(row) for row in rows]
+
+    def save_campaign_health_snapshot(self, run_id: str, project_id: str, health: Dict[str, Any]) -> None:
+        import uuid
+
+        self.conn.execute(
+            """
+            INSERT INTO campaign_health_snapshots(snapshot_id, run_id, project_id, health_json, created_at)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (str(uuid.uuid4()), run_id, project_id, json.dumps(health), utcnow()),
+        )
+        self.conn.commit()
+
+    def latest_campaign_health_snapshot(self, project_id: str) -> Optional[Dict[str, Any]]:
+        row = self.conn.execute(
+            """
+            SELECT * FROM campaign_health_snapshots
+            WHERE project_id = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (project_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        item = dict(row)
+        item["health"] = json.loads(item["health_json"])
+        return item
 
     def latest_manager_run(self, project_id: str) -> Optional[Dict[str, Any]]:
         row = self.conn.execute(
@@ -1764,6 +2260,104 @@ class Database:
             (project_id,),
         ).fetchall()
         return [dict(row) for row in rows]
+
+    def version_drift_summary(self, project_id: str) -> Dict[str, Any]:
+        current = current_version_bundle()
+        drifts: Dict[str, Dict[str, int]] = {}
+        manifests = self.conn.execute(
+            """
+            SELECT * FROM experiment_manifests
+            WHERE project_id = ?
+            ORDER BY created_at DESC
+            """,
+            (project_id,),
+        ).fetchall()
+        for row in manifests:
+            item = self._decode_manifest_row(row)
+            versions = item["manifest"].get("versions", {})
+            for key, current_value in current.items():
+                manifest_value = versions.get(key)
+                if not manifest_value or manifest_value == current_value:
+                    continue
+                bucket = drifts.setdefault(key, {})
+                bucket[manifest_value] = bucket.get(manifest_value, 0) + 1
+        return {
+            "current": current,
+            "mismatches": drifts,
+        }
+
+    def campaign_health(self, project_id: str, frontier: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+        summary = self.project_summary(project_id)
+        completed = self.list_completed_experiments(project_id)
+        active = self.list_active_experiments(project_id)
+        incidents = self.list_incidents(project_id, status="open")
+        total_completed = len(completed)
+        structured_successes = sum(
+            1
+            for item in completed
+            if item.get("ingestion", {}).get("verification_record")
+        )
+        total_new = sum(item.get("new_signal_count") or 0 for item in completed)
+        total_reused = sum(item.get("reused_signal_count") or 0 for item in completed)
+        transfer_runs = sum(
+            1
+            for item in completed
+            if item.get("move_family") == "transfer_reformulation"
+            or (item.get("candidate_metadata", {}).get("transfer_score") or 0) > 0
+        )
+        move_families = {item.get("move_family", item["move"]) for item in completed}
+        frontier = frontier or []
+        duplicate_pressure = sum(1 for item in frontier if item.get("duplicate_active_signature"))
+        frontier_move_families = {item.get("move_family", item["move"]) for item in frontier}
+        incident_by_type: Dict[str, int] = {}
+        incident_by_severity: Dict[str, int] = {}
+        for incident in incidents:
+            incident_by_type[incident["incident_type"]] = incident_by_type.get(incident["incident_type"], 0) + 1
+            incident_by_severity[incident["severity"]] = incident_by_severity.get(incident["severity"], 0) + 1
+        no_signal = self.no_signal_branches(project_id)
+        max_no_signal_streak = max((item["observations"] for item in no_signal), default=0)
+        stuck_runs = self.detect_stuck_runs(
+            project_id,
+            stale_run_timeout_seconds=6 * 3600,
+            stuck_run_timeout_seconds=2 * 3600,
+        )
+        retry_exhausted = [
+            item["experiment_id"]
+            for item in self.list_experiments(project_id)
+            if (item.get("attempt_count") or 0) >= self.get_campaign_spec(project_id).budget_policy.max_attempts_per_experiment
+        ] if self.get_campaign_spec(project_id) is not None else []
+        return {
+            "project_id": project_id,
+            "counts": {
+                "active": len(active),
+                "pending": summary.get("pending", 0),
+                "running": sum(1 for item in active if item["status"] == "in_progress"),
+                "completed": total_completed,
+                "failed": summary.get("failed", 0),
+                "succeeded": summary.get("solved", 0),
+                "stalled": summary.get("stalled", 0),
+            },
+            "incidents": {
+                "open_total": len(incidents),
+                "by_type": incident_by_type,
+                "by_severity": incident_by_severity,
+            },
+            "signals": {
+                "repeated_no_signal_streak": max_no_signal_streak,
+                "duplicate_frontier_pressure": duplicate_pressure,
+                "structured_ingestion_success_rate": round(structured_successes / total_completed, 3) if total_completed else 0.0,
+                "semantic_reuse_rate": round(total_reused / max(1, total_reused + total_new), 3),
+                "transfer_usage_rate": round(transfer_runs / total_completed, 3) if total_completed else 0.0,
+                "candidate_move_family_diversity": len(frontier_move_families),
+                "completed_move_family_diversity": len(move_families),
+            },
+            "runtime_controls": {
+                "stuck_runs": stuck_runs,
+                "retry_exhausted": retry_exhausted,
+            },
+            "no_signal_branches": no_signal,
+            "version_drift": self.version_drift_summary(project_id),
+        }
 
     def project_summary(self, project_id: str) -> Dict[str, Any]:
         experiments = self.list_experiments(project_id)

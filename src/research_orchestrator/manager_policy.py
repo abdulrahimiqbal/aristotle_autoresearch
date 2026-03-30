@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Tuple
 
 from research_orchestrator.db import Database
 from research_orchestrator.prompts import build_project_constitution
+from research_orchestrator.schema_versions import MANAGER_POLICY_VERSION
 
 
 MOVE_PRIORITY = {
@@ -30,6 +31,8 @@ class CandidateDecision:
     workspace_dir: str
     lean_file: str
     phase: str
+    policy_score: float = 0.0
+    score_breakdown: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -40,6 +43,7 @@ class PolicyDecision:
     manager_prompt: str = ""
     raw_response: str = ""
     rationale: str = ""
+    candidate_audits: List[Dict[str, Any]] = field(default_factory=list)
 
 
 def _active_signature(experiment: Dict[str, Any]) -> Tuple[str, str, str]:
@@ -132,6 +136,34 @@ def _heuristic_key(candidate: Dict[str, Any]) -> Tuple[int, int, int, int, str]:
     )
 
 
+def candidate_score_breakdown(candidate: Dict[str, Any]) -> Dict[str, Any]:
+    penalties = {
+        "active_load": float(candidate.get("active_count_for_conjecture", 0) * 3.0),
+        "existing_coverage": float(candidate.get("existing_experiments", 0) * 1.4),
+        "no_signal_penalty": float(candidate.get("no_signal_penalty", 0) * 2.2),
+        "duplicate_active_signature": 5.0 if candidate.get("duplicate_active_signature") else 0.0,
+    }
+    bonuses = {
+        "discovery_priority": float(candidate.get("discovery_priority", 0) * 1.8),
+        "signal_priority": float(candidate.get("signal_priority", 0) * 1.2),
+        "transfer_opportunity": float(candidate.get("transfer_opportunity", 0) * 1.1),
+        "reuse_potential": float(candidate.get("reuse_potential", 0) * 1.0),
+        "obstruction_targeting": float(candidate.get("obstruction_targeting", 0) * 1.0),
+        "semantic_novelty": float(candidate.get("semantic_novelty", 0) * 0.9),
+        "targets_recurring_structure": 1.5 if candidate.get("targets_recurring_structure") else 0.0,
+    }
+    move_bonus = max(0.0, float(5 - MOVE_PRIORITY.get(candidate["move"], 5)))
+    bonuses["move_family_priority"] = move_bonus
+    score = round(sum(bonuses.values()) - sum(penalties.values()), 4)
+    return {
+        "policy_version": MANAGER_POLICY_VERSION,
+        "bonuses": bonuses,
+        "penalties": penalties,
+        "heuristic_key": list(_heuristic_key(candidate)),
+        "score": score,
+    }
+
+
 def _heuristic_rank(frontier: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return sorted(frontier, key=_heuristic_key)
 
@@ -206,6 +238,7 @@ def _validate_llm_response(
 
 
 def _candidate_decision(candidate: Dict[str, Any], reason: str) -> CandidateDecision:
+    breakdown = candidate_score_breakdown(candidate)
     return CandidateDecision(
         experiment_id=candidate["experiment_id"],
         conjecture_id=candidate["conjecture_id"],
@@ -216,7 +249,39 @@ def _candidate_decision(candidate: Dict[str, Any], reason: str) -> CandidateDeci
         workspace_dir=candidate["workspace_dir"],
         lean_file=candidate["lean_file"],
         phase=candidate["phase"],
+        policy_score=breakdown["score"],
+        score_breakdown=breakdown,
     )
+
+
+def build_candidate_audits(
+    frontier: List[Dict[str, Any]],
+    selected_ids: List[str],
+    skipped: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    skipped_by_id = {item["experiment_id"]: item["reason"] for item in skipped if item.get("experiment_id")}
+    ranked = _heuristic_rank(frontier)
+    audits: List[Dict[str, Any]] = []
+    for index, candidate in enumerate(ranked, start=1):
+        breakdown = candidate_score_breakdown(candidate)
+        selection_reason = ""
+        if candidate["experiment_id"] in selected_ids:
+            selection_reason = "selected"
+        elif candidate["experiment_id"] in skipped_by_id:
+            selection_reason = skipped_by_id[candidate["experiment_id"]]
+        audits.append(
+            {
+                "experiment_id": candidate["experiment_id"],
+                "conjecture_id": candidate["conjecture_id"],
+                "rank_position": index,
+                "selected": candidate["experiment_id"] in selected_ids,
+                "selection_reason": selection_reason,
+                "policy_score": breakdown["score"],
+                "score_breakdown": breakdown,
+                "candidate": candidate,
+            }
+        )
+    return audits
 
 
 def choose_candidates_for_submission(
@@ -227,6 +292,7 @@ def choose_candidates_for_submission(
     llm_manager_mode: str,
 ) -> PolicyDecision:
     charter = db.get_charter(project_id)
+    spec = db.get_campaign_spec(project_id)
     active = db.list_active_experiments(project_id)
     completed = db.list_completed_experiments(project_id, limit=10)
     recurring = db.recurring_lemmas()
@@ -247,17 +313,44 @@ def choose_candidates_for_submission(
         capacity=capacity,
     )
 
-    eligible = [candidate for candidate in frontier if not candidate["duplicate_active_signature"]]
+    branch_prune_after_no_signal = spec.budget_policy.branch_prune_after_no_signal if spec is not None else 3
+    duplicate_family_limit = spec.budget_policy.duplicate_frontier_family_limit if spec is not None else 2
+    eligible: List[Dict[str, Any]] = []
+    skipped: List[Dict[str, Any]] = []
+    family_counts: Dict[tuple[str, str], int] = {}
+    for candidate in frontier:
+        if candidate["duplicate_active_signature"]:
+            skipped.append(
+                {
+                    "experiment_id": candidate["experiment_id"],
+                    "conjecture_id": candidate["conjecture_id"],
+                    "reason": "duplicate active experiment signature",
+                }
+            )
+            continue
+        if candidate.get("no_signal_penalty", 0) >= branch_prune_after_no_signal:
+            skipped.append(
+                {
+                    "experiment_id": candidate["experiment_id"],
+                    "conjecture_id": candidate["conjecture_id"],
+                    "reason": "pruned after repeated no-signal outcomes",
+                }
+            )
+            continue
+        family_key = (candidate["conjecture_id"], candidate.get("move_family", candidate["move"]))
+        current = family_counts.get(family_key, 0)
+        if current >= duplicate_family_limit:
+            skipped.append(
+                {
+                    "experiment_id": candidate["experiment_id"],
+                    "conjecture_id": candidate["conjecture_id"],
+                    "reason": "frontier throttled for duplicate move-family pressure",
+                }
+            )
+            continue
+        family_counts[family_key] = current + 1
+        eligible.append(candidate)
     heuristic_ranked = _heuristic_rank(eligible)
-    skipped = [
-        {
-            "experiment_id": candidate["experiment_id"],
-            "conjecture_id": candidate["conjecture_id"],
-            "reason": "duplicate active experiment signature",
-        }
-        for candidate in frontier
-        if candidate["duplicate_active_signature"]
-    ]
 
     should_try_llm = llm_manager_mode in {"on", "auto"}
     if should_try_llm:
@@ -277,6 +370,7 @@ def choose_candidates_for_submission(
                     manager_prompt=prompt,
                     raw_response=raw_response,
                     rationale=rationale or "LLM-ranked candidate ordering accepted by validator.",
+                    candidate_audits=build_candidate_audits(frontier, ranked_ids, skipped),
                 )
         if llm_manager_mode == "on":
             skipped.append({"experiment_id": "", "conjecture_id": "", "reason": "llm output invalid; falling back to heuristic policy"})
@@ -292,4 +386,5 @@ def choose_candidates_for_submission(
         manager_prompt=prompt,
         raw_response="",
         rationale="Fallback policy ranked candidates by diversity, existing coverage, and move priority.",
+        candidate_audits=build_candidate_audits(frontier, [item.experiment_id for item in chosen], skipped),
     )

@@ -21,6 +21,8 @@ def build_report(db: Database, project_id: str) -> str:
     no_signal_branches = summary.get("no_signal_branches", [])
     sensitivity = db.assumption_sensitivity(project_id)
     latest_manager_run = db.latest_manager_run(project_id)
+    latest_health = db.latest_campaign_health_snapshot(project_id)
+    version_drift = db.version_drift_summary(project_id)
     open_questions = db.list_discovery_questions(project_id, status="open")
     discovery_nodes = db.list_discovery_nodes(project_id)
     discovery_edges = db.list_discovery_edges(project_id)
@@ -53,6 +55,39 @@ def build_report(db: Database, project_id: str) -> str:
     lines.append(f"- Stalled: {summary['stalled']}")
     lines.append(f"- Failed: {summary['failed']}")
     lines.append(f"- Pending: {summary.get('pending', 0)}")
+    lines.append("")
+    lines.append("## Campaign Health")
+    lines.append("")
+    health = latest_health["health"] if latest_health is not None else db.campaign_health(project_id)
+    counts = health.get("counts", {})
+    signals = health.get("signals", {})
+    incidents_summary = health.get("incidents", {})
+    runtime_controls = health.get("runtime_controls", {})
+    lines.append(f"- active={counts.get('active', 0)} pending={counts.get('pending', 0)} running={counts.get('running', 0)} completed={counts.get('completed', 0)} failed={counts.get('failed', 0)}")
+    lines.append(f"- structured ingestion success rate: {signals.get('structured_ingestion_success_rate', 0.0)}")
+    lines.append(f"- semantic reuse rate: {signals.get('semantic_reuse_rate', 0.0)}")
+    lines.append(f"- transfer usage rate: {signals.get('transfer_usage_rate', 0.0)}")
+    lines.append(f"- repeated no-signal streak: {signals.get('repeated_no_signal_streak', 0)}")
+    lines.append(f"- duplicate frontier pressure: {signals.get('duplicate_frontier_pressure', 0)}")
+    lines.append(f"- move-family diversity: frontier={signals.get('candidate_move_family_diversity', 0)} completed={signals.get('completed_move_family_diversity', 0)}")
+    lines.append(f"- open incidents: {incidents_summary.get('open_total', 0)}")
+    if runtime_controls.get("stuck_runs"):
+        for item in runtime_controls["stuck_runs"][:5]:
+            lines.append(
+                f"- stuck run `{item['experiment_id']}` status=`{item['status']}` class=`{item['classification']}` sync_age={item['sync_age_seconds']}s"
+            )
+    if runtime_controls.get("retry_exhausted"):
+        lines.append(f"- retry budget exhausted: {', '.join(runtime_controls['retry_exhausted'][:5])}")
+    lines.append("")
+    lines.append("## Version Drift")
+    lines.append("")
+    mismatch_summary = version_drift.get("mismatches", {})
+    if mismatch_summary:
+        for key, values in mismatch_summary.items():
+            for version, count in values.items():
+                lines.append(f"- `{key}` historical=`{version}` current=`{version_drift['current'][key]}` count={count}")
+    else:
+        lines.append("- No manifest version drift detected.")
     lines.append("")
     lines.append("## Discovery Graph")
     lines.append("")
@@ -267,6 +302,7 @@ def build_report(db: Database, project_id: str) -> str:
     lines.append("")
     if latest_manager_run is not None:
         lines.append(f"- policy path: `{latest_manager_run['policy_path']}`")
+        lines.append(f"- policy candidate audits: {len(db.list_manager_candidate_audits(latest_manager_run['run_id']))}")
         lines.append(f"- jobs synced: {latest_manager_run['jobs_synced']}")
         lines.append(f"- jobs submitted: {latest_manager_run['jobs_submitted']}")
         lines.append(f"- active before: {latest_manager_run['active_before']}")
@@ -287,6 +323,11 @@ def build_report(db: Database, project_id: str) -> str:
         for item in latest_manager_run["summary"].get("submitted_experiments", []):
             lines.append(
                 f"- queued `{item['experiment_id']}` for `{item['conjecture_id']}` via `{item['move']}` / `{item.get('move_family', item['move'])}` ({item['reason']})"
+            )
+        for item in db.list_manager_candidate_audits(latest_manager_run["run_id"])[:5]:
+            status = "selected" if item["selected"] else "considered"
+            lines.append(
+                f"- {status} `{item['experiment_id']}` rank={item['rank_position']} score={item['policy_score']}"
             )
         for item in latest_manager_run["summary"].get("skipped_candidates", []):
             if item.get("experiment_id"):

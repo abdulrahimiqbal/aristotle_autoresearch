@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, List
 
+from research_orchestrator.schema_versions import PROMPT_TEMPLATE_VERSION
 from research_orchestrator.types import Conjecture, ExperimentBrief, ProjectCharter
 
 
@@ -12,6 +13,9 @@ You are the Research Manager for project {charter.project_id}.
 
 Mission:
 {charter.overarching_problem}
+
+Prompt template version:
+{PROMPT_TEMPLATE_VERSION}
 
 Success criteria:
 {chr(10).join(f"- {item}" for item in charter.success_criteria)}

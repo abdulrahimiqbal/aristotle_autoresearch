@@ -443,12 +443,23 @@ def manager_tick(
     snapshot_output: str | Path,
 ) -> Dict[str, object]:
     provider = get_provider(provider_name)
+    spec = db.get_campaign_spec(project_id)
+    runtime_policy = spec.runtime_policy if spec is not None else None
+    budget_policy = spec.budget_policy if spec is not None else None
     expired_stale = db.expire_stale_active_experiments(
         project_id,
-        max_age_seconds=getattr(provider, "STALE_PROGRESS_TIMEOUT_SECONDS", 6 * 3600),
+        max_age_seconds=runtime_policy.stale_run_timeout_seconds if runtime_policy is not None else getattr(provider, "STALE_PROGRESS_TIMEOUT_SECONDS", 6 * 3600),
     )
     active_before = db.count_active_experiments(project_id, provider=provider.name)
     synced = sync_provider_results(db, project_id, provider_name, limit=max_active * 4)
+    operational_status = db.escalate_operational_incidents(
+        project_id,
+        repeated_failure_threshold=runtime_policy.repeated_failure_incident_threshold if runtime_policy is not None else 3,
+        repeated_no_signal_threshold=runtime_policy.repeated_no_signal_incident_threshold if runtime_policy is not None else 3,
+        stale_run_timeout_seconds=runtime_policy.stale_run_timeout_seconds if runtime_policy is not None else 6 * 3600,
+        stuck_run_timeout_seconds=runtime_policy.stuck_run_timeout_seconds if runtime_policy is not None else 2 * 3600,
+        max_attempts_per_experiment=budget_policy.max_attempts_per_experiment if budget_policy is not None else 6,
+    )
     active_now = db.count_active_experiments(project_id, provider=provider.name)
     capacity_remaining = max(0, max_active - active_now)
     requested_submissions = min(capacity_remaining, max_submit_per_tick)
@@ -461,6 +472,17 @@ def manager_tick(
         max_count=requested_submissions,
         llm_manager_mode=llm_manager_mode,
     )
+    if runtime_policy is not None and runtime_policy.pause_on_incident:
+        open_errors = [item for item in db.list_incidents(project_id, status="open") if item["severity"] == "error"]
+        if open_errors:
+            policy.chosen = []
+            policy.skipped.append(
+                {
+                    "experiment_id": "",
+                    "conjecture_id": "",
+                    "reason": "runtime policy paused submissions because open error incidents exist",
+                }
+            )
 
     submissions = []
     for decision in policy.chosen[:requested_submissions]:
@@ -537,12 +559,16 @@ def manager_tick(
     report_output.parent.mkdir(parents=True, exist_ok=True)
     snapshot_output = Path(snapshot_output)
     snapshot_output.parent.mkdir(parents=True, exist_ok=True)
+    health = db.campaign_health(project_id, frontier=frontier)
     snapshot = {
         "project_id": project_id,
         "provider": provider.name,
         "active_jobs": db.list_active_experiments(project_id, provider=provider.name),
         "chosen_submissions": submissions,
         "skipped_candidates": policy.skipped,
+        "candidate_audits": policy.candidate_audits,
+        "operational_status": operational_status,
+        "campaign_health": health,
         "recurring_structures": {
             "lemmas": db.recurring_lemmas()[:10],
             "subgoals": db.recurring_subgoals(project_id)[:10],
@@ -592,6 +618,9 @@ def manager_tick(
         "recurring_structures": snapshot["recurring_structures"],
         "signal_progress": snapshot["signal_progress"],
         "expired_stale_active_experiments": expired_stale,
+        "candidate_audits": policy.candidate_audits,
+        "operational_status": operational_status,
+        "campaign_health": health,
     }
     run_id = db.save_manager_run(
         project_id=project_id,
@@ -605,6 +634,8 @@ def manager_tick(
         snapshot_path=str(snapshot_output),
         summary=manager_run_summary,
     )
+    db.save_manager_candidate_audits(run_id=run_id, project_id=project_id, rows=policy.candidate_audits)
+    db.save_campaign_health_snapshot(run_id=run_id, project_id=project_id, health=health)
     snapshot["manager_run_id"] = run_id
     snapshot_output.write_text(json.dumps(snapshot, indent=2), encoding="utf-8")
 
@@ -617,10 +648,12 @@ def manager_tick(
         "jobs_synced": len(synced),
         "jobs_submitted": len(submissions),
         "expired_stale_active_experiments": expired_stale,
+        "operational_status": operational_status,
         "active_before": active_before,
         "active_after": active_after,
         "report_output": str(report_output),
         "snapshot_output": str(snapshot_output),
+        "campaign_health": health,
         "submitted": submissions,
         "synced": [
             {

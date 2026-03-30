@@ -65,6 +65,9 @@ class CampaignBudgetPolicy:
     max_consecutive_failures: int = 5
     hard_cost_limit_usd: float = 25.0
     cooldown_seconds: int = 300
+    max_attempts_per_experiment: int = 6
+    branch_prune_after_no_signal: int = 3
+    duplicate_frontier_family_limit: int = 2
 
 
 @dataclass
@@ -74,6 +77,11 @@ class RuntimePolicy:
     verification_mode: str = "lean_artifact_first"
     pause_on_incident: bool = False
     artifact_retention_days: int = 30
+    stale_run_timeout_seconds: int = 6 * 3600
+    stuck_run_timeout_seconds: int = 2 * 3600
+    retry_cooldown_seconds: int = 300
+    repeated_failure_incident_threshold: int = 3
+    repeated_no_signal_incident_threshold: int = 3
 
 
 @dataclass

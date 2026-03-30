@@ -95,6 +95,14 @@ research-orchestrator campaign-status \
   --project <project-id>
 ```
 
+Machine-readable health is also available:
+```bash
+research-orchestrator campaign-health \
+  --db ./state.sqlite \
+  --project <project-id> \
+  --format json
+```
+
 ### 3) Run autonomous cycles
 ```bash
 research-orchestrator run-cycle \
@@ -119,6 +127,20 @@ The report now includes:
 - discovery graph nodes and edges
 - incidents and audit trail
 - experiment-level discovery context
+- campaign health and version drift
+- latest manager candidate audit summary
+
+Replay historical experiment and manager decisions:
+```bash
+research-orchestrator replay-run \
+  --db ./state.sqlite \
+  --experiment-id <experiment-id> \
+  --include-manifest
+
+research-orchestrator audit-run \
+  --db ./state.sqlite \
+  --run-id <manager-run-id>
+```
 
 ## Core commands
 

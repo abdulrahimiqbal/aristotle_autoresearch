@@ -16,6 +16,7 @@ from research_orchestrator.orchestrator import (
     submit_one_cycle,
     sync_provider_results,
 )
+from research_orchestrator.replay import replay_experiment, replay_manager_run, reconstruct_manifest
 from research_orchestrator.reporter import build_report, write_report
 from research_orchestrator.manager import choose_next_experiment
 
@@ -67,7 +68,53 @@ def cmd_campaign_status(args):
         "discovery_nodes": db.list_discovery_nodes(args.project)[:20],
         "recent_audit_events": db.list_audit_events(args.project, limit=10),
         "open_incidents": db.list_incidents(args.project, status="open"),
+        "health": db.campaign_health(args.project),
+        "version_drift": db.version_drift_summary(args.project),
     }
+    print(json.dumps(payload, indent=2))
+
+
+def cmd_campaign_health(args):
+    db = Database(args.db)
+    db.initialize()
+    health = db.campaign_health(args.project)
+    if args.format == "json":
+        print(json.dumps(health, indent=2))
+        return
+    counts = health["counts"]
+    signals = health["signals"]
+    print(
+        "Campaign health"
+        f" | active={counts['active']}"
+        f" | pending={counts['pending']}"
+        f" | running={counts['running']}"
+        f" | completed={counts['completed']}"
+        f" | failed={counts['failed']}"
+    )
+    print(
+        "Signals"
+        f" | ingestion_success={signals['structured_ingestion_success_rate']}"
+        f" | semantic_reuse={signals['semantic_reuse_rate']}"
+        f" | transfer_usage={signals['transfer_usage_rate']}"
+        f" | no_signal_streak={signals['repeated_no_signal_streak']}"
+        f" | duplicate_pressure={signals['duplicate_frontier_pressure']}"
+    )
+    print(json.dumps(health["incidents"], indent=2))
+
+
+def cmd_audit_run(args):
+    db = Database(args.db)
+    db.initialize()
+    payload = replay_manager_run(db, args.run_id)
+    print(json.dumps(payload, indent=2))
+
+
+def cmd_replay_run(args):
+    db = Database(args.db)
+    db.initialize()
+    payload = replay_experiment(db, args.experiment_id)
+    if args.include_manifest:
+        payload["manifest"] = reconstruct_manifest(db, args.experiment_id)
     print(json.dumps(payload, indent=2))
 
 
@@ -261,6 +308,12 @@ def build_parser():
     campaign_status.add_argument("--project", required=True)
     campaign_status.set_defaults(func=cmd_campaign_status)
 
+    campaign_health = sub.add_parser("campaign-health", help="Inspect machine-readable campaign health and runtime signals.")
+    campaign_health.add_argument("--db", required=True)
+    campaign_health.add_argument("--project", required=True)
+    campaign_health.add_argument("--format", choices=["text", "json"], default="text")
+    campaign_health.set_defaults(func=cmd_campaign_health)
+
     init_project = sub.add_parser("init-project", help="Initialize a project from charter and conjecture files.")
     init_project.add_argument("--db", required=True)
     init_project.add_argument("--charter", required=True)
@@ -322,6 +375,17 @@ def build_parser():
     manager_tick_parser.add_argument("--report-output", required=True)
     manager_tick_parser.add_argument("--llm-manager", choices=["on", "off", "auto"], default="auto")
     manager_tick_parser.set_defaults(func=cmd_manager_tick)
+
+    audit_run = sub.add_parser("audit-run", help="Replay a historical manager decision from stored candidate audits.")
+    audit_run.add_argument("--db", required=True)
+    audit_run.add_argument("--run-id", required=True)
+    audit_run.set_defaults(func=cmd_audit_run)
+
+    replay_run = sub.add_parser("replay-run", help="Replay a historical experiment scoring decision from stored manifests.")
+    replay_run.add_argument("--db", required=True)
+    replay_run.add_argument("--experiment-id", required=True)
+    replay_run.add_argument("--include-manifest", action="store_true")
+    replay_run.set_defaults(func=cmd_replay_run)
 
     sync_github = sub.add_parser(
         "sync-github-state",
