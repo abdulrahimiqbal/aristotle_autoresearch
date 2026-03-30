@@ -16,7 +16,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `QUEUED`: 3
+- `IN_PROGRESS`: 3
 
 ## Recently completed
 
@@ -388,60 +388,69 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 - move: `counterexample_mode`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `5ef3afd1-9cb8-46bd-93a5-d2b3a07747d6`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
+- learned summary: remote_status=IN_PROGRESS; proof_outcome=unknown; blocker=unknown
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/0d721158-0f69-4481-bb12-d07dd01c2480/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/0d721158-0f69-4481-bb12-d07dd01c2480/aristotle_list_stdout.txt` (8766 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/0d721158-0f69-4481-bb12-d07dd01c2480/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/0d721158-0f69-4481-bb12-d07dd01c2480/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/0d721158-0f69-4481-bb12-d07dd01c2480/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/0d721158-0f69-4481-bb12-d07dd01c2480/aristotle_list_stderr.txt`
+- notes: Aristotle job 5ef3afd1-9cb8-46bd-93a5-d2b3a07747d6 is still in progress.
 
 ### 3f052870-3562-4062-abf7-7950d9446de0
 
 - move: `counterexample_mode`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `267e8b93-a19a-49d9-bcfc-4933da7865f5`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
+- learned summary: remote_status=IN_PROGRESS; proof_outcome=unknown; blocker=unknown
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/3f052870-3562-4062-abf7-7950d9446de0/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/3f052870-3562-4062-abf7-7950d9446de0/aristotle_list_stdout.txt` (8766 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/3f052870-3562-4062-abf7-7950d9446de0/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/3f052870-3562-4062-abf7-7950d9446de0/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/3f052870-3562-4062-abf7-7950d9446de0/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/3f052870-3562-4062-abf7-7950d9446de0/aristotle_list_stderr.txt`
+- notes: Aristotle job 267e8b93-a19a-49d9-bcfc-4933da7865f5 is still in progress.
 
 ### 6ea335c4-6e56-4ecb-904e-2f40df223729
 
 - move: `counterexample_mode`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `9afb5a34-e1b1-4713-b342-77f40a3fc8c6`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
+- learned summary: remote_status=IN_PROGRESS; proof_outcome=unknown; blocker=unknown
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ea335c4-6e56-4ecb-904e-2f40df223729/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ea335c4-6e56-4ecb-904e-2f40df223729/aristotle_list_stdout.txt` (8766 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ea335c4-6e56-4ecb-904e-2f40df223729/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ea335c4-6e56-4ecb-904e-2f40df223729/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ea335c4-6e56-4ecb-904e-2f40df223729/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ea335c4-6e56-4ecb-904e-2f40df223729/aristotle_list_stderr.txt`
+- notes: Aristotle job 9afb5a34-e1b1-4713-b342-77f40a3fc8c6 is still in progress.
 
 ## Latest manager decision
 
 - policy path: `fallback`
 - jobs synced: 3
-- jobs submitted: 3
+- jobs submitted: 0
 - active before: 3
 - active after: 3
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.manager_snapshot.json`
-- queued `0d721158-0f69-4481-bb12-d07dd01c2480` for `erdos-123` via `counterexample_mode` (chosen by deterministic fallback policy)
-- queued `3f052870-3562-4062-abf7-7950d9446de0` for `erdos-181` via `counterexample_mode` (chosen by deterministic fallback policy)
-- queued `6ea335c4-6e56-4ecb-904e-2f40df223729` for `erdos-44` via `counterexample_mode` (chosen by deterministic fallback policy)
 
 ## Suggested next move
 
-- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
+- Continue assumption perturbation and equivalent reformulations to sharpen the boundary map.
