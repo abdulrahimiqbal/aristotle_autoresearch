@@ -5,6 +5,7 @@ import json
 import shutil
 from pathlib import Path
 
+from research_orchestrator.campaign_planner import synthesize_campaign
 from research_orchestrator.charter import load_charter, load_conjecture
 from research_orchestrator.db import Database
 from research_orchestrator.github_state import sync_github_state
@@ -17,6 +18,57 @@ from research_orchestrator.orchestrator import (
 )
 from research_orchestrator.reporter import build_report, write_report
 from research_orchestrator.manager import choose_next_experiment
+
+
+def cmd_start_campaign(args):
+    db = Database(args.db)
+    db.initialize()
+    spec, charter, conjectures, questions = synthesize_campaign(args.prompt)
+    db.save_project(charter)
+    db.save_campaign_spec(spec)
+    for conjecture in conjectures:
+        db.save_conjecture(conjecture)
+    for question in questions:
+        db.save_discovery_question(question)
+    db.add_audit_event(
+        project_id=spec.project_id,
+        event_type="campaign_started",
+        detail={
+            "version": spec.version,
+            "title": spec.title,
+            "conjectures": [item.conjecture_id for item in conjectures],
+            "discovery_questions": [item.question_id for item in questions],
+        },
+    )
+    print(f"Started campaign {spec.project_id}")
+    print(json.dumps(
+        {
+            "project_id": spec.project_id,
+            "title": spec.title,
+            "conjectures": [item.conjecture_id for item in conjectures],
+            "open_discovery_questions": [item.question for item in questions],
+        },
+        indent=2,
+    ))
+
+
+def cmd_campaign_status(args):
+    db = Database(args.db)
+    db.initialize()
+    summary = db.project_summary(args.project)
+    spec = db.get_campaign_spec(args.project)
+    payload = {
+        "project_id": args.project,
+        "title": summary["campaign_title"],
+        "campaign_version": summary.get("campaign_version", ""),
+        "raw_prompt": spec.raw_prompt if spec is not None else "",
+        "summary": summary,
+        "open_questions": db.list_discovery_questions(args.project, status="open"),
+        "discovery_nodes": db.list_discovery_nodes(args.project)[:20],
+        "recent_audit_events": db.list_audit_events(args.project, limit=10),
+        "open_incidents": db.list_incidents(args.project, status="open"),
+    }
+    print(json.dumps(payload, indent=2))
 
 
 def cmd_init_project(args):
@@ -195,6 +247,16 @@ def cmd_sync_github_state(args):
 def build_parser():
     parser = argparse.ArgumentParser(prog="research-orchestrator")
     sub = parser.add_subparsers(dest="command", required=True)
+
+    start_campaign = sub.add_parser("start-campaign", help="Create a research campaign from one natural-language prompt.")
+    start_campaign.add_argument("--db", required=True)
+    start_campaign.add_argument("--prompt", required=True)
+    start_campaign.set_defaults(func=cmd_start_campaign)
+
+    campaign_status = sub.add_parser("campaign-status", help="Inspect campaign state, discovery graph, and incidents.")
+    campaign_status.add_argument("--db", required=True)
+    campaign_status.add_argument("--project", required=True)
+    campaign_status.set_defaults(func=cmd_campaign_status)
 
     init_project = sub.add_parser("init-project", help="Initialize a project from charter and conjecture files.")
     init_project.add_argument("--db", required=True)

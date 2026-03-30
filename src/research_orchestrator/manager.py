@@ -13,6 +13,10 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
     experiments = db.list_experiments(project_id)
     recurring = db.recurring_lemmas()
     recurring_subgoals = db.recurring_subgoals(project_id)
+    open_questions = db.list_discovery_questions(project_id, status="open")
+    questions_by_conjecture = {}
+    for question in open_questions:
+        questions_by_conjecture.setdefault(question["conjecture_id"], []).append(question)
     counts_by_conjecture = {
         conjecture.conjecture_id: 0 for conjecture in conjectures
     }
@@ -30,6 +34,7 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
             experiments=experiments,
             recurring_lemmas=recurring,
             recurring_subgoals=recurring_subgoals,
+            discovery_questions=questions_by_conjecture.get(conjecture.conjecture_id, []),
         )
         frontier.append({
             "project_id": project_id,
@@ -40,6 +45,9 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
             "objective": candidate.objective,
             "expected_signal": candidate.expected_signal,
             "modification": candidate.modification,
+            "discovery_question_id": candidate.discovery_question_id,
+            "discovery_question": candidate.discovery_question,
+            "discovery_priority": (questions_by_conjecture.get(conjecture.conjecture_id) or [{}])[0].get("priority", 0),
         })
         # Only use this as a dry-run frontier preview; delete the temp candidate workspace.
         import shutil
@@ -67,6 +75,7 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
         experiments=experiments,
         recurring_lemmas=recurring,
         recurring_subgoals=recurring_subgoals,
+        discovery_questions=questions_by_conjecture.get(chosen_conjecture.conjecture_id, []),
     )
     return chosen, manager_prompt, frontier
 
@@ -77,6 +86,10 @@ def generate_frontier(db: Database, project_id: str, workspace_root: str) -> Lis
     experiments = db.list_experiments(project_id)
     recurring = db.recurring_lemmas()
     recurring_subgoals = db.recurring_subgoals(project_id)
+    open_questions = db.list_discovery_questions(project_id, status="open")
+    questions_by_conjecture = {}
+    for question in open_questions:
+        questions_by_conjecture.setdefault(question["conjecture_id"], []).append(question)
     no_signal = {(item["conjecture_id"], item["move"]): item["observations"] for item in db.no_signal_branches(project_id)}
     active = db.list_active_experiments(project_id)
     counts_by_conjecture = {
@@ -111,6 +124,7 @@ def generate_frontier(db: Database, project_id: str, workspace_root: str) -> Lis
             experiments=experiments,
             recurring_lemmas=recurring,
             recurring_subgoals=recurring_subgoals,
+            discovery_questions=questions_by_conjecture.get(conjecture.conjecture_id, []),
         )
         signature = (
             conjecture.conjecture_id,
@@ -135,6 +149,9 @@ def generate_frontier(db: Database, project_id: str, workspace_root: str) -> Lis
             "modification": candidate.modification,
             "workspace_dir": candidate.workspace_dir,
             "lean_file": candidate.lean_file,
+            "discovery_question_id": candidate.discovery_question_id,
+            "discovery_question": candidate.discovery_question,
+            "discovery_priority": (questions_by_conjecture.get(conjecture.conjecture_id) or [{}])[0].get("priority", 0),
             "duplicate_active_signature": signature in active_signatures,
             "targets_recurring_structure": targets_recurring_structure,
             "signal_priority": signal_priority,

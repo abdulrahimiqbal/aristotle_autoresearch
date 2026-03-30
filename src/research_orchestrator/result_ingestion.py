@@ -5,9 +5,10 @@ import re
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
+from uuid import uuid4
 
 from research_orchestrator.lemma_utils import normalize_goal, normalize_lemma
-from research_orchestrator.types import ProviderResult
+from research_orchestrator.types import ArtifactProvenance, ProviderResult, VerificationSignal
 
 
 THEOREM_PATTERN = re.compile(r"^\s*(?:theorem|lemma)\s+(.*)$", re.MULTILINE)
@@ -325,3 +326,112 @@ def ingest_provider_result(result: ProviderResult) -> ProviderResult:
     if not enriched.notes:
         enriched.notes = record.signal_summary
     return enriched
+
+
+def build_verification_signals(
+    *,
+    project_id: str,
+    conjecture_id: str,
+    experiment_id: str,
+    result: ProviderResult,
+) -> list[VerificationSignal]:
+    provenance = [
+        ArtifactProvenance(
+            kind="artifact",
+            path=item["path"],
+            source=item.get("kind", "file"),
+            confidence=1.0,
+        )
+        for item in result.artifact_inventory[:3]
+    ]
+    fallback_provenance = provenance or [
+        ArtifactProvenance(kind="stdout", path="", source="provider_result", confidence=0.55)
+    ]
+    signals: list[VerificationSignal] = []
+
+    for lemma in result.proved_lemmas:
+        signals.append(
+            VerificationSignal(
+                signal_id=str(uuid4()),
+                project_id=project_id,
+                conjecture_id=conjecture_id,
+                experiment_id=experiment_id,
+                signal_type="verified_lemma",
+                label=lemma,
+                detail="Lean/artifact-backed proved lemma extracted from provider result.",
+                confidence=0.95,
+                provenance=fallback_provenance,
+            )
+        )
+    for lemma in result.candidate_lemmas:
+        signals.append(
+            VerificationSignal(
+                signal_id=str(uuid4()),
+                project_id=project_id,
+                conjecture_id=conjecture_id,
+                experiment_id=experiment_id,
+                signal_type="reproducible_candidate_lemma" if provenance else "candidate_lemma",
+                label=lemma,
+                detail="Candidate lemma surfaced during verification-oriented result ingestion.",
+                confidence=0.75 if provenance else 0.45,
+                provenance=fallback_provenance,
+            )
+        )
+    for goal in result.unresolved_goals:
+        signals.append(
+            VerificationSignal(
+                signal_id=str(uuid4()),
+                project_id=project_id,
+                conjecture_id=conjecture_id,
+                experiment_id=experiment_id,
+                signal_type="recurring_subgoal",
+                label=goal,
+                detail="Unresolved goal retained as a discovery object.",
+                confidence=0.8 if provenance else 0.5,
+                provenance=fallback_provenance,
+            )
+        )
+    for assumption in result.missing_assumptions or result.suspected_missing_assumptions:
+        signals.append(
+            VerificationSignal(
+                signal_id=str(uuid4()),
+                project_id=project_id,
+                conjecture_id=conjecture_id,
+                experiment_id=experiment_id,
+                signal_type="assumption_boundary",
+                label=assumption,
+                detail=f"Potentially necessary assumption under outcome={result.proof_outcome}.",
+                confidence=0.78 if provenance else 0.5,
+                provenance=fallback_provenance,
+            )
+        )
+    for witness in result.counterexample_witnesses:
+        signals.append(
+            VerificationSignal(
+                signal_id=str(uuid4()),
+                project_id=project_id,
+                conjecture_id=conjecture_id,
+                experiment_id=experiment_id,
+                signal_type="counterexample_witness",
+                label=witness,
+                detail="Candidate falsifying or fragility witness.",
+                confidence=0.82 if provenance else 0.5,
+                provenance=fallback_provenance,
+            )
+        )
+    if result.blocker_type in {"formalization", "malformed", "dns_failure", "network_unavailable"}:
+        signals.append(
+            VerificationSignal(
+                signal_id=str(uuid4()),
+                project_id=project_id,
+                conjecture_id=conjecture_id,
+                experiment_id=experiment_id,
+                signal_type="infra_incident" if "failure" in result.proof_outcome else "formalization_blocker",
+                label=result.blocker_type,
+                detail=result.signal_summary or result.notes,
+                confidence=0.9,
+                provenance=fallback_provenance,
+                metadata={"proof_outcome": result.proof_outcome},
+            )
+        )
+    return signals

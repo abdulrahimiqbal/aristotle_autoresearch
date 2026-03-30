@@ -7,7 +7,14 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
 from research_orchestrator.lemma_utils import goal_fingerprint, lemma_fingerprint
-from research_orchestrator.types import Conjecture, ProjectCharter, ProviderResult
+from research_orchestrator.types import (
+    CampaignSpec,
+    Conjecture,
+    DiscoveryQuestion,
+    ProjectCharter,
+    ProviderResult,
+    VerificationSignal,
+)
 
 
 def utcnow() -> str:
@@ -196,6 +203,89 @@ SCHEMA = [
         FOREIGN KEY(experiment_id) REFERENCES experiments(experiment_id)
     )
     """,
+    """
+    CREATE TABLE IF NOT EXISTS campaign_specs (
+        project_id TEXT PRIMARY KEY,
+        version TEXT NOT NULL,
+        raw_prompt TEXT NOT NULL,
+        spec_json TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS discovery_questions (
+        question_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        conjecture_id TEXT NOT NULL,
+        category TEXT NOT NULL,
+        question TEXT NOT NULL,
+        rationale TEXT NOT NULL,
+        priority INTEGER NOT NULL DEFAULT 50,
+        status TEXT NOT NULL DEFAULT 'open',
+        node_id TEXT DEFAULT '',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id),
+        FOREIGN KEY(conjecture_id) REFERENCES conjectures(conjecture_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS discovery_graph_nodes (
+        node_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        conjecture_id TEXT,
+        experiment_id TEXT,
+        node_type TEXT NOT NULL,
+        label TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'active',
+        confidence REAL NOT NULL DEFAULT 0.5,
+        provenance_kind TEXT NOT NULL DEFAULT 'inferred',
+        provenance_ref TEXT NOT NULL DEFAULT '',
+        metadata_json TEXT NOT NULL DEFAULT '{}',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS discovery_graph_edges (
+        edge_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        source_node_id TEXT NOT NULL,
+        target_node_id TEXT NOT NULL,
+        relation TEXT NOT NULL,
+        metadata_json TEXT NOT NULL DEFAULT '{}',
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS audit_events (
+        event_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        experiment_id TEXT DEFAULT '',
+        event_type TEXT NOT NULL,
+        detail_json TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS incidents (
+        incident_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        experiment_id TEXT DEFAULT '',
+        incident_type TEXT NOT NULL,
+        severity TEXT NOT NULL DEFAULT 'warning',
+        detail TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'open',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id)
+    )
+    """,
 ]
 
 
@@ -226,6 +316,8 @@ class Database:
             ("ingestion_json", "TEXT"),
             ("new_signal_count", "INTEGER DEFAULT 0"),
             ("reused_signal_count", "INTEGER DEFAULT 0"),
+            ("discovery_question_id", "TEXT"),
+            ("attempt_count", "INTEGER DEFAULT 0"),
         ):
             if column_name not in existing:
                 self.conn.execute(
@@ -250,6 +342,49 @@ class Database:
             ),
         )
         self.conn.commit()
+
+    def save_campaign_spec(self, spec: CampaignSpec) -> None:
+        now = utcnow()
+        self.conn.execute(
+            """
+            INSERT OR REPLACE INTO campaign_specs(project_id, version, raw_prompt, spec_json, created_at, updated_at)
+            VALUES (
+                ?, ?, ?, ?,
+                COALESCE((SELECT created_at FROM campaign_specs WHERE project_id = ?), ?),
+                ?
+            )
+            """,
+            (
+                spec.project_id,
+                spec.version,
+                spec.raw_prompt,
+                json.dumps(
+                    {
+                        **spec.__dict__,
+                        "budget_policy": spec.budget_policy.__dict__,
+                        "runtime_policy": spec.runtime_policy.__dict__,
+                    }
+                ),
+                spec.project_id,
+                now,
+                now,
+            ),
+        )
+        self.conn.commit()
+
+    def get_campaign_spec(self, project_id: str) -> Optional[CampaignSpec]:
+        row = self.conn.execute(
+            "SELECT spec_json FROM campaign_specs WHERE project_id = ?",
+            (project_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        data = json.loads(row["spec_json"])
+        from research_orchestrator.types import CampaignBudgetPolicy, RuntimePolicy
+
+        data["budget_policy"] = CampaignBudgetPolicy(**data.get("budget_policy", {}))
+        data["runtime_policy"] = RuntimePolicy(**data.get("runtime_policy", {}))
+        return CampaignSpec(**data)
 
     def save_conjecture(self, conjecture: Conjecture) -> None:
         metadata = {
@@ -315,13 +450,66 @@ class Database:
         ).fetchall()
         return [self.get_conjecture(row["conjecture_id"]) for row in rows]
 
+    def save_discovery_question(self, question: DiscoveryQuestion) -> None:
+        now = utcnow()
+        self.conn.execute(
+            """
+            INSERT OR REPLACE INTO discovery_questions(
+                question_id, project_id, conjecture_id, category, question, rationale,
+                priority, status, node_id, created_at, updated_at
+            ) VALUES (
+                ?, ?, ?, ?, ?, ?, ?, ?,
+                COALESCE(?, ''),
+                COALESCE((SELECT created_at FROM discovery_questions WHERE question_id = ?), ?),
+                ?
+            )
+            """,
+            (
+                question.question_id,
+                question.project_id,
+                question.conjecture_id,
+                question.category,
+                question.question,
+                question.rationale,
+                question.priority,
+                question.status,
+                question.node_id,
+                question.question_id,
+                now,
+                now,
+            ),
+        )
+        self.conn.commit()
+
+    def list_discovery_questions(self, project_id: str, status: Optional[str] = None) -> List[Dict[str, Any]]:
+        params: List[Any] = [project_id]
+        query = "SELECT * FROM discovery_questions WHERE project_id = ?"
+        if status is not None:
+            query += " AND status = ?"
+            params.append(status)
+        query += " ORDER BY priority DESC, created_at ASC"
+        rows = self.conn.execute(query, params).fetchall()
+        return [dict(row) for row in rows]
+
+    def mark_discovery_question_status(self, question_id: str, status: str, node_id: str = "") -> None:
+        self.conn.execute(
+            """
+            UPDATE discovery_questions
+            SET status = ?, node_id = COALESCE(NULLIF(?, ''), node_id), updated_at = ?
+            WHERE question_id = ?
+            """,
+            (status, node_id, utcnow(), question_id),
+        )
+        self.conn.commit()
+
     def save_experiment_plan(self, brief: Dict[str, Any]) -> None:
         self.conn.execute(
             """
             INSERT OR REPLACE INTO experiments(
                 experiment_id, project_id, conjecture_id, phase, move, objective, expected_signal,
-                modification_json, workspace_dir, lean_file, external_id, external_status, submitted_at, last_synced_at, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT created_at FROM experiments WHERE experiment_id = ?), ?))
+                modification_json, workspace_dir, lean_file, external_id, external_status,
+                submitted_at, last_synced_at, discovery_question_id, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT created_at FROM experiments WHERE experiment_id = ?), ?))
             """,
             (
                 brief["experiment_id"],
@@ -338,6 +526,7 @@ class Database:
                 brief.get("external_status"),
                 brief.get("submitted_at"),
                 brief.get("last_synced_at"),
+                brief.get("discovery_question_id"),
                 brief["experiment_id"],
                 utcnow(),
             ),
@@ -379,7 +568,7 @@ class Database:
             UPDATE experiments
             SET provider = ?, status = ?, blocker_type = ?, outcome_json = ?, ingestion_json = ?, proof_outcome = ?, signal_summary = ?, external_id = ?, external_status = ?,
                 submitted_at = COALESCE(?, submitted_at), last_synced_at = ?, completed_at = COALESCE(?, completed_at),
-                new_signal_count = ?, reused_signal_count = ?
+                new_signal_count = ?, reused_signal_count = ?, attempt_count = attempt_count + 1
             WHERE experiment_id = ?
             """,
             (
@@ -444,6 +633,217 @@ class Database:
             item["ingestion"] = json.loads(item["ingestion_json"]) if item.get("ingestion_json") else None
             results.append(item)
         return results
+
+    def add_audit_event(self, project_id: str, event_type: str, detail: Dict[str, Any], experiment_id: str = "") -> None:
+        import uuid
+
+        self.conn.execute(
+            """
+            INSERT INTO audit_events(event_id, project_id, experiment_id, event_type, detail_json, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                str(uuid.uuid4()),
+                project_id,
+                experiment_id,
+                event_type,
+                json.dumps(detail),
+                utcnow(),
+            ),
+        )
+        self.conn.commit()
+
+    def list_audit_events(self, project_id: str, limit: int = 20) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT * FROM audit_events
+            WHERE project_id = ?
+            ORDER BY created_at DESC
+            LIMIT ?
+            """,
+            (project_id, limit),
+        ).fetchall()
+        items = []
+        for row in rows:
+            item = dict(row)
+            item["detail"] = json.loads(item["detail_json"])
+            items.append(item)
+        return items
+
+    def create_incident(self, project_id: str, incident_type: str, detail: str, experiment_id: str = "", severity: str = "warning") -> None:
+        import uuid
+
+        now = utcnow()
+        self.conn.execute(
+            """
+            INSERT INTO incidents(incident_id, project_id, experiment_id, incident_type, severity, detail, status, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, 'open', ?, ?)
+            """,
+            (
+                str(uuid.uuid4()),
+                project_id,
+                experiment_id,
+                incident_type,
+                severity,
+                detail,
+                now,
+                now,
+            ),
+        )
+        self.conn.commit()
+
+    def list_incidents(self, project_id: str, status: Optional[str] = None) -> List[Dict[str, Any]]:
+        params: List[Any] = [project_id]
+        query = "SELECT * FROM incidents WHERE project_id = ?"
+        if status is not None:
+            query += " AND status = ?"
+            params.append(status)
+        query += " ORDER BY updated_at DESC, created_at DESC"
+        return [dict(row) for row in self.conn.execute(query, params).fetchall()]
+
+    def upsert_discovery_node(
+        self,
+        *,
+        project_id: str,
+        node_type: str,
+        label: str,
+        conjecture_id: str = "",
+        experiment_id: str = "",
+        confidence: float = 0.5,
+        provenance_kind: str = "inferred",
+        provenance_ref: str = "",
+        status: str = "active",
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        import uuid
+
+        metadata_json = json.dumps(metadata or {})
+        row = self.conn.execute(
+            """
+            SELECT node_id FROM discovery_graph_nodes
+            WHERE project_id = ? AND node_type = ? AND label = ?
+            """,
+            (project_id, node_type, label),
+        ).fetchone()
+        now = utcnow()
+        if row is not None:
+            node_id = row["node_id"]
+            self.conn.execute(
+                """
+                UPDATE discovery_graph_nodes
+                SET confidence = MAX(confidence, ?),
+                    status = ?,
+                    conjecture_id = COALESCE(NULLIF(?, ''), conjecture_id),
+                    experiment_id = COALESCE(NULLIF(?, ''), experiment_id),
+                    provenance_kind = ?,
+                    provenance_ref = ?,
+                    metadata_json = ?,
+                    updated_at = ?
+                WHERE node_id = ?
+                """,
+                (
+                    confidence,
+                    status,
+                    conjecture_id,
+                    experiment_id,
+                    provenance_kind,
+                    provenance_ref,
+                    metadata_json,
+                    now,
+                    node_id,
+                ),
+            )
+        else:
+            node_id = str(uuid.uuid4())
+            self.conn.execute(
+                """
+                INSERT INTO discovery_graph_nodes(
+                    node_id, project_id, conjecture_id, experiment_id, node_type, label, status,
+                    confidence, provenance_kind, provenance_ref, metadata_json, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    node_id,
+                    project_id,
+                    conjecture_id or None,
+                    experiment_id or None,
+                    node_type,
+                    label,
+                    status,
+                    confidence,
+                    provenance_kind,
+                    provenance_ref,
+                    metadata_json,
+                    now,
+                    now,
+                ),
+            )
+        self.conn.commit()
+        return node_id
+
+    def create_discovery_edge(
+        self,
+        *,
+        project_id: str,
+        source_node_id: str,
+        target_node_id: str,
+        relation: str,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        import uuid
+
+        existing = self.conn.execute(
+            """
+            SELECT edge_id FROM discovery_graph_edges
+            WHERE project_id = ? AND source_node_id = ? AND target_node_id = ? AND relation = ?
+            """,
+            (project_id, source_node_id, target_node_id, relation),
+        ).fetchone()
+        if existing is not None:
+            return
+        self.conn.execute(
+            """
+            INSERT INTO discovery_graph_edges(edge_id, project_id, source_node_id, target_node_id, relation, metadata_json, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                str(uuid.uuid4()),
+                project_id,
+                source_node_id,
+                target_node_id,
+                relation,
+                json.dumps(metadata or {}),
+                utcnow(),
+            ),
+        )
+        self.conn.commit()
+
+    def list_discovery_nodes(self, project_id: str, node_type: Optional[str] = None) -> List[Dict[str, Any]]:
+        params: List[Any] = [project_id]
+        query = "SELECT * FROM discovery_graph_nodes WHERE project_id = ?"
+        if node_type is not None:
+            query += " AND node_type = ?"
+            params.append(node_type)
+        query += " ORDER BY confidence DESC, created_at ASC"
+        rows = self.conn.execute(query, params).fetchall()
+        items = []
+        for row in rows:
+            item = dict(row)
+            item["metadata"] = json.loads(item["metadata_json"])
+            items.append(item)
+        return items
+
+    def list_discovery_edges(self, project_id: str) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            "SELECT * FROM discovery_graph_edges WHERE project_id = ? ORDER BY created_at ASC",
+            (project_id,),
+        ).fetchall()
+        items = []
+        for row in rows:
+            item = dict(row)
+            item["metadata"] = json.loads(item["metadata_json"])
+            items.append(item)
+        return items
 
     def list_active_experiments(self, project_id: str, provider: Optional[str] = None) -> List[Dict[str, Any]]:
         statuses = ("planned", "submitted", "in_progress")
@@ -688,9 +1088,12 @@ class Database:
         signal_summary: str,
         proof_trace_fragments: Iterable[str] = (),
         counterexample_witnesses: Iterable[str] = (),
+        discovery_question_id: str = "",
+        verification_signals: Iterable[VerificationSignal] = (),
     ) -> None:
         import uuid
 
+        verification_signals = list(verification_signals)
         self.conn.execute("DELETE FROM extracted_subgoals WHERE experiment_id = ?", (experiment_id,))
         self.conn.execute("DELETE FROM artifact_metadata WHERE experiment_id = ?", (experiment_id,))
         self.conn.execute("DELETE FROM blocker_observations WHERE experiment_id = ?", (experiment_id,))
@@ -781,6 +1184,84 @@ class Database:
                     utcnow(),
                 ),
             )
+        question_node_id = ""
+        if discovery_question_id:
+            question_rows = self.conn.execute(
+                "SELECT * FROM discovery_questions WHERE question_id = ?",
+                (discovery_question_id,),
+            ).fetchone()
+            if question_rows is not None:
+                question = dict(question_rows)
+                question_node_id = self.upsert_discovery_node(
+                    project_id=project_id,
+                    node_type="discovery_question",
+                    label=question["question"],
+                    conjecture_id=conjecture_id,
+                    experiment_id=experiment_id,
+                    confidence=1.0,
+                    provenance_kind="manager",
+                    provenance_ref=discovery_question_id,
+                    metadata={
+                        "category": question["category"],
+                        "priority": question["priority"],
+                        "rationale": question["rationale"],
+                    },
+                )
+                self.mark_discovery_question_status(discovery_question_id, "answered", node_id=question_node_id)
+
+        for signal in verification_signals:
+            node_id = self.upsert_discovery_node(
+                project_id=signal.project_id,
+                node_type=signal.signal_type,
+                label=signal.label,
+                conjecture_id=signal.conjecture_id,
+                experiment_id=signal.experiment_id,
+                confidence=signal.confidence,
+                provenance_kind=signal.provenance[0].kind if signal.provenance else "artifact",
+                provenance_ref=signal.provenance[0].path if signal.provenance else "",
+                metadata={
+                    "detail": signal.detail,
+                    "metadata": signal.metadata,
+                    "provenance": [item.__dict__ for item in signal.provenance],
+                },
+            )
+            if question_node_id:
+                self.create_discovery_edge(
+                    project_id=project_id,
+                    source_node_id=question_node_id,
+                    target_node_id=node_id,
+                    relation="answered_by",
+                    metadata={"experiment_id": experiment_id},
+                )
+            experiment_node_id = self.upsert_discovery_node(
+                project_id=project_id,
+                node_type="experiment",
+                label=experiment_id,
+                conjecture_id=conjecture_id,
+                experiment_id=experiment_id,
+                confidence=1.0,
+                provenance_kind="execution",
+                provenance_ref=experiment_id,
+                metadata={"proof_outcome": proof_outcome, "blocker_type": blocker_type},
+            )
+            self.create_discovery_edge(
+                project_id=project_id,
+                source_node_id=experiment_node_id,
+                target_node_id=node_id,
+                relation="produced_signal",
+                metadata={"proof_outcome": proof_outcome},
+            )
+        self.add_audit_event(
+            project_id=project_id,
+            experiment_id=experiment_id,
+            event_type="result_ingested",
+            detail={
+                "proof_outcome": proof_outcome,
+                "blocker_type": blocker_type,
+                "signal_summary": signal_summary,
+                "verification_signal_count": len(verification_signals),
+            },
+        )
         self.conn.commit()
 
     def record_assumption_observation(self, project_id: str, conjecture_id: str, experiment_id: str, assumption_name: str, outcome: str, sensitivity_score: float) -> None:
@@ -929,8 +1410,14 @@ class Database:
         stalled = sum(1 for item in experiments if item["status"] == "stalled")
         failed = sum(1 for item in experiments if item["status"] == "failed")
         pending = sum(1 for item in experiments if item["status"] in {"planned", "submitted", "in_progress"})
+        spec = self.get_campaign_spec(project_id)
+        discovery_nodes = self.list_discovery_nodes(project_id)
+        open_questions = self.list_discovery_questions(project_id, status="open")
+        incidents = self.list_incidents(project_id, status="open")
         return {
             "project_id": project_id,
+            "campaign_title": spec.title if spec is not None else self.get_charter(project_id).title,
+            "campaign_version": spec.version if spec is not None else "",
             "num_experiments": len(experiments),
             "solved": solved,
             "stalled": stalled,
@@ -945,4 +1432,17 @@ class Database:
             "counterexample_summary": self.counterexample_summary(project_id),
             "no_signal_branches": self.no_signal_branches(project_id),
             "assumption_sensitivity": self.assumption_sensitivity(project_id),
+            "open_discovery_questions": open_questions,
+            "discovery_graph_counts": {
+                "nodes": len(discovery_nodes),
+                "edges": len(self.list_discovery_edges(project_id)),
+                "verified_like_nodes": len(
+                    [
+                        item
+                        for item in discovery_nodes
+                        if item["node_type"] in {"verified_lemma", "recurring_subgoal", "assumption_boundary", "counterexample_witness"}
+                    ]
+                ),
+            },
+            "open_incidents": incidents,
         }

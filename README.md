@@ -71,6 +71,55 @@ Open:
 ./demo_run/report.md
 ```
 
+## Single-prompt campaign workflow
+
+The repo now supports a production-foundation workflow where you start from one natural-language prompt and let the manager build a verification-driven campaign around it.
+
+### 1) Start a campaign from one prompt
+```bash
+research-orchestrator start-campaign \
+  --db ./state.sqlite \
+  --prompt "Study the hidden structure behind weighted monotone subsequence thresholds and discover which assumptions are truly necessary through formal verification."
+```
+
+This will:
+- synthesize a campaign spec
+- create an initial conjecture
+- seed discovery questions
+- persist campaign state for autonomous runs
+
+### 2) Inspect campaign status
+```bash
+research-orchestrator campaign-status \
+  --db ./state.sqlite \
+  --project <project-id>
+```
+
+### 3) Run autonomous cycles
+```bash
+research-orchestrator run-cycle \
+  --db ./state.sqlite \
+  --project <project-id> \
+  --provider mock \
+  --workspace ./work \
+  --max-cycles 4
+```
+
+### 4) Generate the discovery-centric report
+```bash
+research-orchestrator report \
+  --db ./state.sqlite \
+  --project <project-id> \
+  --output ./report.md
+```
+
+The report now includes:
+- the campaign contract
+- discovery questions
+- discovery graph nodes and edges
+- incidents and audit trail
+- experiment-level discovery context
+
 ## Core commands
 
 ### Initialize a project

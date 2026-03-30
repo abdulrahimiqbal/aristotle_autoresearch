@@ -96,6 +96,7 @@ Return valid JSON with this exact shape:
 
 Hard constraints:
 - rank only experiment ids that appear in the frontier candidates
+- prefer candidates with explicit high-priority discovery questions
 - prefer cross-problem diversity before deepening one branch
 - avoid duplicate active runs for the same conjecture, move, and modification
 - favor information gain and reusability
@@ -108,6 +109,7 @@ Hard constraints:
 def _heuristic_key(candidate: Dict[str, Any]) -> Tuple[int, int, int, int, str]:
     return (
         candidate["active_count_for_conjecture"],
+        -candidate.get("discovery_priority", 0),
         0 if candidate.get("targets_recurring_structure") else 1,
         candidate.get("no_signal_penalty", 0),
         -candidate.get("signal_priority", 0),

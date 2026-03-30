@@ -11,7 +11,7 @@ from research_orchestrator.manager_policy import choose_candidates_for_submissio
 from research_orchestrator.prompt_linter import lint_manager_prompt, lint_worker_prompt
 from research_orchestrator.prompts import build_worker_prompt
 from research_orchestrator.provider_registry import get_provider
-from research_orchestrator.result_ingestion import ingest_provider_result
+from research_orchestrator.result_ingestion import build_verification_signals, ingest_provider_result
 from research_orchestrator.types import ExperimentBrief
 
 
@@ -54,6 +54,8 @@ def _prepare_cycle_from_candidate(db: Database, project_id: str, candidate: Dict
         modification=candidate["modification"],
         workspace_dir=candidate["workspace_dir"],
         lean_file=candidate["lean_file"],
+        discovery_question_id=candidate.get("discovery_question_id", ""),
+        discovery_question=candidate.get("discovery_question", ""),
     )
     db.save_experiment_plan(brief.__dict__)
 
@@ -86,6 +88,8 @@ def _brief_from_experiment(experiment: Dict[str, object]) -> ExperimentBrief:
         modification=experiment["modification"],
         workspace_dir=experiment["workspace_dir"],
         lean_file=experiment["lean_file"],
+        discovery_question_id=experiment.get("discovery_question_id", "") or "",
+        discovery_question="",
     )
 
 
@@ -124,7 +128,33 @@ def _finalize_result(
         signal_summary=result.signal_summary,
         proof_trace_fragments=result.proof_trace_fragments,
         counterexample_witnesses=result.counterexample_witnesses,
+        discovery_question_id=brief.discovery_question_id,
+        verification_signals=build_verification_signals(
+            project_id=project_id,
+            conjecture_id=brief.conjecture_id,
+            experiment_id=brief.experiment_id,
+            result=result,
+        ),
     )
+    db.add_audit_event(
+        project_id=project_id,
+        experiment_id=brief.experiment_id,
+        event_type="experiment_finalized",
+        detail={
+            "status": result.status,
+            "proof_outcome": result.proof_outcome,
+            "blocker_type": result.blocker_type,
+            "discovery_question_id": brief.discovery_question_id,
+        },
+    )
+    if result.blocker_type in {"dns_failure", "network_unavailable", "malformed"}:
+        db.create_incident(
+            project_id=project_id,
+            experiment_id=brief.experiment_id,
+            incident_type=result.blocker_type,
+            detail=result.notes or result.signal_summary,
+            severity="error" if result.blocker_type != "malformed" else "warning",
+        )
 
     if brief.move == "perturb_assumption":
         assumption = brief.modification.get("assumption")
@@ -213,6 +243,16 @@ def submit_one_cycle(db: Database, project_id: str, provider_name: str, workspac
         provider=provider.name,
         result=result,
         evaluation=None,
+    )
+    db.add_audit_event(
+        project_id=project_id,
+        experiment_id=brief.experiment_id,
+        event_type="experiment_submitted",
+        detail={
+            "status": result.status,
+            "external_id": result.external_id,
+            "discovery_question_id": brief.discovery_question_id,
+        },
     )
     memo = {
         "experiment_id": brief.experiment_id,

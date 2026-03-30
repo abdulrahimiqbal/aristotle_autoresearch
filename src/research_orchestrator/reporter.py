@@ -7,6 +7,7 @@ from research_orchestrator.db import Database
 
 def build_report(db: Database, project_id: str) -> str:
     charter = db.get_charter(project_id)
+    spec = db.get_campaign_spec(project_id)
     summary = db.project_summary(project_id)
     experiments = db.list_experiments(project_id)
     active = db.list_active_experiments(project_id)
@@ -20,12 +21,27 @@ def build_report(db: Database, project_id: str) -> str:
     no_signal_branches = summary.get("no_signal_branches", [])
     sensitivity = db.assumption_sensitivity(project_id)
     latest_manager_run = db.latest_manager_run(project_id)
+    open_questions = db.list_discovery_questions(project_id, status="open")
+    discovery_nodes = db.list_discovery_nodes(project_id)
+    discovery_edges = db.list_discovery_edges(project_id)
+    incidents = db.list_incidents(project_id, status="open")
+    audit_events = db.list_audit_events(project_id, limit=10)
 
     lines = []
     lines.append(f"# Research Report: {charter.title}")
     lines.append("")
     lines.append(f"**Project ID:** `{charter.project_id}`")
     lines.append("")
+    if spec is not None:
+        lines.append("## Campaign Contract")
+        lines.append("")
+        lines.append(f"- version: `{spec.version}`")
+        lines.append(f"- runtime: `{spec.runtime_policy.runtime}`")
+        lines.append(f"- autonomy: `{spec.runtime_policy.autonomy_mode}`")
+        lines.append(f"- verification mode: `{spec.runtime_policy.verification_mode}`")
+        lines.append(f"- mission: {spec.mission}")
+        lines.append("- verification-as-discovery: experiments are judged by the verified discovery graph, not only theorem proofs")
+        lines.append("")
     lines.append("## Overarching problem")
     lines.append("")
     lines.append(charter.overarching_problem)
@@ -37,6 +53,28 @@ def build_report(db: Database, project_id: str) -> str:
     lines.append(f"- Stalled: {summary['stalled']}")
     lines.append(f"- Failed: {summary['failed']}")
     lines.append(f"- Pending: {summary.get('pending', 0)}")
+    lines.append("")
+    lines.append("## Discovery Graph")
+    lines.append("")
+    counts = summary.get("discovery_graph_counts", {})
+    lines.append(f"- nodes: {counts.get('nodes', 0)}")
+    lines.append(f"- edges: {counts.get('edges', 0)}")
+    lines.append(f"- verified-like nodes: {counts.get('verified_like_nodes', 0)}")
+    if discovery_nodes:
+        for item in discovery_nodes[:10]:
+            lines.append(
+                f"- `{item['node_type']}` `{item['label']}` confidence={item['confidence']} provenance={item['provenance_kind']}"
+            )
+    else:
+        lines.append("- No discovery nodes yet.")
+    lines.append("")
+    lines.append("## Discovery Questions")
+    lines.append("")
+    if open_questions:
+        for item in open_questions:
+            lines.append(f"- [{item['category']}] {item['question']}")
+    else:
+        lines.append("- No open discovery questions.")
     lines.append("")
     lines.append("## Active jobs")
     lines.append("")
@@ -132,6 +170,13 @@ def build_report(db: Database, project_id: str) -> str:
         if experiment.get("proof_outcome"):
             lines.append(f"- proof outcome: `{experiment['proof_outcome']}`")
         lines.append(f"- blocker: `{experiment['blocker_type']}`")
+        if experiment.get("discovery_question_id"):
+            question = next(
+                (item for item in db.list_discovery_questions(project_id) if item["question_id"] == experiment["discovery_question_id"]),
+                None,
+            )
+            if question is not None:
+                lines.append(f"- discovery question: {question['question']}")
         if experiment.get("external_id"):
             lines.append(f"- external job id: `{experiment['external_id']}`")
         if experiment.get("external_status"):
@@ -192,6 +237,24 @@ def build_report(db: Database, project_id: str) -> str:
                 lines.append(f"- evaluation total: {evaluation['total']}")
             lines.append(f"- notes: {provider_result.get('notes', '')}")
         lines.append("")
+    lines.append("## Incidents")
+    lines.append("")
+    if incidents:
+        for incident in incidents[:10]:
+            lines.append(
+                f"- `{incident['severity']}` `{incident['incident_type']}`: {incident['detail']}"
+            )
+    else:
+        lines.append("- No open incidents.")
+    lines.append("")
+    lines.append("## Audit Trail")
+    lines.append("")
+    if audit_events:
+        for event in audit_events:
+            lines.append(f"- `{event['event_type']}` at `{event['created_at']}`")
+    else:
+        lines.append("- No audit events.")
+    lines.append("")
     lines.append("## Latest manager decision")
     lines.append("")
     if latest_manager_run is not None:

@@ -20,6 +20,43 @@ class ProjectCharter:
 
 
 @dataclass
+class CampaignBudgetPolicy:
+    max_active_jobs: int = 5
+    max_total_experiments: int = 25
+    max_retries_per_error: int = 3
+    max_consecutive_failures: int = 5
+    hard_cost_limit_usd: float = 25.0
+    cooldown_seconds: int = 300
+
+
+@dataclass
+class RuntimePolicy:
+    runtime: str = "cloud-worker"
+    autonomy_mode: str = "full_auto"
+    verification_mode: str = "lean_artifact_first"
+    pause_on_incident: bool = False
+    artifact_retention_days: int = 30
+
+
+@dataclass
+class CampaignSpec:
+    project_id: str
+    version: str
+    title: str
+    raw_prompt: str
+    mission: str
+    theorem_family: List[str]
+    success_criteria: List[str]
+    non_goals: List[str]
+    allowed_moves: List[str]
+    phase_order: List[str]
+    domain_scope: List[str] = field(default_factory=list)
+    budget_policy: CampaignBudgetPolicy = field(default_factory=CampaignBudgetPolicy)
+    runtime_policy: RuntimePolicy = field(default_factory=RuntimePolicy)
+    planner_notes: List[str] = field(default_factory=list)
+
+
+@dataclass
 class Conjecture:
     conjecture_id: str
     project_id: str
@@ -46,6 +83,8 @@ class ExperimentBrief:
     modification: Dict[str, Any]
     workspace_dir: str
     lean_file: str
+    discovery_question_id: str = ""
+    discovery_question: str = ""
 
 
 @dataclass
@@ -76,6 +115,52 @@ class ProviderResult:
     external_id: str = ""
     external_status: str = ""
     metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class DiscoveryQuestion:
+    question_id: str
+    project_id: str
+    conjecture_id: str
+    category: str
+    question: str
+    rationale: str
+    priority: int = 50
+    status: str = "open"
+    node_id: str = ""
+
+
+@dataclass
+class ArtifactProvenance:
+    kind: str
+    path: str
+    source: str
+    confidence: float = 1.0
+
+
+@dataclass
+class VerificationSignal:
+    signal_id: str
+    project_id: str
+    conjecture_id: str
+    experiment_id: str
+    signal_type: str
+    label: str
+    detail: str = ""
+    confidence: float = 0.5
+    provenance: List[ArtifactProvenance] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class IncidentRecord:
+    incident_id: str
+    project_id: str
+    experiment_id: str = ""
+    incident_type: str = "unknown"
+    severity: str = "warning"
+    detail: str = ""
+    status: str = "open"
 
 
 @dataclass

@@ -118,11 +118,14 @@ def materialize_experiment(
     experiments: List[dict],
     recurring_lemmas: List[dict],
     recurring_subgoals: List[dict] | None = None,
+    discovery_questions: List[dict] | None = None,
 ) -> ExperimentBrief:
     phase = _next_phase(charter, len(experiments))
     move, modification, objective, expected_signal = choose_move(
         charter, conjecture, experiments, recurring_lemmas, recurring_subgoals
     )
+    discovery_questions = discovery_questions or []
+    chosen_question = discovery_questions[0] if discovery_questions else None
     experiment_id = str(uuid4())
     workspace_dir = Path(workspace_root) / experiment_id
     workspace_dir.mkdir(parents=True, exist_ok=True)
@@ -177,9 +180,19 @@ def materialize_experiment(
         conjecture_id=conjecture.conjecture_id,
         phase=phase,
         move=move,
-        objective=objective,
-        expected_signal=expected_signal,
+        objective=(
+            f"{objective} Discovery question: {chosen_question['question']}"
+            if chosen_question
+            else objective
+        ),
+        expected_signal=(
+            f"{expected_signal} This run should help answer: {chosen_question['question']}"
+            if chosen_question
+            else expected_signal
+        ),
         modification=modification,
         workspace_dir=str(workspace_dir),
         lean_file=str(lean_file),
+        discovery_question_id=chosen_question["question_id"] if chosen_question else "",
+        discovery_question=chosen_question["question"] if chosen_question else "",
     )

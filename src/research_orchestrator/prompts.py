@@ -62,6 +62,7 @@ You must avoid:
 Return:
 - chosen move
 - target conjecture
+- discovery question being answered
 - exact modification
 - reason
 - expected signal
@@ -103,6 +104,8 @@ Current experiment:
 - objective: {brief.objective}
 - expected signal: {brief.expected_signal}
 - modification: {json.dumps(brief.modification)}
+- discovery question id: {brief.discovery_question_id or 'n/a'}
+- discovery question: {brief.discovery_question or 'derive the highest-value verification-shaped discovery question for this move'}
 
 Known recurring lemmas:
 {recurring_lines}
@@ -115,6 +118,7 @@ Required behavior:
 - Distinguish structural blockers from search blockers and formalization blockers.
 - Do not change unrelated parts of the statement.
 - Stay within the theorem family and experiment brief.
+- Treat verification as discovery: extract reusable structure even from failed proof attempts.
 - Return structured outputs.
 
 Required outputs:
