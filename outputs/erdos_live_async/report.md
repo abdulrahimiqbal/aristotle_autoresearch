@@ -36,8 +36,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `IN_PROGRESS`: 4
-- `QUEUED`: 1
+- `IN_PROGRESS`: 5
 
 ## Recently completed
 
@@ -2868,14 +2867,14 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - move family: `invariant_mining`
 - theorem family: `erdos_problem`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `fe85085a-bb56-405b-ab22-970ab303bfc0`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. Mine a reusable invariant or monotonicity principle that explains the recurring signal 'unknown'.
 - rationale: Recurring semantic signal 'unknown' suggests a hidden invariant worth isolating.
-- learned summary: remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
@@ -2884,7 +2883,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/c4e4e33c-d659-4c9e-ba53-bcec72514b2a/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/c4e4e33c-d659-4c9e-ba53-bcec72514b2a/aristotle_list_stderr.txt`
-- notes: Aristotle job fe85085a-bb56-405b-ab22-970ab303bfc0 is still queued.
+- notes: Aristotle job fe85085a-bb56-405b-ab22-970ab303bfc0 is still in progress.
 
 ## Incidents
 
@@ -2918,7 +2917,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - synced `7cd87e61-0434-4b8d-bcdb-0a6052a0ba45` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `c558ef45-a291-4ea3-a489-77ce96c01af4` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `c4e4e33c-d659-4c9e-ba53-bcec72514b2a` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- skipped `e1fe9678-4a60-4dfa-9ed4-f656b9e64f79` for `erdos-181` (duplicate active experiment signature)
+- skipped `195fc546-1ebc-4ae6-bb8f-13224eddbf68` for `erdos-181` (duplicate active experiment signature)
 
 ## Suggested next move
 
