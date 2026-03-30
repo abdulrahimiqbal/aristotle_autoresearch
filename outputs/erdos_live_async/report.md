@@ -36,7 +36,8 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `QUEUED`: 3
+- `IN_PROGRESS`: 1
+- `QUEUED`: 2
 
 ## Recently completed
 
@@ -2043,13 +2044,13 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 - move: `counterexample_mode`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `730c2564-2d9f-40d4-b545-1f8dec1ccd76`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
-- learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; proof_outcome=unknown; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
@@ -2058,7 +2059,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/1c801a48-05bc-4f0e-b6bb-47d60e6505bf/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/1c801a48-05bc-4f0e-b6bb-47d60e6505bf/aristotle_list_stderr.txt`
-- notes: Aristotle job 730c2564-2d9f-40d4-b545-1f8dec1ccd76 is still queued.
+- notes: Aristotle job 730c2564-2d9f-40d4-b545-1f8dec1ccd76 is still in progress.
 
 ### c93fd989-32c4-427b-923f-3fb74455ed83
 
@@ -2107,9 +2108,9 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - synced `77f27e0d-8bd3-49dc-b61e-f0a1fe123118` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `1c801a48-05bc-4f0e-b6bb-47d60e6505bf` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `c93fd989-32c4-427b-923f-3fb74455ed83` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- skipped `6525dce7-a531-4e8f-bfbb-5031eeeafc90` for `erdos-123` (duplicate active experiment signature)
-- skipped `b421a836-3877-4d26-b49a-d2584d3f37bd` for `erdos-181` (duplicate active experiment signature)
-- skipped `5d9b67ba-6b50-48a8-b4d1-c854a40b30ee` for `erdos-44` (duplicate active experiment signature)
+- skipped `1cdde5bb-1b3b-4cd7-abae-eb4941778c4e` for `erdos-123` (duplicate active experiment signature)
+- skipped `2fd50190-b00f-43a9-ba8c-726d909d91eb` for `erdos-181` (duplicate active experiment signature)
+- skipped `2366fa48-1d5c-4390-8edc-5e42835b4d0e` for `erdos-44` (duplicate active experiment signature)
 
 ## Suggested next move
 
