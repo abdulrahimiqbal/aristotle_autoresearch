@@ -16,7 +16,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Campaign Health
 
-- active=3 pending=3 running=2 completed=1 failed=0
+- active=3 pending=3 running=3 completed=1 failed=0
 - structured ingestion success rate: 1.0
 - semantic reuse rate: 0.0
 - transfer usage rate: 1.0
@@ -24,9 +24,9 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - obstruction discovery rate: 1.0
 - high-priority frontier share: 0.5
 - repeated no-signal streak: 0
-- duplicate frontier pressure: 1
+- duplicate frontier pressure: 2
 - move-family diversity: frontier=9 completed=1
-- open incidents: 0
+- open incidents: 1
 
 ## Version Drift
 
@@ -57,8 +57,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `IN_PROGRESS`: 2
-- `QUEUED`: 1
+- `IN_PROGRESS`: 3
 
 ## Recently completed
 
@@ -106,7 +105,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - reused signal count: 0
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_list_stdout.txt` (8776 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_list_stdout.txt` (8771 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_list_stderr.txt`
@@ -132,7 +131,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - reused signal count: 0
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21/aristotle_list_stdout.txt` (8776 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21/aristotle_list_stdout.txt` (8771 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21/aristotle_list_stderr.txt`
@@ -195,27 +194,27 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - move family: `legacy.promote_lemma`
 - theorem family: `erdos_problem`
 - phase: `stress_testing`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `111c2eb8-0247-4974-8ea6-64a151b5af34`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. This lemma was promoted from a recurring intermediate result. Prove it as a standalone theorem. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?
 - rationale: Recurring lemma 'bridge_interval_coverage : True' crossed the promotion threshold.
-- learned summary: remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_list_stdout.txt` (8771 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_list_stderr.txt`
+- notes: Aristotle job 111c2eb8-0247-4974-8ea6-64a151b5af34 is still in progress.
 
 ## Incidents
 
-- No open incidents.
+- `warning` `retry_budget_exhausted`: Experiment bff4c05f-d103-47ac-83f8-1164972a1bca reached retry budget (6 attempts).
 
 ## Audit Trail
 
@@ -227,7 +226,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - policy path: `fallback`
 - policy candidate audits: 14
 - jobs synced: 3
-- jobs submitted: 1
+- jobs submitted: 0
 - active before: 3
 - active after: 3
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.md`
@@ -235,18 +234,18 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - recurring structures considered: lemmas=2, subgoals=0, traces=0
 - synced `bff4c05f-d103-47ac-83f8-1164972a1bca` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- synced `9941d619-a8ab-4ac9-ab9c-1503088b4e65` with proof_outcome=`partial` new_signal=2 reused_signal=0
-- queued `ddb1aae2-1b93-438c-9165-39a34b6f05c6` for `erdos-123` via `promote_lemma` / `legacy.promote_lemma` (chosen by deterministic fallback policy; move_family=legacy.promote_lemma; rationale=Recurring lemma 'bridge_interval_coverage : True' crossed the promotion threshold.)
-- considered `5bd0b978-1110-4806-98f4-13431c4817fd` rank=1 score=-0.9675
-- selected `ddb1aae2-1b93-438c-9165-39a34b6f05c6` rank=2 score=-1.28
-- considered `174aa56b-50f2-467c-bf7b-f5afb13c526f` rank=3 score=-3.39
-- considered `55f9f65d-3cdc-4ede-9889-4bcb6aa23281` rank=4 score=-3.39
-- considered `9de959ca-9d4c-4732-8a18-963c84b9dc2c` rank=5 score=-3.39
-- skipped `9de959ca-9d4c-4732-8a18-963c84b9dc2c` for `erdos-123` (frontier throttled for duplicate move-family pressure)
-- skipped `52b86d01-d38d-4673-a40e-9b1c7876637b` for `erdos-123` (frontier throttled for duplicate move-family pressure)
-- skipped `40e51466-45e5-44d8-beaf-b874acb2aef9` for `erdos-123` (frontier throttled for duplicate move-family pressure)
-- skipped `5bd0b978-1110-4806-98f4-13431c4817fd` for `erdos-123` (duplicate active experiment signature)
+- synced `ddb1aae2-1b93-438c-9165-39a34b6f05c6` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- considered `fda721ea-faaa-417b-836a-b5ab029b1f6a` rank=1 score=-5.3675
+- considered `56740e52-cdca-4dd4-b69b-c1aade23f837` rank=2 score=-10.68
+- selected `7d469df7-6ddb-4404-9d11-f0618d43931e` rank=3 score=-7.79
+- considered `d0680468-0405-45a0-ae91-9806a711d412` rank=4 score=-7.79
+- considered `cb21199b-e7f5-474a-99ef-552f6e997ddc` rank=5 score=-7.79
+- skipped `cb21199b-e7f5-474a-99ef-552f6e997ddc` for `erdos-123` (frontier throttled for duplicate move-family pressure)
+- skipped `f4deb0df-6982-4a5d-9676-7305941111e9` for `erdos-123` (frontier throttled for duplicate move-family pressure)
+- skipped `2cb85d05-49d3-4801-94fa-d2ed2cc59f6e` for `erdos-123` (frontier throttled for duplicate move-family pressure)
+- skipped `fda721ea-faaa-417b-836a-b5ab029b1f6a` for `erdos-123` (duplicate active experiment signature)
+- skipped `56740e52-cdca-4dd4-b69b-c1aade23f837` for `erdos-123` (duplicate active experiment signature)
 
 ## Suggested next move
 
-- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
+- Promote the top recurring lemma into a standalone theorem if not already tested.
