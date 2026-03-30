@@ -1,11 +1,11 @@
 ID                                   STATUS          CREATED              PROGRESS  
 -------------------------------------------------------------------------------------
-feac341e-5852-49c7-ae86-7b3572870704 IN_PROGRESS     2 mins ago           5%        
-53a930ae-4ad4-4336-81ce-66439e298bb2 IN_PROGRESS     2 mins ago           4%        
-55d5d8b4-f94f-4427-8287-c842809162de IN_PROGRESS     38 mins ago          8%        
-3e717cbc-810b-44bc-99b4-e728c1854f37 IN_PROGRESS     39 mins ago          12%       
-88cd333b-166e-49eb-bb74-276d737eb79e COMPLETE        40 mins ago          100%      
-2e859fdb-1f5d-4728-97b2-fecd2e24f94e IN_PROGRESS     40 mins ago          21%       
+feac341e-5852-49c7-ae86-7b3572870704 IN_PROGRESS     3 mins ago           7%        
+53a930ae-4ad4-4336-81ce-66439e298bb2 IN_PROGRESS     3 mins ago           5%        
+55d5d8b4-f94f-4427-8287-c842809162de IN_PROGRESS     39 mins ago          8%        
+3e717cbc-810b-44bc-99b4-e728c1854f37 IN_PROGRESS     41 mins ago          13%       
+88cd333b-166e-49eb-bb74-276d737eb79e COMPLETE        41 mins ago          100%      
+2e859fdb-1f5d-4728-97b2-fecd2e24f94e IN_PROGRESS     41 mins ago          21%       
 07a90ffa-cbee-4da9-b662-6ab18884fbd9 COMPLETE        1 hour ago           100%      
 fc6c7c37-fce0-4aad-84ed-21c7a077683f OUT_OF_BUDGET   1 hour ago           100%      
 2edc1e85-a72f-4c4d-9653-13c09f1548e6 COMPLETE        2 hours ago          100%      
