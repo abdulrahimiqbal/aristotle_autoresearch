@@ -1,8 +1,8 @@
 ID                                   STATUS          CREATED              PROGRESS  
 -------------------------------------------------------------------------------------
-f3f1d9f0-f837-4145-9a8a-76b1a6172cc2 QUEUED          1 min ago            -         
-853b495c-626b-4829-9e70-a8b13a849280 QUEUED          1 min ago            -         
-26967507-c883-4a5d-8bd0-8d2ee651c941 QUEUED          1 min ago            -         
+f3f1d9f0-f837-4145-9a8a-76b1a6172cc2 IN_PROGRESS     2 mins ago           1%        
+853b495c-626b-4829-9e70-a8b13a849280 QUEUED          2 mins ago           -         
+26967507-c883-4a5d-8bd0-8d2ee651c941 IN_PROGRESS     2 mins ago           1%        
 151c5765-cf55-4237-8cca-f769520b38a7 COMPLETE        1 hour ago           100%      
 abbbfe12-012b-478c-9073-ede213990c03 COMPLETE        1 hour ago           100%      
 807ead77-9265-43e4-a964-b4b1dffa79ad COMPLETE        1 hour ago           100%      
