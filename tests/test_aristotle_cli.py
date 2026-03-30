@@ -8,6 +8,7 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
+from subprocess import CompletedProcess
 from unittest.mock import patch
 
 from research_orchestrator.charter import load_charter, load_conjecture
@@ -35,6 +36,14 @@ class AristotleCLIProviderTest(unittest.TestCase):
         )
         self.assertEqual(blocker_type, "dns_failure")
         self.assertIn("dns", note.lower())
+
+    def test_result_destination_traceback_is_classified_as_malformed(self):
+        blocker_type, note = _classify_failure(
+            "",
+            "Traceback (most recent call last):\nIsADirectoryError: [Errno 21] Is a directory: '/tmp/result'",
+        )
+        self.assertEqual(blocker_type, "malformed")
+        self.assertIn("result retrieval", note.lower())
 
     def test_report_includes_artifacts(self):
         tempdir = Path(tempfile.mkdtemp(prefix="aristotle_report_test_"))
@@ -128,6 +137,59 @@ class AristotleCLIProviderTest(unittest.TestCase):
             self.assertIn("aristotle_stderr.txt", report)
             self.assertIn("Main.lean", report)
             self.assertTrue(result["result"].artifacts)
+        finally:
+            shutil.rmtree(tempdir, ignore_errors=True)
+
+    def test_poll_downloads_result_to_file_destination(self):
+        tempdir = Path(tempfile.mkdtemp(prefix="aristotle_poll_test_"))
+        try:
+            root = Path(__file__).resolve().parents[1]
+            charter = load_charter(root / "examples" / "project_charter.json")
+            conjecture = load_conjecture(root / "examples" / "conjectures" / "weighted_monotone.json")
+            provider = AristotleCLIProvider()
+            brief = type(
+                "Brief",
+                (),
+                {
+                    "workspace_dir": str(tempdir),
+                    "objective": "Test objective",
+                    "experiment_id": "exp-1",
+                },
+            )()
+
+            calls = []
+
+            def fake_run(command, cwd):
+                calls.append(command)
+                if command[:3] == ["aristotle", "list", "--limit"]:
+                    return CompletedProcess(
+                        command,
+                        0,
+                        stdout="12345678-1234-1234-1234-123456789abc COMPLETE 100%\n",
+                        stderr="",
+                    )
+                if command[:2] == ["aristotle", "result"]:
+                    destination = Path(command[-1])
+                    destination.write_text("theorem demo : True := by\n  trivial\n", encoding="utf-8")
+                    return CompletedProcess(command, 0, stdout="Downloaded result.\n", stderr="")
+                raise AssertionError(f"Unexpected command: {command}")
+
+            with patch.object(provider, "_run_command", side_effect=fake_run):
+                result = provider.poll(
+                    charter=charter,
+                    conjecture=conjecture,
+                    brief=brief,
+                    worker_prompt="",
+                    external_id="12345678-1234-1234-1234-123456789abc",
+                )
+
+            self.assertEqual(result.status, "stalled")
+            self.assertEqual(result.external_status, "COMPLETE")
+            self.assertTrue(any(path.endswith(".bin") for path in result.artifacts))
+            self.assertTrue(
+                (tempdir / "aristotle_result_12345678-1234-1234-1234-123456789abc.bin").exists()
+            )
+            self.assertIn("--destination", calls[1])
         finally:
             shutil.rmtree(tempdir, ignore_errors=True)
 

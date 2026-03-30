@@ -491,6 +491,42 @@ class Database:
             results.append(item)
         return results
 
+    def list_backfillable_experiments(
+        self,
+        project_id: str,
+        provider: Optional[str] = None,
+        limit: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
+        statuses = ("stalled", "failed")
+        external_statuses = ("COMPLETE", "COMPLETE_WITH_ERRORS")
+        status_placeholders = ", ".join("?" for _ in statuses)
+        external_placeholders = ", ".join("?" for _ in external_statuses)
+        params: List[Any] = [project_id, *statuses, *external_statuses]
+        query = (
+            "SELECT * FROM experiments WHERE project_id = ? "
+            f"AND status IN ({status_placeholders}) "
+            "AND external_id IS NOT NULL AND external_id != '' "
+            f"AND external_status IN ({external_placeholders}) "
+            "AND COALESCE(new_signal_count, 0) = 0 "
+            "AND (proof_outcome IS NULL OR proof_outcome = 'unknown') "
+        )
+        if provider is not None:
+            query += " AND provider = ?"
+            params.append(provider)
+        query += " ORDER BY created_at DESC"
+        if limit is not None:
+            query += " LIMIT ?"
+            params.append(limit)
+        rows = self.conn.execute(query, params).fetchall()
+        results = []
+        for row in rows:
+            item = dict(row)
+            item["modification"] = json.loads(item["modification_json"])
+            item["outcome"] = json.loads(item["outcome_json"]) if item["outcome_json"] else None
+            item["ingestion"] = json.loads(item["ingestion_json"]) if item.get("ingestion_json") else None
+            results.append(item)
+        return results
+
     def active_experiments_by_external_status(self, project_id: str, provider: Optional[str] = None) -> List[Dict[str, Any]]:
         active = self.list_active_experiments(project_id, provider=provider)
         counts: Dict[str, int] = {}

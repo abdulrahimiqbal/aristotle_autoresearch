@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 from research_orchestrator.charter import load_charter, load_conjecture
 from research_orchestrator.db import Database
-from research_orchestrator.orchestrator import submit_one_cycle, sync_provider_results
+from research_orchestrator.orchestrator import backfill_provider_results, submit_one_cycle, sync_provider_results
 from research_orchestrator.types import ProviderResult
 
 
@@ -70,6 +70,32 @@ class AsyncOrchestrationTest(unittest.TestCase):
             synced = sync_provider_results(self.db, self.project_id, "aristotle-cli")
             self.assertEqual(len(synced), 1)
             final_experiment = self.db.get_experiment(submitted["brief"].experiment_id)
+            self.assertEqual(final_experiment["status"], "succeeded")
+            self.assertEqual(final_experiment["external_status"], "COMPLETE")
+
+    def test_backfill_retries_completed_low_signal_results(self):
+        provider = AsyncProviderStub()
+        with patch("research_orchestrator.orchestrator.get_provider", return_value=provider):
+            submitted = submit_one_cycle(self.db, self.project_id, "aristotle-cli", self.tempdir / "work")
+            experiment_id = submitted["brief"].experiment_id
+            self.db.conn.execute(
+                """
+                UPDATE experiments
+                SET status = 'stalled',
+                    blocker_type = 'unknown',
+                    proof_outcome = 'unknown',
+                    external_status = 'COMPLETE',
+                    new_signal_count = 0,
+                    reused_signal_count = 0
+                WHERE experiment_id = ?
+                """,
+                (experiment_id,),
+            )
+            self.db.conn.commit()
+
+            synced = backfill_provider_results(self.db, self.project_id, "aristotle-cli")
+            self.assertEqual(len(synced), 1)
+            final_experiment = self.db.get_experiment(experiment_id)
             self.assertEqual(final_experiment["status"], "succeeded")
             self.assertEqual(final_experiment["external_status"], "COMPLETE")
 

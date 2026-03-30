@@ -300,6 +300,48 @@ def sync_provider_results(db: Database, project_id: str, provider_name: str, lim
     return synced
 
 
+def backfill_provider_results(db: Database, project_id: str, provider_name: str, limit: Optional[int] = None) -> List[Dict[str, object]]:
+    provider = get_provider(provider_name)
+    if not provider.supports_async:
+        return []
+
+    backfilled = []
+    candidates = db.list_backfillable_experiments(project_id, provider=provider.name, limit=limit)
+    for experiment in candidates:
+        brief = _brief_from_experiment(experiment)
+        conjecture = db.get_conjecture(brief.conjecture_id)
+        charter = db.get_charter(project_id)
+        worker_prompt = build_worker_prompt(
+            charter,
+            conjecture,
+            brief,
+            db.recurring_lemmas(),
+            db.assumption_sensitivity(project_id),
+        )
+        external_id = experiment.get("external_id") or ""
+        if not external_id:
+            continue
+        result = provider.poll(
+            charter=charter,
+            conjecture=conjecture,
+            brief=brief,
+            worker_prompt=worker_prompt,
+            external_id=external_id,
+        )
+        result = ingest_provider_result(result)
+        evaluation = _finalize_result(
+            db=db,
+            project_id=project_id,
+            provider_name=provider.name,
+            brief=brief,
+            result=result,
+            manager_lint=lint_manager_prompt(""),
+            worker_lint=lint_worker_prompt(""),
+        )
+        backfilled.append({"brief": brief, "result": result, "evaluation": evaluation})
+    return backfilled
+
+
 def manager_tick(
     db: Database,
     project_id: str,

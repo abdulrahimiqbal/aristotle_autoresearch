@@ -4,6 +4,8 @@ import json
 import os
 import re
 import subprocess
+import tarfile
+import zipfile
 from pathlib import Path
 from typing import List
 
@@ -57,6 +59,11 @@ def _extract_paths(*chunks: str, base_dir: str | None = None) -> list[str]:
 
 def _classify_failure(stdout: str, stderr: str) -> tuple[str, str]:
     text = "\n".join(part for part in (stdout, stderr) if part).lower()
+    if "isadirectoryerror" in text or "write_bytes" in text and "destination" in text:
+        return (
+            "malformed",
+            "Aristotle completed remotely, but local result retrieval wrote to an invalid destination path. Use a file destination for `aristotle result` and retry sync.",
+        )
     if "invalid api key" in text or "check your api key" in text or "get a valid api key" in text:
         return (
             "malformed",
@@ -153,6 +160,40 @@ class AristotleCLIProvider(Provider):
             if match.group("project_id") == external_id:
                 return match.group("status"), completed.stdout, completed.stderr
         return "UNKNOWN", completed.stdout, completed.stderr
+
+    def _result_destination(self, project_dir: str, external_id: str) -> Path:
+        return Path(project_dir) / f"aristotle_result_{external_id}.bin"
+
+    def _collect_result_artifacts(self, destination: Path) -> List[str]:
+        artifacts: List[str] = []
+        if not destination.exists():
+            return artifacts
+        artifacts.append(str(destination))
+
+        extract_dir = destination.with_suffix(destination.suffix + ".contents")
+        if extract_dir.exists():
+            for path in extract_dir.rglob("*"):
+                if path.is_file():
+                    artifacts.append(str(path))
+            return artifacts
+
+        try:
+            if zipfile.is_zipfile(destination):
+                extract_dir.mkdir(parents=True, exist_ok=True)
+                with zipfile.ZipFile(destination) as archive:
+                    archive.extractall(extract_dir)
+            elif tarfile.is_tarfile(destination):
+                extract_dir.mkdir(parents=True, exist_ok=True)
+                with tarfile.open(destination) as archive:
+                    archive.extractall(extract_dir)
+        except (tarfile.TarError, OSError, zipfile.BadZipFile):
+            return artifacts
+
+        if extract_dir.exists():
+            for path in extract_dir.rglob("*"):
+                if path.is_file():
+                    artifacts.append(str(path))
+        return artifacts
 
     def submit(
         self,
@@ -285,8 +326,8 @@ class AristotleCLIProvider(Provider):
                 external_status=status,
             )
 
-        destination = Path(project_dir) / f"aristotle_result_{external_id}"
-        destination.mkdir(parents=True, exist_ok=True)
+        destination = self._result_destination(project_dir, external_id)
+        destination.parent.mkdir(parents=True, exist_ok=True)
         command = [
             part.format(external_id=external_id, destination=str(destination))
             for part in self.result_template
@@ -298,11 +339,7 @@ class AristotleCLIProvider(Provider):
             stdout=completed.stdout,
             stderr=completed.stderr,
         )
-        artifacts.extend(
-            str(path)
-            for path in destination.rglob("*")
-            if path.is_file()
-        )
+        artifacts.extend(self._collect_result_artifacts(destination))
 
         if completed.returncode != 0:
             blocker_type, failure_note = _classify_failure(completed.stdout, completed.stderr)
@@ -318,7 +355,7 @@ class AristotleCLIProvider(Provider):
                 external_status=status,
             )
 
-        final_status = "succeeded" if status == "COMPLETE" else "stalled"
+        final_status = "stalled"
         notes = (
             "Aristotle result downloaded successfully."
             if status == "COMPLETE"

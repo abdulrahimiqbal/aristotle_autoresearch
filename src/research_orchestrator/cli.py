@@ -8,7 +8,13 @@ from pathlib import Path
 from research_orchestrator.charter import load_charter, load_conjecture
 from research_orchestrator.db import Database
 from research_orchestrator.github_state import sync_github_state
-from research_orchestrator.orchestrator import manager_tick, run_one_cycle, submit_one_cycle, sync_provider_results
+from research_orchestrator.orchestrator import (
+    backfill_provider_results,
+    manager_tick,
+    run_one_cycle,
+    submit_one_cycle,
+    sync_provider_results,
+)
 from research_orchestrator.reporter import build_report, write_report
 from research_orchestrator.manager import choose_next_experiment
 
@@ -59,6 +65,22 @@ def cmd_sync_results(args):
         external = f" | external_id={result.external_id}" if result.external_id else ""
         print(
             f"Synced {brief.experiment_id} | status={result.status} | blocker={result.blocker_type}{external}"
+        )
+
+
+def cmd_backfill_results(args):
+    db = Database(args.db)
+    db.initialize()
+    results = backfill_provider_results(db, args.project, args.provider, args.limit)
+    if not results:
+        print("No completed low-signal results eligible for backfill.")
+        return
+    for item in results:
+        brief = item["brief"]
+        result = item["result"]
+        external = f" | external_id={result.external_id}" if result.external_id else ""
+        print(
+            f"Backfilled {brief.experiment_id} | status={result.status} | blocker={result.blocker_type}{external}"
         )
 
 
@@ -202,6 +224,16 @@ def build_parser():
     sync_results.add_argument("--provider", choices=["mock", "aristotle-cli"], default="aristotle-cli")
     sync_results.add_argument("--limit", type=int, default=None)
     sync_results.set_defaults(func=cmd_sync_results)
+
+    backfill_results = sub.add_parser(
+        "backfill-results",
+        help="Retry result retrieval for completed low-signal asynchronous provider jobs.",
+    )
+    backfill_results.add_argument("--db", required=True)
+    backfill_results.add_argument("--project", required=True)
+    backfill_results.add_argument("--provider", choices=["mock", "aristotle-cli"], default="aristotle-cli")
+    backfill_results.add_argument("--limit", type=int, default=None)
+    backfill_results.set_defaults(func=cmd_backfill_results)
 
     preview_next = sub.add_parser("preview-next", help="Preview the next automatically chosen experiment.")
     preview_next.add_argument("--db", required=True)

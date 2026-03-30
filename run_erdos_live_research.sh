@@ -9,6 +9,7 @@ REPORT_PATH="${REPORT_PATH:-$ROOT_DIR/outputs/erdos_live_async/report.md}"
 CHARTER_PATH="$ROOT_DIR/examples/erdos_combinatorics_charter.json"
 MAX_ACTIVE="${MAX_ACTIVE:-5}"
 MAX_SUBMIT_PER_TICK="${MAX_SUBMIT_PER_TICK:-5}"
+BACKFILL_LIMIT="${BACKFILL_LIMIT:-6}"
 LLM_MANAGER="${LLM_MANAGER:-auto}"
 
 if [[ -n "${ARISTOTLE_BIN_DIR:-}" ]]; then
@@ -46,6 +47,12 @@ if [[ ! -f "$DB_PATH" ]]; then
     --charter "$CHARTER_PATH" \
     --conjecture "$ROOT_DIR/examples/conjectures/erdos/erdos_123_d_complete_sequences.json"
 fi
+
+"$RO_BIN" backfill-results \
+  --db "$DB_PATH" \
+  --project "erdos-combo-001" \
+  --provider aristotle-cli \
+  --limit "$BACKFILL_LIMIT"
 
 "$RO_BIN" manager-tick \
   --db "$DB_PATH" \
