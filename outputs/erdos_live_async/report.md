@@ -36,7 +36,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `QUEUED`: 3
+- `IN_PROGRESS`: 3
 
 ## Recently completed
 
@@ -2175,13 +2175,13 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 - move: `counterexample_mode`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `fdf51e7b-e252-4ecb-a3af-f45543123e32`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. Search for a counterexample or independence witness for this weakened variant.
-- learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; proof_outcome=unknown; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
@@ -2190,19 +2190,19 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0b86e3e-5678-4840-9222-6adb06ce079e/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0b86e3e-5678-4840-9222-6adb06ce079e/aristotle_list_stderr.txt`
-- notes: Aristotle job fdf51e7b-e252-4ecb-a3af-f45543123e32 is still queued.
+- notes: Aristotle job fdf51e7b-e252-4ecb-a3af-f45543123e32 is still in progress.
 
 ### df0acc2c-7f2f-4daa-86a2-18443a84811b
 
 - move: `counterexample_mode`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `4fabcbad-64d0-4445-ac05-989aa1487752`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. Search for a counterexample or independence witness for this weakened variant.
-- learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; proof_outcome=unknown; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
@@ -2211,19 +2211,19 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_list_stderr.txt`
-- notes: Aristotle job 4fabcbad-64d0-4445-ac05-989aa1487752 is still queued.
+- notes: Aristotle job 4fabcbad-64d0-4445-ac05-989aa1487752 is still in progress.
 
 ### 68985892-c8a9-481f-94e3-586949d9b3df
 
 - move: `counterexample_mode`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `cdad2d05-d720-41fd-b99d-40d782c3182d`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. Search for a counterexample or independence witness for this weakened variant.
-- learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; proof_outcome=unknown; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
@@ -2232,7 +2232,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/68985892-c8a9-481f-94e3-586949d9b3df/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/68985892-c8a9-481f-94e3-586949d9b3df/aristotle_list_stderr.txt`
-- notes: Aristotle job cdad2d05-d720-41fd-b99d-40d782c3182d is still queued.
+- notes: Aristotle job cdad2d05-d720-41fd-b99d-40d782c3182d is still in progress.
 
 ## Incidents
 
@@ -2264,9 +2264,9 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - synced `f0b86e3e-5678-4840-9222-6adb06ce079e` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `df0acc2c-7f2f-4daa-86a2-18443a84811b` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `68985892-c8a9-481f-94e3-586949d9b3df` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- skipped `1a5169d8-8a27-48b8-aa7d-550e82b902da` for `erdos-123` (duplicate active experiment signature)
-- skipped `9ebe080e-1400-4eec-b471-2ed9ba09feda` for `erdos-181` (duplicate active experiment signature)
-- skipped `bb86b795-6278-4293-917c-b64527e6c64a` for `erdos-44` (duplicate active experiment signature)
+- skipped `8eeb71ed-7b6b-4885-bf3c-3e08d22cff24` for `erdos-123` (duplicate active experiment signature)
+- skipped `785545e0-1720-4bcb-ba63-803e74e4862c` for `erdos-181` (duplicate active experiment signature)
+- skipped `207586e2-6629-4806-9832-e9362b5ec808` for `erdos-44` (duplicate active experiment signature)
 
 ## Suggested next move
 

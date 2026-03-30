@@ -1,8 +1,8 @@
 ID                                   STATUS          CREATED              PROGRESS  
 -------------------------------------------------------------------------------------
-cdad2d05-d720-41fd-b99d-40d782c3182d QUEUED          1 min ago            -         
-4fabcbad-64d0-4445-ac05-989aa1487752 QUEUED          1 min ago            -         
-fdf51e7b-e252-4ecb-a3af-f45543123e32 QUEUED          1 min ago            -         
+cdad2d05-d720-41fd-b99d-40d782c3182d IN_PROGRESS     2 mins ago           1%        
+4fabcbad-64d0-4445-ac05-989aa1487752 IN_PROGRESS     2 mins ago           1%        
+fdf51e7b-e252-4ecb-a3af-f45543123e32 IN_PROGRESS     2 mins ago           1%        
 2288f2cf-a45b-4bac-9d06-fffc7d459a46 COMPLETE        1 hour ago           100%      
 730c2564-2d9f-40d4-b545-1f8dec1ccd76 COMPLETE        1 hour ago           100%      
 916781cd-368a-4395-810a-613f5ab85845 COMPLETE        1 hour ago           100%      
@@ -29,9 +29,9 @@ a1354825-96bf-4e08-a6ec-7096b3d30296 COMPLETE        10 hours ago         100%
 91785f2f-f572-410b-974d-01cea3f90465 COMPLETE        10 hours ago         100%      
 62abc889-31c2-4fc3-ba3a-34b380a857cc COMPLETE        12 hours ago         100%      
 6309c74e-33af-4c09-bff1-e3fc346bbf77 COMPLETE        12 hours ago         100%      
-a7a37178-f189-445b-9635-4f8a9f5d92b5 COMPLETE        12 hours ago         100%      
-7a5ec6d6-586f-4b84-b0b8-01f756415b99 COMPLETE        12 hours ago         100%      
-a6c25ca5-f1f5-4667-bad7-75fcdbf54862 COMPLETE        12 hours ago         100%      
+a7a37178-f189-445b-9635-4f8a9f5d92b5 COMPLETE        13 hours ago         100%      
+7a5ec6d6-586f-4b84-b0b8-01f756415b99 COMPLETE        13 hours ago         100%      
+a6c25ca5-f1f5-4667-bad7-75fcdbf54862 COMPLETE        13 hours ago         100%      
 3c3a7aa8-434b-42e9-bdd6-99dee160d08e COMPLETE        13 hours ago         100%      
 9afb5a34-e1b1-4713-b342-77f40a3fc8c6 COMPLETE_WITH_ERRORS 13 hours ago         100%      
 267e8b93-a19a-49d9-bcfc-4933da7865f5 COMPLETE        13 hours ago         100%      
