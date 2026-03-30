@@ -896,12 +896,12 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/2420915d-24e0-4763-b923-0e61d412e232/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/2420915d-24e0-4763-b923-0e61d412e232/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/2420915d-24e0-4763-b923-0e61d412e232/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/2420915d-24e0-4763-b923-0e61d412e232/aristotle_list_stdout.txt` (8736 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/2420915d-24e0-4763-b923-0e61d412e232/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/2420915d-24e0-4763-b923-0e61d412e232/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/2420915d-24e0-4763-b923-0e61d412e232/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/2420915d-24e0-4763-b923-0e61d412e232/aristotle_list_stderr.txt`
+- notes: Aristotle job 26967507-c883-4a5d-8bd0-8d2ee651c941 is still queued.
 
 ### 6ce8a58a-3298-4d2d-9008-99712a5e46d3
 
@@ -917,12 +917,12 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ce8a58a-3298-4d2d-9008-99712a5e46d3/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ce8a58a-3298-4d2d-9008-99712a5e46d3/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ce8a58a-3298-4d2d-9008-99712a5e46d3/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ce8a58a-3298-4d2d-9008-99712a5e46d3/aristotle_list_stdout.txt` (8736 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ce8a58a-3298-4d2d-9008-99712a5e46d3/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ce8a58a-3298-4d2d-9008-99712a5e46d3/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ce8a58a-3298-4d2d-9008-99712a5e46d3/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ce8a58a-3298-4d2d-9008-99712a5e46d3/aristotle_list_stderr.txt`
+- notes: Aristotle job 853b495c-626b-4829-9e70-a8b13a849280 is still queued.
 
 ### d94cc062-d56a-450a-aad0-e6ec7d2dca38
 
@@ -938,30 +938,30 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/d94cc062-d56a-450a-aad0-e6ec7d2dca38/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/d94cc062-d56a-450a-aad0-e6ec7d2dca38/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/d94cc062-d56a-450a-aad0-e6ec7d2dca38/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/d94cc062-d56a-450a-aad0-e6ec7d2dca38/aristotle_list_stdout.txt` (8736 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/d94cc062-d56a-450a-aad0-e6ec7d2dca38/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/d94cc062-d56a-450a-aad0-e6ec7d2dca38/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/d94cc062-d56a-450a-aad0-e6ec7d2dca38/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/d94cc062-d56a-450a-aad0-e6ec7d2dca38/aristotle_list_stderr.txt`
+- notes: Aristotle job f3f1d9f0-f837-4145-9a8a-76b1a6172cc2 is still queued.
 
 ## Latest manager decision
 
 - policy path: `fallback`
 - jobs synced: 3
-- jobs submitted: 3
+- jobs submitted: 0
 - active before: 3
 - active after: 3
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=0, subgoals=0, traces=0
-- synced `4f57d954-b91b-41d4-b3de-e49cb7e8ce2f` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- synced `279f0a62-ab07-4d9a-b3ba-ad1fc1922f01` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- synced `e17d490a-aa35-4d33-9bf0-7f20e0e74f1b` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- queued `2420915d-24e0-4763-b923-0e61d412e232` for `erdos-44` via `counterexample_mode` (chosen by deterministic fallback policy)
-- queued `6ce8a58a-3298-4d2d-9008-99712a5e46d3` for `erdos-123` via `counterexample_mode` (chosen by deterministic fallback policy)
-- queued `d94cc062-d56a-450a-aad0-e6ec7d2dca38` for `erdos-181` via `counterexample_mode` (chosen by deterministic fallback policy)
+- synced `2420915d-24e0-4763-b923-0e61d412e232` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- synced `6ce8a58a-3298-4d2d-9008-99712a5e46d3` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- synced `d94cc062-d56a-450a-aad0-e6ec7d2dca38` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- skipped `ff2f572e-fe3f-4024-a069-68a40cdfeafd` for `erdos-123` (duplicate active experiment signature)
+- skipped `f702e1ea-fdfe-448c-a6c7-0ce50cfb712c` for `erdos-181` (duplicate active experiment signature)
+- skipped `42663d62-c6c4-4466-a05b-055c8af93f39` for `erdos-44` (duplicate active experiment signature)
 
 ## Suggested next move
 
-- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
+- Continue assumption perturbation and equivalent reformulations to sharpen the boundary map.
