@@ -263,10 +263,11 @@ For live Aristotle campaigns, treat GitHub as the source of truth:
 - the `campaign-state` branch is the canonical live state
 - local inspection should begin by syncing those artifacts down before reading reports or the DB
 
+### Monitoring the live campaign
 Sync the canonical state locally with:
 ```bash
 research-orchestrator sync-github-state \
-  --repo abdulrahimiqbal/aristotle_autoresearch \
+  --repo <your-github-username>/aristotle_autoresearch \
   --ref campaign-state \
   --state-dir outputs/erdos_live_async
 ```
@@ -280,6 +281,26 @@ Recommended practice:
 - do not run local `manager-tick` against a live campaign unless you intentionally want a separate campaign
 - run `sync-github-state` before inspecting live status locally
 - use the local DB for mock runs or for read-only inspection of the GitHub-managed live campaign
+
+Read the latest report:
+```bash
+cat outputs/erdos_live_async/report.md
+```
+
+Inspect the latest experiment activity:
+```bash
+sqlite3 outputs/erdos_live_async/state.sqlite "SELECT experiment_id, conjecture_id, move, status, proof_outcome, new_signal_count FROM experiments ORDER BY created_at DESC LIMIT 20"
+```
+
+Check discovery graph growth:
+```bash
+sqlite3 outputs/erdos_live_async/state.sqlite "SELECT node_type, COUNT(*) FROM discovery_graph_nodes GROUP BY node_type"
+```
+
+Check for incidents:
+```bash
+sqlite3 outputs/erdos_live_async/state.sqlite "SELECT * FROM incidents WHERE status='open'"
+```
 
 ## Suggested development path
 

@@ -10,6 +10,38 @@ from research_orchestrator.types import Conjecture, ExperimentBrief, ProjectChar
 DEFAULT_LEAN_TOOLCHAIN = "leanprover/lean4:v4.28.0"
 
 
+def _strip_imports(lean_source: str) -> str:
+    return "\n".join(line for line in lean_source.splitlines() if not line.startswith("import ")) + "\n"
+
+
+def _lakefile_contents(conjecture: Conjecture) -> str:
+    lines = [
+        "[package]",
+        'name = "AristotleWorkspace"',
+        'version = "0.1.0"',
+        f'lean = "{DEFAULT_LEAN_TOOLCHAIN}"',
+        "",
+    ]
+    if "import Mathlib" in conjecture.lean_statement:
+        lines.extend(
+            [
+                "[[require]]",
+                'name = "mathlib"',
+                'scope = "leanprover-community"',
+                'version = "main"',
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "[[lean_lib]]",
+            'name = "AristotleWorkspace"',
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
 def _next_phase(charter: ProjectCharter, num_experiments: int) -> str:
     if num_experiments == 0:
         return "mapping"
@@ -55,7 +87,7 @@ def choose_move(
         return (
             "underspecify",
             {"mode": "minimal_context"},
-            "Force the prover to reconstruct dependencies from minimal formal context.",
+            "Fill in all sorries. Strip imports to expose hidden dependencies. Report any intermediate lemmas or unresolved goals.",
             "Surface hidden assumptions and early lemma needs.",
         )
 
@@ -64,7 +96,7 @@ def choose_move(
             return (
                 "perturb_assumption",
                 {"assumption": assumption, "operation": "remove"},
-                f"Remove assumption `{assumption}` and test whether the theorem landscape changes sharply.",
+                f"Fill in all sorries. The assumption '{assumption}' has been removed. Determine whether the proof still closes and report the blocker if not.",
                 "Measure assumption sensitivity and classify the blocker.",
             )
 
@@ -73,7 +105,7 @@ def choose_move(
         return (
             "promote_lemma",
             {"lemma_statement": lemma["representative_statement"]},
-            "Promote the most recurring helper lemma into a standalone theorem target.",
+            "Fill in all sorries. This lemma was promoted from a recurring intermediate result. Prove it as a standalone theorem.",
             "Determine whether the recurring helper captures real mathematical structure.",
         )
 
@@ -82,7 +114,7 @@ def choose_move(
         return (
             "promote_lemma",
             {"lemma_statement": promoted},
-            "Promote the most recurring unresolved subgoal into a standalone theorem target.",
+            "Fill in all sorries. This lemma was promoted from a recurring intermediate result. Prove it as a standalone theorem.",
             "Compress repeated proof search failure into a reusable theorem objective.",
         )
 
@@ -91,7 +123,7 @@ def choose_move(
         return (
             "reformulate",
             {"form": form},
-            f"Re-express the conjecture as a {form}.",
+            f"Fill in all sorries. This is a reformulation as {form}. Determine whether this form is easier or harder to prove and report intermediate progress.",
             "Separate structural difficulty from representation-specific difficulty.",
         )
 
@@ -99,14 +131,14 @@ def choose_move(
         return (
             "counterexample_mode",
             {"target": "most_fragile_variant"},
-            "Seek a falsifying or independence-style witness for the most fragile observed variant.",
+            "Fill in all sorries. Search for a counterexample or independence witness for this weakened variant.",
             "Disambiguate falsehood from search failure after repeated structural blockers or no-signal runs.",
         )
 
     return (
         "counterexample_mode",
         {"target": "most_fragile_variant"},
-        "Seek a falsifying or independence-style witness for the most fragile observed variant.",
+        "Fill in all sorries. Search for a counterexample or independence witness for this weakened variant.",
         "Disambiguate falsehood from search failure.",
     )
 
@@ -144,7 +176,7 @@ def materialize_experiment(
     ]
     body = conjecture.lean_statement
     if move == "underspecify":
-        body = body.replace("import Mathlib\n", "")
+        body = _strip_imports(body)
     elif move == "reformulate":
         body = "\n".join(header) + "\n-- reformulation: " + modification["form"] + "\n" + body
     elif move == "perturb_assumption":
@@ -159,20 +191,7 @@ def materialize_experiment(
     with open(lean_file, "w", encoding="utf-8") as handle:
         handle.write("\n".join(header) + body if not body.startswith("/-") else body)
     toolchain_file.write_text(DEFAULT_LEAN_TOOLCHAIN + "\n", encoding="utf-8")
-    lakefile.write_text(
-        "\n".join(
-            [
-                'name = "AristotleWorkspace"',
-                'version = "0.1.0"',
-                'defaultTargets = ["AristotleWorkspace"]',
-                "",
-                "[[lean_lib]]",
-                'name = "AristotleWorkspace"',
-                "",
-            ]
-        ),
-        encoding="utf-8",
-    )
+    lakefile.write_text(_lakefile_contents(conjecture), encoding="utf-8")
 
     return ExperimentBrief(
         experiment_id=experiment_id,

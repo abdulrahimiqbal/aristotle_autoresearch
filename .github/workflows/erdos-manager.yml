@@ -9,6 +9,11 @@ on:
       - main
     paths:
       - ".github/workflows/erdos-manager.yml"
+      - "run_erdos_live_research.sh"
+      - "examples/erdos_combinatorics_charter.json"
+      - "examples/conjectures/erdos/**"
+      - "src/research_orchestrator/**"
+      - "pyproject.toml"
 
 permissions:
   contents: write

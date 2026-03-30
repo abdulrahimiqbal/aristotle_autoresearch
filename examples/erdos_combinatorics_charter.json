@@ -6,7 +6,9 @@
     "Surface recurring lemmas that reappear across more than one conjecture or more than one experimental move",
     "Map which explicit assumptions appear structurally critical versus merely search-sensitive",
     "Identify boundary points where weakening or reformulating a statement changes the blocker classification",
-    "Produce reusable hidden-dependency sketches that transfer between graph-theoretic and additive-combinatorial variants"
+    "Produce reusable hidden-dependency sketches that transfer between graph-theoretic and additive-combinatorial variants",
+    "Identify at least one previously unknown intermediate lemma backed by Lean artifacts",
+    "Produce a counterexample witness or independence argument for at least one weakened variant"
   ],
   "non_goals": [
     "Do not optimize for proving the original conjecture outright",
@@ -26,7 +28,7 @@
     "stress_testing",
     "consolidation"
   ],
-  "promotion_threshold": 3,
+  "promotion_threshold": 2,
   "domain_scope": [
     "combinatorics",
     "graph theory",
@@ -36,11 +38,12 @@
     "information_gain": 1.2,
     "novelty": 1.0,
     "reusability": 1.3,
-    "boundary_sharpness": 1.0,
+    "boundary_sharpness": 1.2,
     "cost_penalty": 0.4
   },
   "human_preferences": {
     "prefer_information_gain_over_proof_probability": true,
-    "require_reformulation_before_strong_negative_conclusion": true
+    "require_reformulation_before_strong_negative_conclusion": true,
+    "pause_on_proved_or_disproved": true
   }
 }
