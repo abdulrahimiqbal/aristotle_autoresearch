@@ -1,0 +1,6 @@
+name = "AristotleWorkspace"
+version = "0.1.0"
+defaultTargets = ["AristotleWorkspace"]
+
+[[lean_lib]]
+name = "AristotleWorkspace"

@@ -1,13 +1,13 @@
 ID                                   STATUS          CREATED              PROGRESS  
 -------------------------------------------------------------------------------------
-3c3a7aa8-434b-42e9-bdd6-99dee160d08e IN_PROGRESS     41 secs ago          1%        
-9afb5a34-e1b1-4713-b342-77f40a3fc8c6 IN_PROGRESS     1 min ago            1%        
-267e8b93-a19a-49d9-bcfc-4933da7865f5 IN_PROGRESS     1 min ago            1%        
-5ef3afd1-9cb8-46bd-93a5-d2b3a07747d6 IN_PROGRESS     1 min ago            1%        
-aea56c1e-807e-4844-9069-a7b2153b6f1e COMPLETE        22 mins ago          100%      
-c8cc8772-9ae8-49a1-aa65-1037d451a9ad COMPLETE        50 mins ago          100%      
-5ea952f0-f66b-4dbb-92a2-aae7d6de2817 COMPLETE        50 mins ago          100%      
-92f77dd5-50db-46c5-ae87-912718ebcc20 COMPLETE        51 mins ago          100%      
+3c3a7aa8-434b-42e9-bdd6-99dee160d08e IN_PROGRESS     1 min ago            2%        
+9afb5a34-e1b1-4713-b342-77f40a3fc8c6 IN_PROGRESS     2 mins ago           1%        
+267e8b93-a19a-49d9-bcfc-4933da7865f5 IN_PROGRESS     2 mins ago           3%        
+5ef3afd1-9cb8-46bd-93a5-d2b3a07747d6 IN_PROGRESS     2 mins ago           4%        
+aea56c1e-807e-4844-9069-a7b2153b6f1e COMPLETE        23 mins ago          100%      
+c8cc8772-9ae8-49a1-aa65-1037d451a9ad COMPLETE        51 mins ago          100%      
+5ea952f0-f66b-4dbb-92a2-aae7d6de2817 COMPLETE        52 mins ago          100%      
+92f77dd5-50db-46c5-ae87-912718ebcc20 COMPLETE        52 mins ago          100%      
 2a66c4e5-db3d-4a9e-ab2b-11b7fab6d4da COMPLETE        1 hour ago           100%      
 7136ba1e-2909-4d34-a48e-8ac5fcb5795c COMPLETE        1 hour ago           100%      
 1b2d49f3-d8da-40e5-8d49-7895a1bc3d10 COMPLETE_WITH_ERRORS 1 hour ago           100%      
