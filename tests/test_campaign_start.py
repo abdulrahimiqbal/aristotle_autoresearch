@@ -13,6 +13,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from research_orchestrator.cli import cmd_campaign_status, cmd_start_campaign
+from research_orchestrator.campaign_planner import synthesize_campaign
 from research_orchestrator.db import Database
 from research_orchestrator.orchestrator import run_one_cycle
 from research_orchestrator.reporter import build_report
@@ -94,6 +95,14 @@ class CampaignStartTest(unittest.TestCase):
         self.assertEqual(payload["project_id"], project_id)
         self.assertIn("open_questions", payload)
         self.assertIn("discovery_nodes", payload)
+
+    def test_short_erdos_prompt_is_expanded_into_valid_campaign(self):
+        spec, charter, conjectures, questions = synthesize_campaign("erdos problem 144")
+        self.assertIn("Erdos problem 144.", spec.raw_prompt)
+        self.assertEqual(charter.project_id, spec.project_id)
+        self.assertTrue(conjectures)
+        self.assertTrue(questions)
+        self.assertIn("combinatorics", spec.domain_scope)
 
 
 if __name__ == "__main__":

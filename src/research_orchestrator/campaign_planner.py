@@ -30,6 +30,19 @@ DEFAULT_PHASE_ORDER = [
 ]
 
 
+def _canonicalize_prompt(prompt: str) -> str:
+    normalized = prompt.strip()
+    lowered = normalized.lower()
+    erdos_match = re.fullmatch(r"erdos problem (\d+)", lowered)
+    if erdos_match:
+        number = erdos_match.group(1)
+        return (
+            f"Erdos problem {number}. Build an autonomous verification-driven research campaign for this Erdos problem, "
+            f"treating theorem proving as discovery of recurring lemmas, boundary cases, obstructions, and reusable formal subgoals."
+        )
+    return normalized
+
+
 def _slugify(text: str) -> str:
     lowered = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
     return lowered or "campaign"
@@ -48,6 +61,8 @@ def _title_from_prompt(prompt: str) -> str:
 def _domain_scope(prompt: str) -> List[str]:
     lowered = prompt.lower()
     matches = []
+    if "erdos" in lowered:
+        matches.extend(["combinatorics", "number theory"])
     for term in (
         "combinatorics",
         "number theory",
@@ -87,7 +102,7 @@ def _equivalent_forms(prompt: str) -> List[str]:
 
 
 def synthesize_campaign(prompt: str) -> tuple[CampaignSpec, ProjectCharter, list[Conjecture], list[DiscoveryQuestion]]:
-    normalized_prompt = prompt.strip()
+    normalized_prompt = _canonicalize_prompt(prompt)
     if len(normalized_prompt) < 20:
         raise ValueError("Campaign prompt is too short to synthesize a stable research campaign.")
 
