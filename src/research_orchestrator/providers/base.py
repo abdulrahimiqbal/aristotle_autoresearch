@@ -35,5 +35,6 @@ class Provider(ABC):
         brief: ExperimentBrief,
         worker_prompt: str,
         external_id: str,
+        submitted_at: str = "",
     ) -> ProviderResult:
         raise NotImplementedError(f"{self.name} does not support polling.")

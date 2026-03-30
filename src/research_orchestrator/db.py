@@ -21,6 +21,18 @@ def utcnow() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def parse_timestamp(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
 SCHEMA = [
     """
     CREATE TABLE IF NOT EXISTS projects (
@@ -691,6 +703,105 @@ class Database:
             ),
         )
         self.conn.commit()
+
+    def expire_stale_active_experiments(self, project_id: str, max_age_seconds: int) -> int:
+        now = datetime.now(timezone.utc)
+        expired = 0
+        stale_sync_seconds = max_age_seconds / 2
+        for experiment in self.list_active_experiments(project_id):
+            submitted_at = parse_timestamp(experiment.get("submitted_at"))
+            last_synced_at = parse_timestamp(experiment.get("last_synced_at"))
+            if submitted_at is None or last_synced_at is None:
+                continue
+            submitted_age = (now - submitted_at).total_seconds()
+            sync_age = (now - last_synced_at).total_seconds()
+            if submitted_age <= max_age_seconds or sync_age <= stale_sync_seconds:
+                continue
+
+            detail = (
+                f"Experiment {experiment['experiment_id']} (external_id={experiment.get('external_id') or 'n/a'}) "
+                f"exceeded the stale active timeout after {int(submitted_age)}s without a fresh sync. "
+                "Marking as failed for campaign recovery."
+            )
+            provider_result = {
+                "status": "failed",
+                "blocker_type": "unknown",
+                "proof_outcome": "unknown",
+                "signal_summary": "remote_status=EXPIRED; proof_outcome=unknown; blocker=unknown",
+                "generated_lemmas": [],
+                "proved_lemmas": [],
+                "candidate_lemmas": [],
+                "unresolved_goals": [],
+                "blocked_on": [],
+                "missing_assumptions": [],
+                "artifact_inventory": [],
+                "proof_trace_fragments": [],
+                "counterexample_witnesses": [],
+                "normalized_candidate_lemmas": [],
+                "normalized_unresolved_goals": [],
+                "new_signal_count": 0,
+                "reused_signal_count": 0,
+                "suspected_missing_assumptions": [],
+                "notes": detail,
+                "confidence": 0.1,
+                "raw_stdout": "",
+                "raw_stderr": "",
+                "artifacts": [],
+                "external_id": experiment.get("external_id") or "",
+                "external_status": "EXPIRED",
+                "metadata": {
+                    "incident_type": "stale_active_timeout",
+                    "incident_detail": detail,
+                },
+            }
+            ingestion_json = {
+                "proof_outcome": "unknown",
+                "signal_summary": "remote_status=EXPIRED; proof_outcome=unknown; blocker=unknown",
+                "candidate_lemmas": [],
+                "normalized_candidate_lemmas": [],
+                "unresolved_goals": [],
+                "normalized_unresolved_goals": [],
+                "blocked_on": [],
+                "missing_assumptions": [],
+                "artifact_inventory": [],
+                "proof_trace_fragments": [],
+                "counterexample_witnesses": [],
+                "new_signal_count": 0,
+                "reused_signal_count": 0,
+            }
+            self.conn.execute(
+                """
+                UPDATE experiments
+                SET status = 'failed',
+                    blocker_type = 'unknown',
+                    proof_outcome = 'unknown',
+                    signal_summary = ?,
+                    external_status = 'EXPIRED',
+                    outcome_json = ?,
+                    ingestion_json = ?,
+                    completed_at = ?,
+                    last_synced_at = ?
+                WHERE experiment_id = ?
+                """,
+                (
+                    "remote_status=EXPIRED; proof_outcome=unknown; blocker=unknown",
+                    json.dumps({"provider_result": provider_result}),
+                    json.dumps(ingestion_json),
+                    utcnow(),
+                    utcnow(),
+                    experiment["experiment_id"],
+                ),
+            )
+            self.create_incident(
+                project_id=project_id,
+                experiment_id=experiment["experiment_id"],
+                incident_type="stale_active_timeout",
+                detail=detail,
+                severity="warning",
+            )
+            expired += 1
+        self.conn.commit()
+        return expired
 
     def list_incidents(self, project_id: str, status: Optional[str] = None) -> List[Dict[str, Any]]:
         params: List[Any] = [project_id]

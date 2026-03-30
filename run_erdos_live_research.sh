@@ -31,22 +31,20 @@ export PATH="$RESOLVED_ARISTOTLE_BIN_DIR:$PATH"
 
 mkdir -p "$(dirname "$DB_PATH")" "$WORKSPACE_PATH"
 
-if [[ ! -f "$DB_PATH" ]]; then
-  "$RO_BIN" init-project \
-    --db "$DB_PATH" \
-    --charter "$CHARTER_PATH" \
-    --conjecture "$ROOT_DIR/examples/conjectures/erdos/erdos_181_hypercube_ramsey.json"
+"$RO_BIN" init-project \
+  --db "$DB_PATH" \
+  --charter "$CHARTER_PATH" \
+  --conjecture "$ROOT_DIR/examples/conjectures/erdos/erdos_181_hypercube_ramsey.json"
 
-  "$RO_BIN" init-project \
-    --db "$DB_PATH" \
-    --charter "$CHARTER_PATH" \
-    --conjecture "$ROOT_DIR/examples/conjectures/erdos/erdos_44_sidon_extension.json"
+"$RO_BIN" init-project \
+  --db "$DB_PATH" \
+  --charter "$CHARTER_PATH" \
+  --conjecture "$ROOT_DIR/examples/conjectures/erdos/erdos_44_sidon_extension.json"
 
-  "$RO_BIN" init-project \
-    --db "$DB_PATH" \
-    --charter "$CHARTER_PATH" \
-    --conjecture "$ROOT_DIR/examples/conjectures/erdos/erdos_123_d_complete_sequences.json"
-fi
+"$RO_BIN" init-project \
+  --db "$DB_PATH" \
+  --charter "$CHARTER_PATH" \
+  --conjecture "$ROOT_DIR/examples/conjectures/erdos/erdos_123_d_complete_sequences.json"
 
 "$RO_BIN" backfill-results \
   --db "$DB_PATH" \

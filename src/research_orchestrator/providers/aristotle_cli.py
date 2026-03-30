@@ -6,6 +6,7 @@ import re
 import subprocess
 import tarfile
 import zipfile
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List
 
@@ -103,6 +104,8 @@ def _classify_failure(stdout: str, stderr: str) -> tuple[str, str]:
 class AristotleCLIProvider(Provider):
     name = "aristotle-cli"
     supports_async = True
+    GHOST_JOB_TIMEOUT_SECONDS = 2 * 3600
+    STALE_PROGRESS_TIMEOUT_SECONDS = 6 * 3600
 
     def __init__(self, command_template: List[str] | None = None):
         self.command_template = command_template or [
@@ -127,6 +130,17 @@ class AristotleCLIProvider(Provider):
             "--destination",
             "{destination}",
         ]
+
+    def _submission_age_seconds(self, submitted_at: str) -> float | None:
+        if not submitted_at:
+            return None
+        try:
+            parsed = datetime.fromisoformat(submitted_at.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return (datetime.now(timezone.utc) - parsed.astimezone(timezone.utc)).total_seconds()
 
     def _run_command(self, command: List[str], cwd: str):
         return subprocess.run(
@@ -280,8 +294,10 @@ class AristotleCLIProvider(Provider):
         brief: ExperimentBrief,
         worker_prompt: str,
         external_id: str,
+        submitted_at: str = "",
     ) -> ProviderResult:
         project_dir = str(Path(brief.workspace_dir).resolve())
+        age_seconds = self._submission_age_seconds(submitted_at)
         status, list_stdout, list_stderr = self._status_for_project(project_dir, external_id)
         list_artifacts = self._write_stream_artifacts(
             project_dir=project_dir,
@@ -289,6 +305,43 @@ class AristotleCLIProvider(Provider):
             stdout=list_stdout,
             stderr=list_stderr,
         )
+        if status == "UNKNOWN":
+            if age_seconds is not None and age_seconds > self.GHOST_JOB_TIMEOUT_SECONDS:
+                note = (
+                    f"Aristotle job {external_id} has disappeared from the remote listing. "
+                    "It may have been garbage-collected, cancelled externally, or completed without being captured. "
+                    "Marking as failed for campaign recovery."
+                )
+                return ProviderResult(
+                    status="failed",
+                    blocker_type="unknown",
+                    notes=note,
+                    confidence=0.35,
+                    raw_stdout=list_stdout,
+                    raw_stderr=list_stderr,
+                    artifacts=list_artifacts,
+                    external_id=external_id,
+                    external_status=status,
+                    metadata={
+                        "incident_type": "ghost_job",
+                        "incident_detail": note,
+                        "incident_severity": "warning",
+                    },
+                )
+            return ProviderResult(
+                status="submitted",
+                blocker_type="unknown",
+                notes=(
+                    f"Aristotle job {external_id} was not present in the remote listing yet. "
+                    "Keeping it active until the ghost timeout elapses."
+                ),
+                confidence=0.35,
+                raw_stdout=list_stdout,
+                raw_stderr=list_stderr,
+                artifacts=list_artifacts,
+                external_id=external_id,
+                external_status=status,
+            )
         if status in {"NOT_STARTED", "QUEUED", "PENDING_RETRY"}:
             return ProviderResult(
                 status="submitted",
@@ -302,6 +355,27 @@ class AristotleCLIProvider(Provider):
                 external_status=status,
             )
         if status == "IN_PROGRESS":
+            if age_seconds is not None and age_seconds > self.STALE_PROGRESS_TIMEOUT_SECONDS:
+                note = (
+                    f"Aristotle job {external_id} has been IN_PROGRESS for over 6 hours. "
+                    "Marking as stalled to free campaign capacity. The backfill mechanism can retry result retrieval later."
+                )
+                return ProviderResult(
+                    status="stalled",
+                    blocker_type="unknown",
+                    notes=note,
+                    confidence=0.4,
+                    raw_stdout=list_stdout,
+                    raw_stderr=list_stderr,
+                    artifacts=list_artifacts,
+                    external_id=external_id,
+                    external_status=status,
+                    metadata={
+                        "incident_type": "stale_active_timeout",
+                        "incident_detail": note,
+                        "incident_severity": "warning",
+                    },
+                )
             return ProviderResult(
                 status="in_progress",
                 blocker_type="unknown",
@@ -313,7 +387,7 @@ class AristotleCLIProvider(Provider):
                 external_id=external_id,
                 external_status=status,
             )
-        if status in {"FAILED", "OUT_OF_BUDGET", "CANCELED", "UNKNOWN"}:
+        if status in {"FAILED", "OUT_OF_BUDGET", "CANCELED"}:
             return ProviderResult(
                 status="failed",
                 blocker_type="unknown",

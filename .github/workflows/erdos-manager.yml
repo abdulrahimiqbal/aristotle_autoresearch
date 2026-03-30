@@ -20,7 +20,7 @@ permissions:
 
 concurrency:
   group: erdos-campaign-manager
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   manager-tick:
@@ -89,6 +89,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          WALL_START="$(date +%s)"
+          MAX_WALL_SECONDS=2100
           if [ -z "${ARISTOTLE_API_KEY:-}" ]; then
             echo "ARISTOTLE_API_KEY secret is not configured." >&2
             exit 1
@@ -111,6 +113,11 @@ jobs:
           }
 
           for tick in $(seq 1 "${TICKS_PER_RUN}"); do
+            ELAPSED="$(( $(date +%s) - WALL_START ))"
+            if [ "${ELAPSED}" -gt "${MAX_WALL_SECONDS}" ]; then
+              echo "Wall clock limit reached after ${ELAPSED}s, stopping early."
+              break
+            fi
             echo "=== manager tick ${tick}/${TICKS_PER_RUN} ==="
             ./run_erdos_live_research.sh
             persist_state
@@ -163,3 +170,17 @@ jobs:
               sed -n '1,200p' outputs/erdos_live_async/report.md
             } >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      - name: Keepalive commit
+        if: github.event_name == 'schedule'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p .github
+          date -u +%Y-%m-%dT%H:%M:%SZ > .github/keepalive
+          git add .github/keepalive
+          git commit -m "Keepalive: $(date -u +%Y-%m-%dT%H:%M:%SZ)" || true
+          git push origin HEAD:main || true

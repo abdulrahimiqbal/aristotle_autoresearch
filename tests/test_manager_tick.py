@@ -7,6 +7,7 @@ import os
 import shutil
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -33,7 +34,7 @@ class AsyncProviderStub:
             external_status="QUEUED",
         )
 
-    def poll(self, charter, conjecture, brief, worker_prompt, external_id):
+    def poll(self, charter, conjecture, brief, worker_prompt, external_id, submitted_at=""):
         return ProviderResult(
             status="succeeded",
             blocker_type="unknown",
@@ -45,7 +46,7 @@ class AsyncProviderStub:
 
 
 class NonCompletingAsyncProviderStub(AsyncProviderStub):
-    def poll(self, charter, conjecture, brief, worker_prompt, external_id):
+    def poll(self, charter, conjecture, brief, worker_prompt, external_id, submitted_at=""):
         return ProviderResult(
             status="in_progress",
             blocker_type="unknown",
@@ -110,6 +111,7 @@ class ManagerTickTest(unittest.TestCase):
 
     def test_manager_tick_with_five_active_jobs_submits_nothing(self):
         provider = NonCompletingAsyncProviderStub()
+        now = datetime.now(timezone.utc).isoformat()
         for idx in range(5):
             self.db.save_experiment_plan(
                 {
@@ -125,8 +127,8 @@ class ManagerTickTest(unittest.TestCase):
                     "lean_file": str(self.tempdir / f"seed_work_{idx}" / "Main.lean"),
                     "external_id": f"seed-job-{idx}",
                     "external_status": "QUEUED",
-                    "submitted_at": "2026-03-29T00:00:00+00:00",
-                    "last_synced_at": "2026-03-29T00:00:00+00:00",
+                    "submitted_at": now,
+                    "last_synced_at": now,
                 }
             )
             self.db.update_experiment_result(

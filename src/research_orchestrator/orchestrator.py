@@ -155,6 +155,15 @@ def _finalize_result(
             detail=result.notes or result.signal_summary,
             severity="error" if result.blocker_type != "malformed" else "warning",
         )
+    incident_type = result.metadata.get("incident_type", "")
+    if incident_type:
+        db.create_incident(
+            project_id=project_id,
+            experiment_id=brief.experiment_id,
+            incident_type=incident_type,
+            detail=result.metadata.get("incident_detail", result.notes or result.signal_summary),
+            severity=result.metadata.get("incident_severity", "warning"),
+        )
 
     if brief.move == "perturb_assumption":
         assumption = brief.modification.get("assumption")
@@ -315,6 +324,7 @@ def sync_provider_results(db: Database, project_id: str, provider_name: str, lim
             brief=brief,
             worker_prompt=worker_prompt,
             external_id=external_id,
+            submitted_at=experiment.get("submitted_at", "") or "",
         )
         result = ingest_provider_result(result)
         if result.status in {"submitted", "in_progress"}:
@@ -367,6 +377,7 @@ def backfill_provider_results(db: Database, project_id: str, provider_name: str,
             brief=brief,
             worker_prompt=worker_prompt,
             external_id=external_id,
+            submitted_at=experiment.get("submitted_at", "") or "",
         )
         result = ingest_provider_result(result)
         evaluation = _finalize_result(
@@ -394,6 +405,10 @@ def manager_tick(
     snapshot_output: str | Path,
 ) -> Dict[str, object]:
     provider = get_provider(provider_name)
+    expired_stale = db.expire_stale_active_experiments(
+        project_id,
+        max_age_seconds=getattr(provider, "STALE_PROGRESS_TIMEOUT_SECONDS", 6 * 3600),
+    )
     active_before = db.count_active_experiments(project_id, provider=provider.name)
     synced = sync_provider_results(db, project_id, provider_name, limit=max_active * 4)
     active_now = db.count_active_experiments(project_id, provider=provider.name)
@@ -515,6 +530,7 @@ def manager_tick(
                 for item in synced
             ]
         },
+        "expired_stale_active_experiments": expired_stale,
     }
 
     manager_run_summary = {
@@ -533,6 +549,7 @@ def manager_tick(
         "policy_rationale": policy.rationale,
         "recurring_structures": snapshot["recurring_structures"],
         "signal_progress": snapshot["signal_progress"],
+        "expired_stale_active_experiments": expired_stale,
     }
     run_id = db.save_manager_run(
         project_id=project_id,
@@ -557,6 +574,7 @@ def manager_tick(
         "policy_path": policy.policy_path,
         "jobs_synced": len(synced),
         "jobs_submitted": len(submissions),
+        "expired_stale_active_experiments": expired_stale,
         "active_before": active_before,
         "active_after": active_after,
         "report_output": str(report_output),

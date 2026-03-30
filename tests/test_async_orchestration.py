@@ -27,7 +27,7 @@ class AsyncProviderStub:
             external_status="QUEUED",
         )
 
-    def poll(self, charter, conjecture, brief, worker_prompt, external_id):
+    def poll(self, charter, conjecture, brief, worker_prompt, external_id, submitted_at=""):
         return ProviderResult(
             status="succeeded",
             blocker_type="unknown",
