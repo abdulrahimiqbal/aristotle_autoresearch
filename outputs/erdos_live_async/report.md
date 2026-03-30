@@ -8,16 +8,16 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Summary
 
-- Experiments: 60
+- Experiments: 62
 - Succeeded: 0
 - Stalled: 5
-- Failed: 52
+- Failed: 54
 - Pending: 3
 
 ## Discovery Graph
 
-- nodes: 52
-- edges: 50
+- nodes: 59
+- edges: 58
 - verified-like nodes: 2
 - `experiment` `233580d4-c454-41ec-a83d-04187d52e451` confidence=1.0 provenance=execution
 - `experiment` `182dd7b7-e92d-42a0-aa48-59be7c9b98a2` confidence=1.0 provenance=execution
@@ -26,9 +26,9 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - `experiment` `1c801a48-05bc-4f0e-b6bb-47d60e6505bf` confidence=1.0 provenance=execution
 - `experiment` `c93fd989-32c4-427b-923f-3fb74455ed83` confidence=1.0 provenance=execution
 - `experiment` `68985892-c8a9-481f-94e3-586949d9b3df` confidence=1.0 provenance=execution
+- `experiment` `df0acc2c-7f2f-4daa-86a2-18443a84811b` confidence=1.0 provenance=execution
+- `experiment` `f0aa6cb5-754c-4486-8918-e2f88c0f62ae` confidence=1.0 provenance=execution
 - `counterexample_witness` `file for the most fragile variant of `erdos_44_sidon_extension`.` confidence=0.82 provenance=artifact
-- `counterexample_witness` `The "most fragile variant" of Erdős Problem 123.` confidence=0.82 provenance=artifact
-- `reproducible_candidate_lemma` `erdos_44_sidon_extension :` confidence=0.75 provenance=artifact
 
 ## Discovery Questions
 
@@ -36,25 +36,26 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `IN_PROGRESS`: 3
+- `IN_PROGRESS`: 1
+- `QUEUED`: 2
 
 ## Recently completed
 
+- `f0aa6cb5-754c-4486-8918-e2f88c0f62ae` on `erdos-181` -> `failed`
+- `df0acc2c-7f2f-4daa-86a2-18443a84811b` on `erdos-123` -> `failed`
 - `68985892-c8a9-481f-94e3-586949d9b3df` on `erdos-181` -> `failed`
 - `c93fd989-32c4-427b-923f-3fb74455ed83` on `erdos-181` -> `failed`
 - `1c801a48-05bc-4f0e-b6bb-47d60e6505bf` on `erdos-123` -> `failed`
-- `77f27e0d-8bd3-49dc-b61e-f0a1fe123118` on `erdos-44` -> `failed`
-- `e217b2a9-78b3-47d8-a9a9-3afe0966c9f9` on `erdos-181` -> `failed`
 
 ## Recurring lemmas
 
-- `erdos_123_d_complete_sequences :` — reuse=13
-- `erdos_181_hypercube_ramsey :` — reuse=13
+- `erdos_123_d_complete_sequences :` — reuse=14
+- `erdos_181_hypercube_ramsey :` — reuse=14
 - `erdos_44_sidon_extension :` — reuse=12
-- `antichain_pow2_card_le_one (s : Finset ℕ)` — reuse=5
+- `antichain_pow2_card_le_one (s : Finset ℕ)` — reuse=6
+- `three_ne_pow2 : ∀ m : ℕ, 3 ≠ 2 ^ m` — reuse=5
 - `erdos_123_fragile_variant_false :` — reuse=4
 - `promoted_lemma : True` — reuse=4
-- `three_ne_pow2 : ∀ m : ℕ, 3 ≠ 2 ^ m` — reuse=4
 - `fragile_variant_counterexample :` — reuse=3
 - `powTripleSet_222_eq :` — reuse=3
 - `erdos_181_hypercube_ramsey : True` — reuse=2
@@ -64,7 +65,9 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - `graphRamseyNumber_trivial {α : Type*} [Fintype α] (G : SimpleGraph α) :` — reuse=2
 - `h_sum : s.sum id = 0 ∨ ∃ m : ℕ, s.sum id = 2 ^ m := sum_antichain_pow2 s (fun x hx => by` — reuse=2
 - `hs_antichain : IsDivisionAntichain s := hs.2.1` — reuse=2
+- `hs_card : s.card ≤ 1 := by` — reuse=2
 - `hs_card_le_one : s.card ≤ 1 := by` — reuse=2
+- `hs_pow2 : ∀ x ∈ s, ∃ m : ℕ, x = 2 ^ m := by` — reuse=2
 - `powTripleSet_222_not_dComplete :` — reuse=2
 - `powTripleSet_248_subset_pow2 :` — reuse=2
 - `powTripleSet_2_4_8_eq :` — reuse=2
@@ -74,7 +77,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Space Search Progress
 
-- recurring lemmas: 23 clusters
+- recurring lemmas: 25 clusters
 - recurring subgoals: none stabilized yet
 - recurring proof traces: none stabilized yet
 - no-signal branches: none crossed the backoff threshold
@@ -83,9 +86,9 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 - recurring lemmas are beginning to cluster across runs
 - no repeated subgoals captured yet
-- blocker pattern `unknown` / `disproved` appeared 34 times
+- blocker pattern `unknown` / `disproved` appeared 36 times
 - blocker pattern `unknown` / `partial` appeared 5 times
-- move `counterexample_mode` repeatedly yields blocker `unknown` / `disproved` (34 runs)
+- move `counterexample_mode` repeatedly yields blocker `unknown` / `disproved` (36 runs)
 - move `promote_lemma` repeatedly yields blocker `unknown` / `partial` (3 runs)
 - move `reformulate` repeatedly yields blocker `unknown` / `partial` (2 runs)
 - counterexample witness motif `/ falsifying witness for the "most fragile variant" of erdős problem 44.` appeared 1 times
@@ -2186,7 +2189,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - reused signal count: 0
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0b86e3e-5678-4840-9222-6adb06ce079e/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0b86e3e-5678-4840-9222-6adb06ce079e/aristotle_list_stdout.txt` (8746 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0b86e3e-5678-4840-9222-6adb06ce079e/aristotle_list_stdout.txt` (8751 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0b86e3e-5678-4840-9222-6adb06ce079e/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0b86e3e-5678-4840-9222-6adb06ce079e/aristotle_list_stderr.txt`
@@ -2196,22 +2199,49 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 - move: `counterexample_mode`
 - phase: `consolidation`
-- status: `in_progress`
-- proof outcome: `unknown`
+- status: `failed`
+- proof outcome: `disproved`
 - blocker: `unknown`
 - external job id: `4fabcbad-64d0-4445-ac05-989aa1487752`
-- external status: `IN_PROGRESS`
+- external status: `COMPLETE`
 - objective: Fill in all sorries. Search for a counterexample or independence witness for this weakened variant.
-- learned summary: remote_status=IN_PROGRESS; proof_outcome=unknown; blocker=unknown
-- new signal count: 0
+- learned summary: remote_status=COMPLETE; proof_outcome=disproved; blocker=unknown; candidates=7
+- new signal count: 7
 - reused signal count: 0
+- candidate lemmas:
+  - `erdos_123_d_complete_sequences :`
+  - `powTripleSet_248_eq :`
+  - `antichain_pow2_card_le_one (s : Finset ℕ)`
+  - `three_ne_pow2 : ∀ m : ℕ, 3 ≠ 2 ^ m`
+  - `not_d_complete_without_coprimality :`
+  - `hs_pow2 : ∀ x ∈ s, ∃ m : ℕ, x = 2 ^ m := by`
+  - `hs_card : s.card ≤ 1 := by`
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_list_stdout.txt` (8746 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_list_stdout.txt` (8751 bytes)
+  - `bin` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_4fabcbad-64d0-4445-ac05-989aa1487752.bin` (4900 bytes)
+  - `md` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_4fabcbad-64d0-4445-ac05-989aa1487752.bin.contents/df0acc2c-7f2f-4daa-86a2-18443a84811b_aristotle/ARISTOTLE_SUMMARY_4fabcbad-64d0-4445-ac05-989aa1487752.md` (1604 bytes)
+  - `lean` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_4fabcbad-64d0-4445-ac05-989aa1487752.bin.contents/df0acc2c-7f2f-4daa-86a2-18443a84811b_aristotle/Main.lean` (7339 bytes)
+  - `md` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_4fabcbad-64d0-4445-ac05-989aa1487752.bin.contents/df0acc2c-7f2f-4daa-86a2-18443a84811b_aristotle/README.md` (248 bytes)
+  - `json` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_4fabcbad-64d0-4445-ac05-989aa1487752.bin.contents/df0acc2c-7f2f-4daa-86a2-18443a84811b_aristotle/lake-manifest.json` (3109 bytes)
+  - `lean` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_4fabcbad-64d0-4445-ac05-989aa1487752.bin.contents/df0acc2c-7f2f-4daa-86a2-18443a84811b_aristotle/lakefile.lean` (194 bytes)
+  - `file` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_4fabcbad-64d0-4445-ac05-989aa1487752.bin.contents/df0acc2c-7f2f-4daa-86a2-18443a84811b_aristotle/lean-toolchain` (25 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_stderr.txt` (243 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_list_stderr.txt`
-- notes: Aristotle job 4fabcbad-64d0-4445-ac05-989aa1487752 is still in progress.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_stderr.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_4fabcbad-64d0-4445-ac05-989aa1487752.bin`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_4fabcbad-64d0-4445-ac05-989aa1487752.bin`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_4fabcbad-64d0-4445-ac05-989aa1487752.bin.contents/df0acc2c-7f2f-4daa-86a2-18443a84811b_aristotle/lake-manifest.json`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_4fabcbad-64d0-4445-ac05-989aa1487752.bin.contents/df0acc2c-7f2f-4daa-86a2-18443a84811b_aristotle/lakefile.lean`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_4fabcbad-64d0-4445-ac05-989aa1487752.bin.contents/df0acc2c-7f2f-4daa-86a2-18443a84811b_aristotle/Main.lean`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_4fabcbad-64d0-4445-ac05-989aa1487752.bin.contents/df0acc2c-7f2f-4daa-86a2-18443a84811b_aristotle/lean-toolchain`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_4fabcbad-64d0-4445-ac05-989aa1487752.bin.contents/df0acc2c-7f2f-4daa-86a2-18443a84811b_aristotle/ARISTOTLE_SUMMARY_4fabcbad-64d0-4445-ac05-989aa1487752.md`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/df0acc2c-7f2f-4daa-86a2-18443a84811b/aristotle_result_4fabcbad-64d0-4445-ac05-989aa1487752.bin.contents/df0acc2c-7f2f-4daa-86a2-18443a84811b_aristotle/README.md`
+- evaluation total: 22.75
+- notes: Aristotle result downloaded successfully. Customize result ingestion to extract generated Lean artifacts and intermediate lemmas.
 
 ### 68985892-c8a9-481f-94e3-586949d9b3df
 
@@ -2259,22 +2289,85 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 - move: `counterexample_mode`
 - phase: `consolidation`
-- status: `in_progress`
-- proof outcome: `unknown`
+- status: `failed`
+- proof outcome: `disproved`
 - blocker: `unknown`
 - external job id: `8791bd2b-5262-49e9-a8bb-4086726fe6c6`
-- external status: `IN_PROGRESS`
+- external status: `COMPLETE_WITH_ERRORS`
 - objective: Fill in all sorries. Search for a counterexample or independence witness for this weakened variant.
-- learned summary: remote_status=IN_PROGRESS; proof_outcome=unknown; blocker=unknown
-- new signal count: 0
+- learned summary: remote_status=COMPLETE_WITH_ERRORS; proof_outcome=disproved; blocker=unknown; candidates=1
+- new signal count: 1
 - reused signal count: 0
+- candidate lemmas:
+  - `erdos_181_hypercube_ramsey :`
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_list_stdout.txt` (8746 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_list_stdout.txt` (8751 bytes)
+  - `bin` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_8791bd2b-5262-49e9-a8bb-4086726fe6c6.bin` (2708 bytes)
+  - `md` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_8791bd2b-5262-49e9-a8bb-4086726fe6c6.bin.contents/f0aa6cb5-754c-4486-8918-e2f88c0f62ae_aristotle/ARISTOTLE_SUMMARY_8791bd2b-5262-49e9-a8bb-4086726fe6c6.md` (1323 bytes)
+  - `lean` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_8791bd2b-5262-49e9-a8bb-4086726fe6c6.bin.contents/f0aa6cb5-754c-4486-8918-e2f88c0f62ae_aristotle/Main.lean` (1455 bytes)
+  - `md` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_8791bd2b-5262-49e9-a8bb-4086726fe6c6.bin.contents/f0aa6cb5-754c-4486-8918-e2f88c0f62ae_aristotle/README.md` (248 bytes)
+  - `json` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_8791bd2b-5262-49e9-a8bb-4086726fe6c6.bin.contents/f0aa6cb5-754c-4486-8918-e2f88c0f62ae_aristotle/lake-manifest.json` (3109 bytes)
+  - `lean` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_8791bd2b-5262-49e9-a8bb-4086726fe6c6.bin.contents/f0aa6cb5-754c-4486-8918-e2f88c0f62ae_aristotle/lakefile.lean` (205 bytes)
+  - `file` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_8791bd2b-5262-49e9-a8bb-4086726fe6c6.bin.contents/f0aa6cb5-754c-4486-8918-e2f88c0f62ae_aristotle/lean-toolchain` (25 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_stderr.txt` (281 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_list_stderr.txt`
-- notes: Aristotle job 8791bd2b-5262-49e9-a8bb-4086726fe6c6 is still in progress.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_stderr.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_8791bd2b-5262-49e9-a8bb-4086726fe6c6.bin`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_8791bd2b-5262-49e9-a8bb-4086726fe6c6.bin`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_8791bd2b-5262-49e9-a8bb-4086726fe6c6.bin.contents/f0aa6cb5-754c-4486-8918-e2f88c0f62ae_aristotle/lake-manifest.json`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_8791bd2b-5262-49e9-a8bb-4086726fe6c6.bin.contents/f0aa6cb5-754c-4486-8918-e2f88c0f62ae_aristotle/ARISTOTLE_SUMMARY_8791bd2b-5262-49e9-a8bb-4086726fe6c6.md`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_8791bd2b-5262-49e9-a8bb-4086726fe6c6.bin.contents/f0aa6cb5-754c-4486-8918-e2f88c0f62ae_aristotle/lakefile.lean`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_8791bd2b-5262-49e9-a8bb-4086726fe6c6.bin.contents/f0aa6cb5-754c-4486-8918-e2f88c0f62ae_aristotle/Main.lean`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_8791bd2b-5262-49e9-a8bb-4086726fe6c6.bin.contents/f0aa6cb5-754c-4486-8918-e2f88c0f62ae_aristotle/lean-toolchain`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_result_8791bd2b-5262-49e9-a8bb-4086726fe6c6.bin.contents/f0aa6cb5-754c-4486-8918-e2f88c0f62ae_aristotle/README.md`
+- evaluation total: 4.93
+- notes: Aristotle finished with remote status COMPLETE_WITH_ERRORS; downloaded whatever artifacts were available. Customize result ingestion to extract generated Lean artifacts and intermediate lemmas.
+
+### e18e15b6-76e0-48a4-9a67-5abd0240c284
+
+- move: `counterexample_mode`
+- phase: `consolidation`
+- status: `submitted`
+- proof outcome: `unknown`
+- blocker: `unknown`
+- external job id: `28ce129f-49f2-4598-8f6f-6ee0507ea5c2`
+- external status: `QUEUED`
+- objective: Fill in all sorries. Search for a counterexample or independence witness for this weakened variant.
+- learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
+- new signal count: 0
+- reused signal count: 0
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e18e15b6-76e0-48a4-9a67-5abd0240c284/aristotle_submit_stderr.txt` (54 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e18e15b6-76e0-48a4-9a67-5abd0240c284/aristotle_submit_stdout.txt` (0 bytes)
+- artifacts:
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e18e15b6-76e0-48a4-9a67-5abd0240c284/aristotle_submit_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e18e15b6-76e0-48a4-9a67-5abd0240c284/aristotle_submit_stderr.txt`
+- notes: Submitted Aristotle job without waiting for completion.
+
+### 14418436-60f4-4956-a876-b8b6e717949c
+
+- move: `counterexample_mode`
+- phase: `consolidation`
+- status: `submitted`
+- proof outcome: `unknown`
+- blocker: `unknown`
+- external job id: `be5e3c03-db41-4cbc-a750-db57c6a3d1ac`
+- external status: `QUEUED`
+- objective: Fill in all sorries. Search for a counterexample or independence witness for this weakened variant.
+- learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
+- new signal count: 0
+- reused signal count: 0
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/14418436-60f4-4956-a876-b8b6e717949c/aristotle_submit_stderr.txt` (54 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/14418436-60f4-4956-a876-b8b6e717949c/aristotle_submit_stdout.txt` (0 bytes)
+- artifacts:
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/14418436-60f4-4956-a876-b8b6e717949c/aristotle_submit_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/14418436-60f4-4956-a876-b8b6e717949c/aristotle_submit_stderr.txt`
+- notes: Submitted Aristotle job without waiting for completion.
 
 ## Incidents
 
@@ -2282,34 +2375,34 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Audit Trail
 
+- `experiment_finalized` at `2026-03-30T15:50:44.067612+00:00`
+- `result_ingested` at `2026-03-30T15:50:44.066922+00:00`
+- `experiment_finalized` at `2026-03-30T15:50:42.701468+00:00`
+- `result_ingested` at `2026-03-30T15:50:42.700605+00:00`
 - `experiment_finalized` at `2026-03-30T14:22:20.109436+00:00`
 - `result_ingested` at `2026-03-30T14:22:20.108542+00:00`
 - `experiment_finalized` at `2026-03-30T14:02:04.667062+00:00`
 - `result_ingested` at `2026-03-30T14:02:04.666353+00:00`
 - `experiment_finalized` at `2026-03-30T14:02:03.234118+00:00`
 - `result_ingested` at `2026-03-30T14:02:03.232719+00:00`
-- `experiment_finalized` at `2026-03-30T14:02:00.476304+00:00`
-- `result_ingested` at `2026-03-30T14:02:00.475488+00:00`
-- `experiment_finalized` at `2026-03-30T12:43:26.421104+00:00`
-- `result_ingested` at `2026-03-30T12:43:26.420415+00:00`
 
 ## Latest manager decision
 
 - policy path: `fallback`
 - jobs synced: 3
-- jobs submitted: 0
+- jobs submitted: 2
 - active before: 3
 - active after: 3
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=10, subgoals=0, traces=0
 - synced `f0b86e3e-5678-4840-9222-6adb06ce079e` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- synced `df0acc2c-7f2f-4daa-86a2-18443a84811b` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- synced `f0aa6cb5-754c-4486-8918-e2f88c0f62ae` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- skipped `4d4ea0ef-c2f8-4636-8868-1c1a82c127b5` for `erdos-123` (duplicate active experiment signature)
-- skipped `106cdff9-3825-4b2e-a4d4-0663352edbe0` for `erdos-181` (duplicate active experiment signature)
-- skipped `e41fd9a7-c1df-40f5-ab0a-db70c635298f` for `erdos-44` (duplicate active experiment signature)
+- synced `df0acc2c-7f2f-4daa-86a2-18443a84811b` with proof_outcome=`disproved` new_signal=7 reused_signal=0
+- synced `f0aa6cb5-754c-4486-8918-e2f88c0f62ae` with proof_outcome=`disproved` new_signal=1 reused_signal=0
+- queued `e18e15b6-76e0-48a4-9a67-5abd0240c284` for `erdos-123` via `counterexample_mode` (chosen by deterministic fallback policy)
+- queued `14418436-60f4-4956-a876-b8b6e717949c` for `erdos-181` via `counterexample_mode` (chosen by deterministic fallback policy)
+- skipped `4d4f09e8-ad33-4d4a-af6b-6458effa4351` for `erdos-44` (duplicate active experiment signature)
 
 ## Suggested next move
 
-- Promote the top recurring lemma into a standalone theorem if not already tested.
+- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
