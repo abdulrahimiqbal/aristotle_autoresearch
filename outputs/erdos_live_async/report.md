@@ -2879,12 +2879,12 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/c4e4e33c-d659-4c9e-ba53-bcec72514b2a/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/c4e4e33c-d659-4c9e-ba53-bcec72514b2a/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/c4e4e33c-d659-4c9e-ba53-bcec72514b2a/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/c4e4e33c-d659-4c9e-ba53-bcec72514b2a/aristotle_list_stdout.txt` (8766 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/c4e4e33c-d659-4c9e-ba53-bcec72514b2a/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/c4e4e33c-d659-4c9e-ba53-bcec72514b2a/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/c4e4e33c-d659-4c9e-ba53-bcec72514b2a/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/c4e4e33c-d659-4c9e-ba53-bcec72514b2a/aristotle_list_stderr.txt`
+- notes: Aristotle job fe85085a-bb56-405b-ab22-970ab303bfc0 is still queued.
 
 ## Incidents
 
@@ -2907,7 +2907,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 - policy path: `fallback`
 - jobs synced: 5
-- jobs submitted: 1
+- jobs submitted: 0
 - active before: 5
 - active after: 5
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.md`
@@ -2917,9 +2917,9 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - synced `36e76630-ee38-4415-9c0d-14e2e414c4a5` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `7cd87e61-0434-4b8d-bcdb-0a6052a0ba45` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `c558ef45-a291-4ea3-a489-77ce96c01af4` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- synced `5feee109-3747-47b7-adab-d7276b0e8620` with proof_outcome=`partial` new_signal=4 reused_signal=0
-- queued `c4e4e33c-d659-4c9e-ba53-bcec72514b2a` for `erdos-181` via `promote_lemma` / `invariant_mining` (chosen by deterministic fallback policy; move_family=invariant_mining; rationale=Recurring semantic signal 'unknown' suggests a hidden invariant worth isolating.)
+- synced `c4e4e33c-d659-4c9e-ba53-bcec72514b2a` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- skipped `11ce5436-9560-4155-9d3d-98758220c297` for `erdos-181` (duplicate active experiment signature)
 
 ## Suggested next move
 
-- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
+- Promote the top recurring lemma into a standalone theorem if not already tested.
