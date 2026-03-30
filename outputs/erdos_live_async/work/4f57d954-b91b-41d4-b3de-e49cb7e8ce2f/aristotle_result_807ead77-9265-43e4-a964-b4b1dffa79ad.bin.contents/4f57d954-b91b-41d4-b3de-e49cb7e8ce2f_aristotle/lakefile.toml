@@ -1,0 +1,13 @@
+name = "AristotleWorkspace"
+version = "0.1.0"
+defaultTargets = ["AristotleWorkspace", "Counterexample"]
+
+[[require]]
+name = "mathlib"
+path = ".lake/packages/mathlib"
+
+[[lean_lib]]
+name = "AristotleWorkspace"
+
+[[lean_lib]]
+name = "Counterexample"
