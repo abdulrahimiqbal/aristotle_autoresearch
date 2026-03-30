@@ -428,12 +428,23 @@ def manager_tick(
         )
         result = ingest_provider_result(result)
         if provider.supports_async:
-            db.update_experiment_result(
-                experiment_id=prepared["brief"].experiment_id,
-                provider=provider.name,
-                result=result,
-                evaluation=None,
-            )
+            if result.status in {"submitted", "in_progress"}:
+                db.update_experiment_result(
+                    experiment_id=prepared["brief"].experiment_id,
+                    provider=provider.name,
+                    result=result,
+                    evaluation=None,
+                )
+            else:
+                _finalize_result(
+                    db=db,
+                    project_id=project_id,
+                    provider_name=provider.name,
+                    brief=prepared["brief"],
+                    result=result,
+                    manager_lint=prepared["manager_prompt_lint"],
+                    worker_lint=prepared["worker_prompt_lint"],
+                )
         else:
             _finalize_result(
                 db=db,
@@ -444,16 +455,25 @@ def manager_tick(
                 manager_lint=prepared["manager_prompt_lint"],
                 worker_lint=prepared["worker_prompt_lint"],
             )
-        submissions.append({
-            "experiment_id": prepared["brief"].experiment_id,
-            "conjecture_id": prepared["brief"].conjecture_id,
-            "move": prepared["brief"].move,
-            "phase": prepared["brief"].phase,
-            "status": result.status,
-            "external_id": result.external_id,
-            "external_status": result.external_status,
-            "reason": decision.reason,
-        })
+        if not provider.supports_async or result.status in {"submitted", "in_progress"}:
+            submissions.append({
+                "experiment_id": prepared["brief"].experiment_id,
+                "conjecture_id": prepared["brief"].conjecture_id,
+                "move": prepared["brief"].move,
+                "phase": prepared["brief"].phase,
+                "status": result.status,
+                "external_id": result.external_id,
+                "external_status": result.external_status,
+                "reason": decision.reason,
+            })
+        else:
+            policy.skipped.append(
+                {
+                    "experiment_id": prepared["brief"].experiment_id,
+                    "conjecture_id": prepared["brief"].conjecture_id,
+                    "reason": f"provider submit failed before remote submission: status={result.status}",
+                }
+            )
 
     active_after = db.count_active_experiments(project_id, provider=provider.name)
     report_output = Path(report_output)

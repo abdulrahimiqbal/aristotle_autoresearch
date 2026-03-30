@@ -55,6 +55,15 @@ class NonCompletingAsyncProviderStub(AsyncProviderStub):
         )
 
 
+class FailingAsyncProviderStub(AsyncProviderStub):
+    def submit(self, charter, conjecture, brief, worker_prompt):
+        return ProviderResult(
+            status="failed",
+            blocker_type="malformed",
+            notes="ARISTOTLE_API_KEY is not set.",
+        )
+
+
 class ManagerTickTest(unittest.TestCase):
     def setUp(self):
         self.tempdir = Path(tempfile.mkdtemp(prefix="manager_tick_test_"))
@@ -247,6 +256,25 @@ class ManagerTickTest(unittest.TestCase):
             )
         conjecture_ids = {item["conjecture_id"] for item in result["submitted"]}
         self.assertEqual(len(conjecture_ids), 3)
+
+    def test_async_submit_failure_is_not_counted_as_submission(self):
+        provider = FailingAsyncProviderStub()
+        with patch("research_orchestrator.orchestrator.get_provider", return_value=provider):
+            result = manager_tick(
+                db=self.db,
+                project_id=self.project_id,
+                provider_name="aristotle-cli",
+                workspace_root=self.tempdir / "work",
+                max_active=1,
+                max_submit_per_tick=1,
+                llm_manager_mode="off",
+                report_output=self.report_path,
+                snapshot_output=self.snapshot_path,
+            )
+        self.assertEqual(result["jobs_submitted"], 0)
+        completed = self.db.list_completed_experiments(self.project_id)
+        self.assertEqual(len(completed), 1)
+        self.assertEqual(completed[0]["blocker_type"], "malformed")
 
 
 if __name__ == "__main__":
