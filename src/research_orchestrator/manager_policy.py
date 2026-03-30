@@ -57,6 +57,7 @@ def build_manager_tick_prompt(
     completed_experiments: List[Dict[str, Any]],
     frontier: List[Dict[str, Any]],
     recurring_lemmas: List[Dict[str, Any]],
+    recurring_subgoals: List[Dict[str, Any]],
     assumption_sensitivity: List[Dict[str, Any]],
     capacity: Dict[str, int],
 ) -> str:
@@ -74,6 +75,9 @@ Recently completed experiments:
 
 Recurring lemmas:
 {json.dumps(recurring_lemmas[:10], indent=2)}
+
+Recurring subgoals:
+{json.dumps(recurring_subgoals[:10], indent=2)}
 
 Assumption sensitivity:
 {json.dumps(assumption_sensitivity[:10], indent=2)}
@@ -95,6 +99,8 @@ Hard constraints:
 - prefer cross-problem diversity before deepening one branch
 - avoid duplicate active runs for the same conjecture, move, and modification
 - favor information gain and reusability
+- prefer candidates that attack recurring lemmas or recurring subgoals
+- de-prioritize branches with repeated no-signal outcomes
 - prefer unexplored move types when otherwise similar
 """.strip()
 
@@ -102,6 +108,9 @@ Hard constraints:
 def _heuristic_key(candidate: Dict[str, Any]) -> Tuple[int, int, int, int, str]:
     return (
         candidate["active_count_for_conjecture"],
+        0 if candidate.get("targets_recurring_structure") else 1,
+        candidate.get("no_signal_penalty", 0),
+        -candidate.get("signal_priority", 0),
         candidate["existing_experiments"],
         0 if not candidate["duplicate_active_signature"] else 1,
         MOVE_PRIORITY.get(candidate["move"], 99),
@@ -194,6 +203,7 @@ def choose_candidates_for_submission(
     active = db.list_active_experiments(project_id)
     completed = db.list_completed_experiments(project_id, limit=10)
     recurring = db.recurring_lemmas()
+    recurring_subgoals = db.recurring_subgoals(project_id)
     sensitivity = db.assumption_sensitivity(project_id)
     summary = db.project_summary(project_id)
     capacity = {"requested_submissions": max_count, "current_active": len(active)}
@@ -205,6 +215,7 @@ def choose_candidates_for_submission(
         completed_experiments=completed,
         frontier=frontier,
         recurring_lemmas=recurring,
+        recurring_subgoals=recurring_subgoals,
         assumption_sensitivity=sensitivity,
         capacity=capacity,
     )

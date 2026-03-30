@@ -12,6 +12,7 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
     conjectures = db.list_conjectures(project_id)
     experiments = db.list_experiments(project_id)
     recurring = db.recurring_lemmas()
+    recurring_subgoals = db.recurring_subgoals(project_id)
     counts_by_conjecture = {
         conjecture.conjecture_id: 0 for conjecture in conjectures
     }
@@ -28,6 +29,7 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
             workspace_root=workspace_root,
             experiments=experiments,
             recurring_lemmas=recurring,
+            recurring_subgoals=recurring_subgoals,
         )
         frontier.append({
             "project_id": project_id,
@@ -64,6 +66,7 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
         workspace_root=workspace_root,
         experiments=experiments,
         recurring_lemmas=recurring,
+        recurring_subgoals=recurring_subgoals,
     )
     return chosen, manager_prompt, frontier
 
@@ -73,6 +76,8 @@ def generate_frontier(db: Database, project_id: str, workspace_root: str) -> Lis
     conjectures = db.list_conjectures(project_id)
     experiments = db.list_experiments(project_id)
     recurring = db.recurring_lemmas()
+    recurring_subgoals = db.recurring_subgoals(project_id)
+    no_signal = {(item["conjecture_id"], item["move"]): item["observations"] for item in db.no_signal_branches(project_id)}
     active = db.list_active_experiments(project_id)
     counts_by_conjecture = {
         conjecture.conjecture_id: 0 for conjecture in conjectures
@@ -105,12 +110,18 @@ def generate_frontier(db: Database, project_id: str, workspace_root: str) -> Lis
             workspace_root=workspace_root,
             experiments=experiments,
             recurring_lemmas=recurring,
+            recurring_subgoals=recurring_subgoals,
         )
         signature = (
             conjecture.conjecture_id,
             candidate.move,
             __import__("json").dumps(candidate.modification, sort_keys=True),
         )
+        targets_recurring_structure = (
+            candidate.move == "promote_lemma"
+            or bool(recurring_subgoals and candidate.move == "counterexample_mode")
+        )
+        signal_priority = 2 if candidate.move == "promote_lemma" else 1 if candidate.move == "reformulate" else 0
         frontier.append({
             "experiment_id": candidate.experiment_id,
             "project_id": project_id,
@@ -125,5 +136,8 @@ def generate_frontier(db: Database, project_id: str, workspace_root: str) -> Lis
             "workspace_dir": candidate.workspace_dir,
             "lean_file": candidate.lean_file,
             "duplicate_active_signature": signature in active_signatures,
+            "targets_recurring_structure": targets_recurring_structure,
+            "signal_priority": signal_priority,
+            "no_signal_penalty": no_signal.get((conjecture.conjecture_id, candidate.move), 0),
         })
     return frontier

@@ -13,7 +13,11 @@ def build_report(db: Database, project_id: str) -> str:
     recent_completed = db.list_completed_experiments(project_id, limit=5)
     recurring = db.recurring_lemmas()
     recurring_subgoals = db.recurring_subgoals(project_id)
+    recurring_traces = db.recurring_proof_traces(project_id)
     blocker_summary = db.blocker_summary(project_id)
+    blockers_by_move = summary.get("blockers_by_move", [])
+    counterexample_summary = summary.get("counterexample_summary", [])
+    no_signal_branches = summary.get("no_signal_branches", [])
     sensitivity = db.assumption_sensitivity(project_id)
     latest_manager_run = db.latest_manager_run(project_id)
 
@@ -60,6 +64,26 @@ def build_report(db: Database, project_id: str) -> str:
     else:
         lines.append("- None yet.")
     lines.append("")
+    lines.append("## Space Search Progress")
+    lines.append("")
+    if recurring:
+        lines.append(f"- recurring lemmas: {len(recurring)} clusters")
+    else:
+        lines.append("- recurring lemmas: none stabilized yet")
+    if recurring_subgoals:
+        lines.append(f"- recurring subgoals: {len(recurring_subgoals)} clusters")
+    else:
+        lines.append("- recurring subgoals: none stabilized yet")
+    if recurring_traces:
+        lines.append(f"- recurring proof traces: {len(recurring_traces)} motifs")
+    else:
+        lines.append("- recurring proof traces: none stabilized yet")
+    if no_signal_branches:
+        for item in no_signal_branches[:5]:
+            lines.append(f"- no-signal branch `{item['conjecture_id']}` / `{item['move']}` repeated {item['observations']} times")
+    else:
+        lines.append("- no-signal branches: none crossed the backoff threshold")
+    lines.append("")
     lines.append("## What we learned")
     lines.append("")
     if recurring:
@@ -78,6 +102,14 @@ def build_report(db: Database, project_id: str) -> str:
             )
     else:
         lines.append("- no blocker patterns aggregated yet")
+    if blockers_by_move:
+        for item in blockers_by_move[:5]:
+            lines.append(
+                f"- move `{item['move']}` repeatedly yields blocker `{item['blocker_type']}` / `{item['proof_outcome']}` ({item['observations']} runs)"
+            )
+    if counterexample_summary:
+        for item in counterexample_summary[:5]:
+            lines.append(f"- counterexample witness motif `{item['witness']}` appeared {item['observations']} times")
     lines.append("")
     lines.append("## Assumption sensitivity")
     lines.append("")
@@ -111,6 +143,9 @@ def build_report(db: Database, project_id: str) -> str:
             ingestion = experiment.get("ingestion") or {}
             if ingestion.get("signal_summary"):
                 lines.append(f"- learned summary: {ingestion['signal_summary']}")
+            if provider_result.get("new_signal_count") is not None:
+                lines.append(f"- new signal count: {provider_result.get('new_signal_count', 0)}")
+                lines.append(f"- reused signal count: {provider_result.get('reused_signal_count', 0)}")
             if provider_result.get("generated_lemmas"):
                 lines.append("- generated lemmas:")
                 for lemma in provider_result["generated_lemmas"]:
@@ -130,6 +165,14 @@ def build_report(db: Database, project_id: str) -> str:
             if provider_result.get("blocked_on"):
                 lines.append("- blocked on:")
                 for item in provider_result["blocked_on"]:
+                    lines.append(f"  - `{item}`")
+            if provider_result.get("proof_trace_fragments"):
+                lines.append("- proof traces:")
+                for item in provider_result["proof_trace_fragments"][:5]:
+                    lines.append(f"  - `{item}`")
+            if provider_result.get("counterexample_witnesses"):
+                lines.append("- counterexample witnesses:")
+                for item in provider_result["counterexample_witnesses"][:5]:
                     lines.append(f"  - `{item}`")
             if provider_result.get("missing_assumptions") or provider_result.get("suspected_missing_assumptions"):
                 lines.append("- suspected missing assumptions:")
@@ -161,10 +204,24 @@ def build_report(db: Database, project_id: str) -> str:
             lines.append(f"- report path: `{latest_manager_run['report_path']}`")
         if latest_manager_run.get("snapshot_path"):
             lines.append(f"- snapshot path: `{latest_manager_run['snapshot_path']}`")
+        recurring_structures = latest_manager_run["summary"].get("recurring_structures", {})
+        if recurring_structures:
+            lines.append(f"- recurring structures considered: lemmas={len(recurring_structures.get('lemmas', []))}, subgoals={len(recurring_structures.get('subgoals', []))}, traces={len(recurring_structures.get('proof_traces', []))}")
+        signal_progress = latest_manager_run["summary"].get("signal_progress", {})
+        if signal_progress:
+            for item in signal_progress.get("latest_completed", []):
+                lines.append(
+                    f"- synced `{item['experiment_id']}` with proof_outcome=`{item['proof_outcome']}` new_signal={item['new_signal_count']} reused_signal={item['reused_signal_count']}"
+                )
         for item in latest_manager_run["summary"].get("submitted_experiments", []):
             lines.append(
                 f"- queued `{item['experiment_id']}` for `{item['conjecture_id']}` via `{item['move']}` ({item['reason']})"
             )
+        for item in latest_manager_run["summary"].get("skipped_candidates", []):
+            if item.get("experiment_id"):
+                lines.append(
+                    f"- skipped `{item['experiment_id']}` for `{item['conjecture_id']}` ({item['reason']})"
+                )
     else:
         lines.append("- No manager tick recorded yet.")
     lines.append("")

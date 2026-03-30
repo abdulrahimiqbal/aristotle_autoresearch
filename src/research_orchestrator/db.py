@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
-from research_orchestrator.lemma_utils import lemma_fingerprint
+from research_orchestrator.lemma_utils import goal_fingerprint, lemma_fingerprint
 from research_orchestrator.types import Conjecture, ProjectCharter, ProviderResult
 
 
@@ -168,6 +168,34 @@ SCHEMA = [
         FOREIGN KEY(experiment_id) REFERENCES experiments(experiment_id)
     )
     """,
+    """
+    CREATE TABLE IF NOT EXISTS proof_trace_observations (
+        trace_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        conjecture_id TEXT NOT NULL,
+        experiment_id TEXT NOT NULL,
+        fragment TEXT NOT NULL,
+        normalized_fragment TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id),
+        FOREIGN KEY(conjecture_id) REFERENCES conjectures(conjecture_id),
+        FOREIGN KEY(experiment_id) REFERENCES experiments(experiment_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS counterexample_observations (
+        witness_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        conjecture_id TEXT NOT NULL,
+        experiment_id TEXT NOT NULL,
+        witness_text TEXT NOT NULL,
+        normalized_witness TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id),
+        FOREIGN KEY(conjecture_id) REFERENCES conjectures(conjecture_id),
+        FOREIGN KEY(experiment_id) REFERENCES experiments(experiment_id)
+    )
+    """,
 ]
 
 
@@ -196,6 +224,8 @@ class Database:
             ("proof_outcome", "TEXT"),
             ("signal_summary", "TEXT"),
             ("ingestion_json", "TEXT"),
+            ("new_signal_count", "INTEGER DEFAULT 0"),
+            ("reused_signal_count", "INTEGER DEFAULT 0"),
         ):
             if column_name not in existing:
                 self.conn.execute(
@@ -328,10 +358,16 @@ class Database:
             "proof_outcome": result.proof_outcome,
             "signal_summary": result.signal_summary,
             "candidate_lemmas": result.candidate_lemmas,
+            "normalized_candidate_lemmas": result.normalized_candidate_lemmas,
             "unresolved_goals": result.unresolved_goals,
+            "normalized_unresolved_goals": result.normalized_unresolved_goals,
             "blocked_on": result.blocked_on,
             "missing_assumptions": result.missing_assumptions or result.suspected_missing_assumptions,
             "artifact_inventory": result.artifact_inventory,
+            "proof_trace_fragments": result.proof_trace_fragments,
+            "counterexample_witnesses": result.counterexample_witnesses,
+            "new_signal_count": result.new_signal_count,
+            "reused_signal_count": result.reused_signal_count,
         }
         if evaluation is not None:
             outcome_json["evaluation"] = evaluation
@@ -342,7 +378,8 @@ class Database:
             """
             UPDATE experiments
             SET provider = ?, status = ?, blocker_type = ?, outcome_json = ?, ingestion_json = ?, proof_outcome = ?, signal_summary = ?, external_id = ?, external_status = ?,
-                submitted_at = COALESCE(?, submitted_at), last_synced_at = ?, completed_at = COALESCE(?, completed_at)
+                submitted_at = COALESCE(?, submitted_at), last_synced_at = ?, completed_at = COALESCE(?, completed_at),
+                new_signal_count = ?, reused_signal_count = ?
             WHERE experiment_id = ?
             """,
             (
@@ -358,6 +395,8 @@ class Database:
                 submitted_at,
                 last_synced_at,
                 completed_at,
+                result.new_signal_count,
+                result.reused_signal_count,
                 experiment_id,
             ),
         )
@@ -611,14 +650,19 @@ class Database:
         unresolved_goals: Iterable[str],
         artifact_inventory: Iterable[Dict[str, Any]],
         signal_summary: str,
+        proof_trace_fragments: Iterable[str] = (),
+        counterexample_witnesses: Iterable[str] = (),
     ) -> None:
         import uuid
 
         self.conn.execute("DELETE FROM extracted_subgoals WHERE experiment_id = ?", (experiment_id,))
         self.conn.execute("DELETE FROM artifact_metadata WHERE experiment_id = ?", (experiment_id,))
         self.conn.execute("DELETE FROM blocker_observations WHERE experiment_id = ?", (experiment_id,))
+        self.conn.execute("DELETE FROM proof_trace_observations WHERE experiment_id = ?", (experiment_id,))
+        self.conn.execute("DELETE FROM counterexample_observations WHERE experiment_id = ?", (experiment_id,))
 
         for goal in unresolved_goals:
+            normalized_goal, _ = goal_fingerprint(goal)
             self.conn.execute(
                 """
                 INSERT INTO extracted_subgoals(subgoal_id, project_id, conjecture_id, experiment_id, statement, source, created_at)
@@ -629,7 +673,7 @@ class Database:
                     project_id,
                     conjecture_id,
                     experiment_id,
-                    goal,
+                    normalized_goal or goal,
                     "result_ingestion",
                     utcnow(),
                 ),
@@ -667,6 +711,40 @@ class Database:
                 utcnow(),
             ),
         )
+        for fragment in proof_trace_fragments:
+            normalized_fragment, _ = goal_fingerprint(fragment)
+            self.conn.execute(
+                """
+                INSERT INTO proof_trace_observations(trace_id, project_id, conjecture_id, experiment_id, fragment, normalized_fragment, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(uuid.uuid4()),
+                    project_id,
+                    conjecture_id,
+                    experiment_id,
+                    fragment,
+                    normalized_fragment or fragment,
+                    utcnow(),
+                ),
+            )
+        for witness in counterexample_witnesses:
+            normalized_witness, _ = goal_fingerprint(witness)
+            self.conn.execute(
+                """
+                INSERT INTO counterexample_observations(witness_id, project_id, conjecture_id, experiment_id, witness_text, normalized_witness, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(uuid.uuid4()),
+                    project_id,
+                    conjecture_id,
+                    experiment_id,
+                    witness,
+                    normalized_witness or witness,
+                    utcnow(),
+                ),
+            )
         self.conn.commit()
 
     def record_assumption_observation(self, project_id: str, conjecture_id: str, experiment_id: str, assumption_name: str, outcome: str, sensitivity_score: float) -> None:
@@ -737,6 +815,65 @@ class Database:
         ).fetchall()
         return [dict(row) for row in rows]
 
+    def recurring_proof_traces(self, project_id: str, minimum_reuse: int = 2) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT normalized_fragment AS fragment, COUNT(*) AS observations
+            FROM proof_trace_observations
+            WHERE project_id = ?
+            GROUP BY normalized_fragment
+            HAVING COUNT(*) >= ?
+            ORDER BY observations DESC, normalized_fragment ASC
+            """,
+            (project_id, minimum_reuse),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def counterexample_summary(self, project_id: str) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT normalized_witness AS witness, COUNT(*) AS observations
+            FROM counterexample_observations
+            WHERE project_id = ?
+            GROUP BY normalized_witness
+            ORDER BY observations DESC, normalized_witness ASC
+            """,
+            (project_id,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def recurring_blockers_by_move(self, project_id: str, minimum_reuse: int = 2) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT e.move, b.blocker_type, b.proof_outcome, COUNT(*) AS observations
+            FROM blocker_observations b
+            JOIN experiments e ON e.experiment_id = b.experiment_id
+            WHERE b.project_id = ?
+            GROUP BY e.move, b.blocker_type, b.proof_outcome
+            HAVING COUNT(*) >= ?
+            ORDER BY observations DESC, e.move ASC, b.blocker_type ASC
+            """,
+            (project_id, minimum_reuse),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def no_signal_branches(self, project_id: str, threshold: int = 2) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT conjecture_id, move, COUNT(*) AS observations
+            FROM experiments
+            WHERE project_id = ?
+              AND proof_outcome = 'unknown'
+              AND COALESCE(new_signal_count, 0) = 0
+              AND status IN ('stalled', 'failed')
+            GROUP BY conjecture_id, move
+            HAVING COUNT(*) >= ?
+            ORDER BY observations DESC, conjecture_id ASC, move ASC
+            """,
+            (project_id, threshold),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
     def blocker_summary(self, project_id: str) -> List[Dict[str, Any]]:
         rows = self.conn.execute(
             """
@@ -766,6 +903,10 @@ class Database:
             "active_by_external_status": self.active_experiments_by_external_status(project_id),
             "recurring_lemmas": self.recurring_lemmas(),
             "recurring_subgoals": self.recurring_subgoals(project_id),
+            "recurring_proof_traces": self.recurring_proof_traces(project_id),
             "blocker_summary": self.blocker_summary(project_id),
+            "blockers_by_move": self.recurring_blockers_by_move(project_id),
+            "counterexample_summary": self.counterexample_summary(project_id),
+            "no_signal_branches": self.no_signal_branches(project_id),
             "assumption_sensitivity": self.assumption_sensitivity(project_id),
         }

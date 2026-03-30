@@ -61,6 +61,12 @@ class ProviderResult:
     blocked_on: List[str] = field(default_factory=list)
     missing_assumptions: List[str] = field(default_factory=list)
     artifact_inventory: List[Dict[str, Any]] = field(default_factory=list)
+    proof_trace_fragments: List[str] = field(default_factory=list)
+    counterexample_witnesses: List[str] = field(default_factory=list)
+    normalized_candidate_lemmas: List[str] = field(default_factory=list)
+    normalized_unresolved_goals: List[str] = field(default_factory=list)
+    new_signal_count: int = 0
+    reused_signal_count: int = 0
     suspected_missing_assumptions: List[str] = field(default_factory=list)
     notes: str = ""
     confidence: float = 0.5

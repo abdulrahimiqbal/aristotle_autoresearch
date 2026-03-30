@@ -25,6 +25,7 @@ def choose_move(
     conjecture: Conjecture,
     experiments: List[dict],
     recurring_lemmas: List[dict],
+    recurring_subgoals: List[dict] | None = None,
 ) -> tuple[str, Dict[str, str], str, str]:
     conjecture_experiments = [item for item in experiments if item["conjecture_id"] == conjecture.conjecture_id]
     seen_moves = [item["move"] for item in conjecture_experiments]
@@ -41,6 +42,14 @@ def choose_move(
     recurring_for_conjecture = [
         item for item in recurring_lemmas if conjecture.conjecture_id in item.get("conjecture_ids", [conjecture.conjecture_id])
     ]
+    recurring_subgoals = recurring_subgoals or []
+    repeated_unknown = sum(
+        1
+        for item in conjecture_experiments
+        if item["status"] == "stalled"
+        and item.get("proof_outcome") == "unknown"
+        and not (item.get("new_signal_count") or 0)
+    )
 
     if "underspecify" not in seen_moves:
         return (
@@ -68,6 +77,15 @@ def choose_move(
             "Determine whether the recurring helper captures real mathematical structure.",
         )
 
+    if recurring_subgoals and "promote_lemma" not in seen_moves:
+        promoted = recurring_subgoals[0]["statement"]
+        return (
+            "promote_lemma",
+            {"lemma_statement": promoted},
+            "Promote the most recurring unresolved subgoal into a standalone theorem target.",
+            "Compress repeated proof search failure into a reusable theorem objective.",
+        )
+
     if "reformulate" not in seen_moves:
         form = conjecture.equivalent_forms[0] if conjecture.equivalent_forms else "equivalent reformulation"
         return (
@@ -77,12 +95,12 @@ def choose_move(
             "Separate structural difficulty from representation-specific difficulty.",
         )
 
-    if structural_count >= 2:
+    if structural_count >= 2 or repeated_unknown >= 2:
         return (
             "counterexample_mode",
             {"target": "most_fragile_variant"},
             "Seek a falsifying or independence-style witness for the most fragile observed variant.",
-            "Disambiguate falsehood from search failure after repeated structural blockers.",
+            "Disambiguate falsehood from search failure after repeated structural blockers or no-signal runs.",
         )
 
     return (
@@ -99,10 +117,11 @@ def materialize_experiment(
     workspace_root: str,
     experiments: List[dict],
     recurring_lemmas: List[dict],
+    recurring_subgoals: List[dict] | None = None,
 ) -> ExperimentBrief:
     phase = _next_phase(charter, len(experiments))
     move, modification, objective, expected_signal = choose_move(
-        charter, conjecture, experiments, recurring_lemmas
+        charter, conjecture, experiments, recurring_lemmas, recurring_subgoals
     )
     experiment_id = str(uuid4())
     workspace_dir = Path(workspace_root) / experiment_id

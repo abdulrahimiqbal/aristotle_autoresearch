@@ -122,6 +122,8 @@ def _finalize_result(
         unresolved_goals=result.unresolved_goals,
         artifact_inventory=result.artifact_inventory,
         signal_summary=result.signal_summary,
+        proof_trace_fragments=result.proof_trace_fragments,
+        counterexample_witnesses=result.counterexample_witnesses,
     )
 
     if brief.move == "perturb_assumption":
@@ -342,6 +344,7 @@ def manager_tick(
             brief=prepared["brief"],
             worker_prompt=prepared["worker_prompt"],
         )
+        result = ingest_provider_result(result)
         if provider.supports_async:
             db.update_experiment_result(
                 experiment_id=prepared["brief"].experiment_id,
@@ -381,6 +384,12 @@ def manager_tick(
         "active_jobs": db.list_active_experiments(project_id, provider=provider.name),
         "chosen_submissions": submissions,
         "skipped_candidates": policy.skipped,
+        "recurring_structures": {
+            "lemmas": db.recurring_lemmas()[:10],
+            "subgoals": db.recurring_subgoals(project_id)[:10],
+            "proof_traces": db.recurring_proof_traces(project_id)[:10],
+            "no_signal_branches": db.no_signal_branches(project_id),
+        },
         "capacity_summary": {
             "max_active": max_active,
             "max_submit_per_tick": max_submit_per_tick,
@@ -393,6 +402,17 @@ def manager_tick(
         "policy_rationale": policy.rationale,
         "manager_prompt": policy.manager_prompt,
         "raw_response": policy.raw_response,
+        "signal_progress": {
+            "latest_completed": [
+                {
+                    "experiment_id": item["brief"].experiment_id,
+                    "new_signal_count": item["result"].new_signal_count,
+                    "reused_signal_count": item["result"].reused_signal_count,
+                    "proof_outcome": item["result"].proof_outcome,
+                }
+                for item in synced
+            ]
+        },
     }
 
     manager_run_summary = {
@@ -409,6 +429,8 @@ def manager_tick(
         "submitted_experiments": submissions,
         "skipped_candidates": policy.skipped,
         "policy_rationale": policy.rationale,
+        "recurring_structures": snapshot["recurring_structures"],
+        "signal_progress": snapshot["signal_progress"],
     }
     run_id = db.save_manager_run(
         project_id=project_id,

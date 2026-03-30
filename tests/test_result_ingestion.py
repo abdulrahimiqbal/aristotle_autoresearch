@@ -33,12 +33,19 @@ class ResultIngestionTest(unittest.TestCase):
     def test_partial_lean_artifact_extracts_candidate_lemmas_and_subgoals(self):
         lean_file = self.tempdir / "Main.lean"
         lean_file.write_text(
-            "lemma bridge_helper : True := by\n  trivial\n"
+            "lemma bridge_helper (n : Nat) : True := by\n  trivial\n"
+            "have bridge_mid : True := by\n  trivial\n"
             "theorem final_target : True := by\n  trivial\n",
             encoding="utf-8",
         )
         log_file = self.tempdir / "solver.log"
-        log_file.write_text("Need: prove the bridge_helper first.\nunsolved goal: show P n\n", encoding="utf-8")
+        log_file.write_text(
+            "Need: prove the bridge_helper first.\n"
+            "unsolved goal: show P n\n"
+            "suffices: show Q n\n"
+            "blocked on: transfer density\n",
+            encoding="utf-8",
+        )
         result = ingest_provider_result(
             ProviderResult(
                 status="succeeded",
@@ -50,6 +57,10 @@ class ResultIngestionTest(unittest.TestCase):
         self.assertEqual(result.status, "stalled")
         self.assertTrue(any("bridge_helper" in item for item in result.candidate_lemmas))
         self.assertIn("show P n", result.unresolved_goals)
+        self.assertTrue(result.proof_trace_fragments)
+        self.assertTrue(result.normalized_candidate_lemmas)
+        self.assertTrue(result.normalized_unresolved_goals)
+        self.assertGreater(result.new_signal_count, 0)
         self.assertTrue(result.artifact_inventory)
 
     def test_counterexample_signal_is_classified_as_disproved(self):
@@ -57,11 +68,23 @@ class ResultIngestionTest(unittest.TestCase):
             ProviderResult(
                 status="failed",
                 blocker_type="structural",
-                raw_stderr="Counterexample found for the weakened variant.",
+                raw_stderr="Counterexample: n = 7 breaks the weakened variant.\n",
             )
         )
         self.assertEqual(result.proof_outcome, "disproved")
         self.assertEqual(result.status, "failed")
+        self.assertTrue(result.counterexample_witnesses)
+
+    def test_timeout_signal_is_classified_as_stalled(self):
+        result = ingest_provider_result(
+            ProviderResult(
+                status="failed",
+                blocker_type="search",
+                raw_stderr="Search budget exhausted after timeout while exploring tactics.",
+            )
+        )
+        self.assertEqual(result.proof_outcome, "stalled")
+        self.assertEqual(result.status, "stalled")
 
     def test_invalid_api_key_is_classified_as_auth_failure(self):
         result = ingest_provider_result(
