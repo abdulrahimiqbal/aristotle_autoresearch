@@ -2,13 +2,30 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass, asdict
+from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, Iterable, List, Tuple
 from uuid import uuid4
 
-from research_orchestrator.lemma_utils import normalize_goal, normalize_lemma
-from research_orchestrator.types import ArtifactProvenance, ProviderResult, VerificationSignal
+from research_orchestrator.schema_versions import EVALUATOR_VERSION, SEMANTIC_MEMORY_VERSION, VERIFICATION_PARSER_VERSION, VERIFICATION_SCHEMA_VERSION
+from research_orchestrator.semantic_memory import canonicalize_record
+from research_orchestrator.types import (
+    ArtifactProvenance,
+    PreparedIngestion,
+    ProviderMetadata,
+    ProviderResult,
+    SemanticMemorySummary,
+    TheoremStatus,
+    ValidationSeverity,
+    VerificationArtifactKind,
+    VerificationObservation,
+    VerificationRecord,
+    VerificationSchemaVersion,
+    VerificationSignal,
+    VerificationStatus,
+    VerificationValidationIssue,
+    VerificationRunMetadata,
+)
 
 
 THEOREM_PATTERN = re.compile(r"^\s*(?:theorem|lemma)\s+(.*)$", re.MULTILINE)
@@ -18,6 +35,7 @@ BLOCKED_ON_PATTERN = re.compile(r"(?im)^(?:blocked on|requires|need|stuck on|wai
 MISSING_ASSUMPTION_PATTERN = re.compile(r"(?im)^(?:missing assumption|assumption needed|requires assumption)\s*:?\s*(.+)$")
 COUNTEREXAMPLE_PATTERN = re.compile(r"(?im)^(?:counterexample|witness|minimal witness|smallest witness)\s*:?\s*(.+)$")
 TRACE_PATTERN = re.compile(r"(?im)^(?:have|suffices|try|tactic|reduce to|it suffices to show)\s*:?\s*(.+)$")
+GENERATED_LEMMA_PATTERN = re.compile(r"(?im)^(?:generated lemma|lemma candidate|candidate lemma)\s*:?\s*(.+)$")
 
 PROVED_HINTS = ("proof complete", "all goals solved", "qed", "no goals remaining", "proved theorem")
 DISPROVED_HINTS = ("counterexample", "falsified", "contradiction found", "disproved")
@@ -28,25 +46,6 @@ PATH_HINTS = ("cli executable was not found on path", "permission denied", "not 
 TOOLCHAIN_HINTS = ("lean-toolchain", "no lean files", "toolchain")
 TRACEBACK_HINTS = ("traceback", "exception:")
 TIMEOUT_HINTS = ("timeout", "time budget", "resource exhausted", "search budget", "maximum recursion", "too many heartbeats")
-
-
-@dataclass
-class IngestionRecord:
-    proof_outcome: str
-    signal_summary: str
-    generated_lemmas: List[str]
-    proved_lemmas: List[str]
-    candidate_lemmas: List[str]
-    unresolved_goals: List[str]
-    blocked_on: List[str]
-    missing_assumptions: List[str]
-    artifact_inventory: List[Dict[str, Any]]
-    proof_trace_fragments: List[str]
-    counterexample_witnesses: List[str]
-    normalized_candidate_lemmas: List[str]
-    normalized_unresolved_goals: List[str]
-    new_signal_count: int
-    reused_signal_count: int
 
 
 def _read_text_artifacts(paths: Iterable[str]) -> list[tuple[str, str]]:
@@ -71,7 +70,8 @@ def _artifact_inventory(paths: Iterable[str]) -> list[dict[str, Any]]:
         path = Path(path_str)
         if not path.exists():
             continue
-        for candidate in ([path] if path.is_file() else [item for item in path.rglob("*") if item.is_file()]):
+        candidates = [path] if path.is_file() else [item for item in path.rglob("*") if item.is_file()]
+        for candidate in candidates:
             resolved = str(candidate.resolve())
             if resolved in seen:
                 continue
@@ -119,213 +119,326 @@ def _merge_unique(*groups: Iterable[str]) -> list[str]:
     seen: set[str] = set()
     for group in groups:
         for item in group:
-            if not item or item in seen:
+            cleaned = item.strip()
+            if not cleaned or cleaned in seen:
                 continue
-            seen.add(item)
-            merged.append(item)
+            seen.add(cleaned)
+            merged.append(cleaned)
     return merged
 
 
-def _normalized_unique(values: Iterable[str], normalizer) -> tuple[list[str], list[str]]:
-    raw: list[str] = []
-    normalized: list[str] = []
+def _obs(values: Iterable[str], artifact_kind: str, provenance: list[ArtifactProvenance]) -> list[VerificationObservation]:
+    observations: list[VerificationObservation] = []
     seen: set[str] = set()
     for value in values:
         cleaned = value.strip()
-        if not cleaned:
+        if not cleaned or cleaned in seen:
             continue
-        normalized_value = normalizer(cleaned)
-        if not normalized_value or normalized_value in seen:
-            continue
-        seen.add(normalized_value)
-        raw.append(cleaned)
-        normalized.append(normalized_value)
-    return raw, normalized
+        seen.add(cleaned)
+        observations.append(
+            VerificationObservation(
+                text=cleaned,
+                artifact_kind=artifact_kind,
+                confidence=0.7 if provenance else 0.5,
+                provenance=provenance[:],
+            )
+        )
+    return observations
 
 
-def _signal_counts(
-    normalized_candidate_lemmas: list[str],
-    normalized_unresolved_goals: list[str],
-    blocked_on: list[str],
-    missing_assumptions: list[str],
-    proof_trace_fragments: list[str],
+def _classify_proof_outcome(
+    result: ProviderResult,
+    combined_text: str,
+    candidate_lemmas: list[str],
+    unresolved_goals: list[str],
     counterexample_witnesses: list[str],
-) -> tuple[int, int]:
-    signals = (
-        [(item, "lemma") for item in normalized_candidate_lemmas]
-        + [(item, "goal") for item in normalized_unresolved_goals]
-        + [(item, "block") for item in blocked_on]
-        + [(item, "assumption") for item in missing_assumptions]
-        + [(item, "trace") for item in proof_trace_fragments]
-        + [(item, "witness") for item in counterexample_witnesses]
-    )
-    unique = {(kind, value) for value, kind in ((v, k) for k, v in signals)}
-    return len(unique), 0
-
-
-def _classify_proof_outcome(result: ProviderResult, combined_text: str, candidate_lemmas: list[str], unresolved_goals: list[str], counterexample_witnesses: list[str]) -> str:
+) -> str:
     lowered = combined_text.lower()
+    has_partial_signal = bool(
+        any(hint in lowered for hint in PARTIAL_HINTS)
+        or candidate_lemmas
+        or unresolved_goals
+        or result.generated_lemmas
+    )
     if any(hint in lowered for hint in AUTH_HINTS):
-        return "auth_failure"
+        return VerificationStatus.AUTH_FAILURE.value
     if any(hint in lowered for hint in INFRA_HINTS):
-        return "infra_failure"
+        return VerificationStatus.INFRA_FAILURE.value
     if any(hint in lowered for hint in PATH_HINTS) or any(hint in lowered for hint in TOOLCHAIN_HINTS):
-        return "malformed"
-    if any(hint in lowered for hint in DISPROVED_HINTS) or counterexample_witnesses:
-        return "disproved"
+        return VerificationStatus.MALFORMED.value
+    if any(hint in lowered for hint in DISPROVED_HINTS if hint != "counterexample"):
+        return VerificationStatus.DISPROVED.value
+    if counterexample_witnesses or "counterexample" in lowered:
+        if result.status == "failed" or not has_partial_signal:
+            return VerificationStatus.DISPROVED.value
     if any(hint in lowered for hint in PROVED_HINTS):
-        return "proved"
+        return VerificationStatus.PROVED.value
     if result.proved_lemmas:
-        return "proved"
+        return VerificationStatus.PROVED.value
     if any(hint in lowered for hint in TIMEOUT_HINTS):
-        return "stalled"
+        return VerificationStatus.STALLED.value
     if any(hint in lowered for hint in PARTIAL_HINTS):
-        return "partial"
+        return VerificationStatus.PARTIAL.value
     if candidate_lemmas or unresolved_goals or result.generated_lemmas:
-        return "partial"
+        return VerificationStatus.PARTIAL.value
     if any(hint in lowered for hint in TRACEBACK_HINTS):
-        return "unknown"
+        return VerificationStatus.UNKNOWN.value
     if result.status == "stalled":
-        return "stalled"
+        return VerificationStatus.STALLED.value
     if result.status == "failed":
-        return "unknown"
+        return VerificationStatus.UNKNOWN.value
     if result.status == "succeeded":
-        return "stalled"
-    return "unknown"
+        return VerificationStatus.STALLED.value
+    return VerificationStatus.UNKNOWN.value
 
 
-def _summary_for(record: IngestionRecord, remote_status: str, blocker_type: str) -> str:
-    parts = [f"remote_status={remote_status or 'n/a'}", f"proof_outcome={record.proof_outcome}", f"blocker={blocker_type}"]
-    if record.proved_lemmas:
-        parts.append(f"proved={len(record.proved_lemmas)}")
-    if record.generated_lemmas:
-        parts.append(f"generated={len(record.generated_lemmas)}")
-    if record.candidate_lemmas:
-        parts.append(f"candidates={len(record.candidate_lemmas)}")
-    if record.unresolved_goals:
-        parts.append(f"subgoals={len(record.unresolved_goals)}")
-    if record.counterexample_witnesses:
-        parts.append(f"witnesses={len(record.counterexample_witnesses)}")
-    if record.proof_trace_fragments:
-        parts.append(f"traces={len(record.proof_trace_fragments)}")
-    return "; ".join(parts)
+def _theorem_status_for(verification_status: str) -> str:
+    if verification_status == VerificationStatus.PROVED.value:
+        return TheoremStatus.VERIFIED.value
+    if verification_status == VerificationStatus.PARTIAL.value:
+        return TheoremStatus.PARTIALLY_VERIFIED.value
+    if verification_status == VerificationStatus.DISPROVED.value:
+        return TheoremStatus.REFUTED.value
+    if verification_status == VerificationStatus.MALFORMED.value:
+        return TheoremStatus.INVALID.value
+    return TheoremStatus.UNRESOLVED.value
 
 
 def _status_from_outcome(proof_outcome: str, result: ProviderResult) -> str:
     if result.status in {"submitted", "in_progress"}:
         return result.status
-    if proof_outcome == "proved":
+    if proof_outcome == VerificationStatus.PROVED.value:
         return "succeeded"
-    if proof_outcome in {"disproved", "infra_failure", "auth_failure", "malformed"}:
+    if proof_outcome in {
+        VerificationStatus.DISPROVED.value,
+        VerificationStatus.INFRA_FAILURE.value,
+        VerificationStatus.AUTH_FAILURE.value,
+        VerificationStatus.MALFORMED.value,
+    }:
         return "failed"
-    if proof_outcome in {"partial", "stalled", "unknown"}:
+    if proof_outcome in {VerificationStatus.PARTIAL.value, VerificationStatus.STALLED.value, VerificationStatus.UNKNOWN.value}:
         return "stalled"
     return result.status
 
 
-def ingest_provider_result(result: ProviderResult) -> ProviderResult:
+def _summary_for(result: ProviderResult, record: VerificationRecord, semantic_summary: SemanticMemorySummary) -> str:
+    parts = [
+        f"remote_status={result.external_status or 'n/a'}",
+        f"verification_status={record.verification_status}",
+        f"theorem_status={record.theorem_status}",
+        f"blocker={result.blocker_type}",
+    ]
+    if record.proved_lemmas:
+        parts.append(f"proved={len(record.proved_lemmas)}")
+    if record.generated_lemmas:
+        parts.append(f"generated={len(record.generated_lemmas)}")
+    if record.unsolved_goals:
+        parts.append(f"subgoals={len(record.unsolved_goals)}")
+    if record.counterexamples:
+        parts.append(f"witnesses={len(record.counterexamples)}")
+    if semantic_summary.new_exact_count or semantic_summary.canonical_reuse_count:
+        parts.append(f"semantic=new:{semantic_summary.new_exact_count}/reuse:{semantic_summary.canonical_reuse_count}")
+    return "; ".join(parts)
+
+
+def collect_result_artifacts(result: ProviderResult) -> Tuple[list[dict[str, Any]], list[tuple[str, str]], str]:
     text_chunks = [result.raw_stdout, result.raw_stderr, result.notes]
     artifact_texts = _read_text_artifacts(result.artifacts)
     text_chunks.extend(text for _, text in artifact_texts)
-    combined = "\n".join(chunk for chunk in text_chunks if chunk)
+    return _artifact_inventory(result.artifacts), artifact_texts, "\n".join(chunk for chunk in text_chunks if chunk)
 
-    artifact_inventory = _artifact_inventory(result.artifacts)
+
+def parse_provider_result(result: ProviderResult) -> VerificationRecord:
+    artifact_inventory, artifact_texts, combined = collect_result_artifacts(result)
+    provenance = [
+        ArtifactProvenance(kind="artifact", path=item["path"], source=item.get("kind", "file"), confidence=1.0)
+        for item in artifact_inventory[:5]
+    ]
+
     theorem_like = _merge_unique(*(_extract_theorem_like_statements(text) for _, text in artifact_texts))
-    unresolved_goals = _merge_unique(
-        result.unresolved_goals,
-        _extract_lines(GOAL_PATTERN, combined),
-    )
-    blocked_on = _merge_unique(
-        _extract_lines(BLOCKED_ON_PATTERN, combined),
-        result.blocked_on,
-    )
-    missing_assumptions = _merge_unique(
-        result.missing_assumptions,
-        result.suspected_missing_assumptions,
-        _extract_lines(MISSING_ASSUMPTION_PATTERN, combined),
-    )
-    proof_trace_fragments = _merge_unique(
-        result.proof_trace_fragments,
-        _extract_lines(TRACE_PATTERN, combined),
-    )
-    counterexample_witnesses = _merge_unique(
-        result.counterexample_witnesses,
-        _extract_lines(COUNTEREXAMPLE_PATTERN, combined),
-    )
-
+    unresolved_goals = _merge_unique(result.unresolved_goals, _extract_lines(GOAL_PATTERN, combined))
+    blocked_on = _merge_unique(_extract_lines(BLOCKED_ON_PATTERN, combined), result.blocked_on)
+    missing_assumptions = _merge_unique(result.missing_assumptions, result.suspected_missing_assumptions, _extract_lines(MISSING_ASSUMPTION_PATTERN, combined))
+    proof_trace_fragments = _merge_unique(result.proof_trace_fragments, _extract_lines(TRACE_PATTERN, combined))
+    counterexample_witnesses = _merge_unique(result.counterexample_witnesses, _extract_lines(COUNTEREXAMPLE_PATTERN, combined))
     proved_lemmas = _merge_unique(result.proved_lemmas)
-    generated_lemmas = _merge_unique(result.generated_lemmas)
-    candidate_lemmas = _merge_unique(
-        result.candidate_lemmas,
-        theorem_like,
-    )
-    candidate_lemmas, normalized_candidate_lemmas = _normalized_unique(candidate_lemmas, normalize_lemma)
-    unresolved_goals, normalized_unresolved_goals = _normalized_unique(unresolved_goals, normalize_goal)
-    proof_trace_fragments, _ = _normalized_unique(proof_trace_fragments, normalize_goal)
-    counterexample_witnesses, _ = _normalized_unique(counterexample_witnesses, normalize_goal)
-    blocked_on, _ = _normalized_unique(blocked_on, normalize_goal)
-    missing_assumptions, _ = _normalized_unique(missing_assumptions, normalize_goal)
-    proof_outcome = (
+    generated_lemmas = _merge_unique(result.generated_lemmas, _extract_lines(GENERATED_LEMMA_PATTERN, combined))
+    candidate_lemmas = _merge_unique(result.candidate_lemmas, theorem_like)
+
+    verification_status = (
         result.proof_outcome
-        if result.proof_outcome not in {"", "unknown"}
+        if result.proof_outcome not in {"", VerificationStatus.UNKNOWN.value}
         else _classify_proof_outcome(result, combined, candidate_lemmas, unresolved_goals, counterexample_witnesses)
     )
-    if proof_outcome in {"proved", "partial"} and candidate_lemmas and not (proved_lemmas or generated_lemmas):
+    if verification_status in {VerificationStatus.PROVED.value, VerificationStatus.PARTIAL.value} and candidate_lemmas and not (proved_lemmas or generated_lemmas):
         generated_lemmas = candidate_lemmas[:]
-    new_signal_count, reused_signal_count = _signal_counts(
-        normalized_candidate_lemmas,
-        normalized_unresolved_goals,
-        blocked_on,
-        missing_assumptions,
-        proof_trace_fragments,
-        counterexample_witnesses,
+
+    return VerificationRecord(
+        schema_version=VerificationSchemaVersion.V1.value,
+        provider=ProviderMetadata(
+            provider_name=result.metadata.get("provider_name", "unknown"),
+            adapter_name="structured-verification-adapter",
+            adapter_version=VERIFICATION_PARSER_VERSION,
+            provider_status=result.status,
+            provider_blocker_type=result.blocker_type,
+            external_id=result.external_id,
+            external_status=result.external_status,
+            metadata=dict(result.metadata),
+        ),
+        run=VerificationRunMetadata(
+            parser_version=VERIFICATION_PARSER_VERSION,
+            evaluator_version=EVALUATOR_VERSION,
+            semantic_memory_version=SEMANTIC_MEMORY_VERSION,
+            schema_version=VERIFICATION_SCHEMA_VERSION,
+            artifact_paths=list(result.artifacts),
+            raw_stdout_excerpt=result.raw_stdout[:1000],
+            raw_stderr_excerpt=result.raw_stderr[:1000],
+            notes=result.notes,
+        ),
+        verification_status=verification_status,
+        theorem_status=_theorem_status_for(verification_status),
+        unsolved_goals=_obs(unresolved_goals, VerificationArtifactKind.GOAL.value, provenance),
+        generated_lemmas=_obs(generated_lemmas, VerificationArtifactKind.LEMMA.value, provenance),
+        proved_lemmas=_obs(proved_lemmas, VerificationArtifactKind.LEMMA.value, provenance),
+        missing_assumptions=_obs(missing_assumptions, VerificationArtifactKind.ASSUMPTION.value, provenance),
+        counterexamples=_obs(counterexample_witnesses, VerificationArtifactKind.COUNTEREXAMPLE.value, provenance),
+        blocker_observations=_obs(blocked_on or ([result.blocker_type] if result.blocker_type and result.blocker_type != "unknown" else []), VerificationArtifactKind.BLOCKER.value, provenance),
+        proof_traces=_obs(proof_trace_fragments, VerificationArtifactKind.PROOF_TRACE.value, provenance),
+        artifact_provenance=provenance,
+        raw_text_fallback={
+            "stdout": result.raw_stdout,
+            "stderr": result.raw_stderr,
+            "notes": result.notes,
+            "combined_text": combined,
+        },
+        raw_payload={"provider_result": asdict(result)},
     )
 
-    record = IngestionRecord(
-        proof_outcome=proof_outcome,
-        signal_summary="",
-        generated_lemmas=generated_lemmas,
-        proved_lemmas=proved_lemmas,
-        candidate_lemmas=candidate_lemmas,
-        unresolved_goals=unresolved_goals,
-        blocked_on=blocked_on,
-        missing_assumptions=missing_assumptions,
-        artifact_inventory=artifact_inventory,
-        proof_trace_fragments=proof_trace_fragments,
-        counterexample_witnesses=counterexample_witnesses,
-        normalized_candidate_lemmas=normalized_candidate_lemmas,
-        normalized_unresolved_goals=normalized_unresolved_goals,
-        new_signal_count=new_signal_count,
-        reused_signal_count=reused_signal_count,
-    )
-    record.signal_summary = _summary_for(record, result.external_status, result.blocker_type)
 
-    enriched = ProviderResult(**asdict(result))
-    enriched.proof_outcome = record.proof_outcome
-    enriched.signal_summary = record.signal_summary
-    enriched.generated_lemmas = record.generated_lemmas
-    enriched.proved_lemmas = record.proved_lemmas
-    enriched.candidate_lemmas = record.candidate_lemmas
-    enriched.unresolved_goals = record.unresolved_goals
-    enriched.blocked_on = record.blocked_on
-    enriched.missing_assumptions = record.missing_assumptions
-    enriched.suspected_missing_assumptions = record.missing_assumptions[:]
-    enriched.artifact_inventory = record.artifact_inventory
-    enriched.proof_trace_fragments = record.proof_trace_fragments
-    enriched.counterexample_witnesses = record.counterexample_witnesses
-    enriched.normalized_candidate_lemmas = record.normalized_candidate_lemmas
-    enriched.normalized_unresolved_goals = record.normalized_unresolved_goals
-    enriched.new_signal_count = record.new_signal_count
-    enriched.reused_signal_count = record.reused_signal_count
-    enriched.status = _status_from_outcome(record.proof_outcome, result)
-    metadata = dict(enriched.metadata)
-    metadata["ingestion_record"] = asdict(record)
-    if artifact_texts:
-        metadata["artifact_text_sources"] = [path for path, _ in artifact_texts]
-    enriched.metadata = metadata
+def validate_verification_record(record: VerificationRecord) -> list[VerificationValidationIssue]:
+    issues: list[VerificationValidationIssue] = []
+    if record.schema_version != VerificationSchemaVersion.V1.value:
+        issues.append(
+            VerificationValidationIssue(
+                issue_type="unsupported_schema_version",
+                detail=f"Unsupported verification schema version `{record.schema_version}`.",
+            )
+        )
+    if record.verification_status not in {item.value for item in VerificationStatus}:
+        issues.append(
+            VerificationValidationIssue(
+                issue_type="invalid_verification_status",
+                detail=f"Unexpected verification status `{record.verification_status}`.",
+                path="verification_status",
+            )
+        )
+    if not record.provider.provider_name:
+        issues.append(
+            VerificationValidationIssue(
+                issue_type="missing_provider_name",
+                detail="Verification record is missing provider metadata.",
+                path="provider.provider_name",
+            )
+        )
+    if not record.run.parser_version:
+        issues.append(
+            VerificationValidationIssue(
+                issue_type="missing_parser_version",
+                detail="Verification record is missing parser version stamping.",
+                path="run.parser_version",
+            )
+        )
+    if record.verification_status == VerificationStatus.PROVED.value and not record.proved_lemmas:
+        issues.append(
+            VerificationValidationIssue(
+                issue_type="proved_without_artifact",
+                detail="Verification record claims a proof but contains no proved lemmas.",
+                severity=ValidationSeverity.WARNING.value,
+                path="proved_lemmas",
+            )
+        )
+    return issues
+
+
+def _apply_semantic_ids(record: VerificationRecord, summary: SemanticMemorySummary) -> None:
+    keyed = {}
+    for artifact in summary.artifacts:
+        keyed.setdefault((artifact.kind, artifact.raw_text), artifact)
+    for bucket in (
+        record.generated_lemmas,
+        record.proved_lemmas,
+        record.unsolved_goals,
+        record.blocker_observations,
+        record.missing_assumptions,
+        record.counterexamples,
+        record.proof_traces,
+    ):
+        for observation in bucket:
+            artifact = keyed.get((observation.artifact_kind, observation.text))
+            if artifact is None:
+                continue
+            observation.normalized_text = artifact.canonical_text
+            observation.canonical_id = artifact.canonical_id
+            observation.cluster_id = artifact.cluster_id
+
+
+def prepare_ingested_result(result: ProviderResult) -> PreparedIngestion:
+    record = result.verification_record if isinstance(result.verification_record, VerificationRecord) else parse_provider_result(result)
+    if isinstance(result.verification_record, dict):
+        try:
+            record = parse_provider_result(
+                ProviderResult(
+                    **{
+                        **asdict(result),
+                        "verification_record": None,
+                        "semantic_summary": None,
+                    }
+                )
+            )
+        except TypeError:
+            record = parse_provider_result(result)
+    issues = validate_verification_record(record)
+    record.validation_issues = issues
+    semantic_summary = canonicalize_record(record)
+    _apply_semantic_ids(record, semantic_summary)
+
+    enriched = ProviderResult(**{**asdict(result), "verification_record": None, "semantic_summary": None})
+    enriched.verification_record = record
+    enriched.semantic_summary = semantic_summary
+    enriched.proof_outcome = record.verification_status
+    enriched.generated_lemmas = [item.text for item in record.generated_lemmas]
+    enriched.proved_lemmas = [item.text for item in record.proved_lemmas]
+    enriched.candidate_lemmas = [item.text for item in record.generated_lemmas + record.proved_lemmas]
+    enriched.unresolved_goals = [item.text for item in record.unsolved_goals]
+    enriched.blocked_on = [item.text for item in record.blocker_observations]
+    enriched.missing_assumptions = [item.text for item in record.missing_assumptions]
+    enriched.suspected_missing_assumptions = enriched.missing_assumptions[:]
+    enriched.proof_trace_fragments = [item.text for item in record.proof_traces]
+    enriched.counterexample_witnesses = [item.text for item in record.counterexamples]
+    enriched.normalized_candidate_lemmas = [item.normalized_text for item in record.generated_lemmas + record.proved_lemmas if item.normalized_text]
+    enriched.normalized_unresolved_goals = [item.normalized_text for item in record.unsolved_goals if item.normalized_text]
+    enriched.artifact_inventory = _artifact_inventory(result.artifacts)
+    enriched.status = _status_from_outcome(record.verification_status, result)
+    enriched.metadata = dict(enriched.metadata)
+    enriched.metadata["verification_record"] = asdict(record)
+    enriched.metadata["semantic_summary"] = asdict(semantic_summary)
+    if issues:
+        enriched.metadata["validation_issues"] = [asdict(item) for item in issues]
+    enriched.new_signal_count = sum(1 for item in semantic_summary.artifacts if item.canonical_text)
+    enriched.reused_signal_count = semantic_summary.normalized_equivalent_count + semantic_summary.exact_reuse_count
+    enriched.signal_summary = _summary_for(enriched, record, semantic_summary)
     if not enriched.notes:
-        enriched.notes = record.signal_summary
-    return enriched
+        enriched.notes = enriched.signal_summary
+    return PreparedIngestion(
+        provider_result=enriched,
+        verification_record=record,
+        semantic_summary=semantic_summary,
+        validation_issues=issues,
+    )
+
+
+def ingest_provider_result(result: ProviderResult) -> ProviderResult:
+    return prepare_ingested_result(result).provider_result
 
 
 def build_verification_signals(
@@ -335,21 +448,13 @@ def build_verification_signals(
     experiment_id: str,
     result: ProviderResult,
 ) -> list[VerificationSignal]:
-    provenance = [
-        ArtifactProvenance(
-            kind="artifact",
-            path=item["path"],
-            source=item.get("kind", "file"),
-            confidence=1.0,
-        )
-        for item in result.artifact_inventory[:3]
-    ]
-    fallback_provenance = provenance or [
-        ArtifactProvenance(kind="stdout", path="", source="provider_result", confidence=0.55)
-    ]
+    record = result.verification_record
+    if record is None:
+        record = prepare_ingested_result(result).verification_record
+    provenance = record.artifact_provenance or [ArtifactProvenance(kind="stdout", path="", source="provider_result", confidence=0.55)]
     signals: list[VerificationSignal] = []
 
-    for lemma in result.proved_lemmas:
+    for lemma in record.proved_lemmas:
         signals.append(
             VerificationSignal(
                 signal_id=str(uuid4()),
@@ -357,27 +462,29 @@ def build_verification_signals(
                 conjecture_id=conjecture_id,
                 experiment_id=experiment_id,
                 signal_type="verified_lemma",
-                label=lemma,
-                detail="Lean/artifact-backed proved lemma extracted from provider result.",
+                label=lemma.text,
+                detail="Structured verification record marked this lemma as proved.",
                 confidence=0.95,
-                provenance=fallback_provenance,
+                provenance=lemma.provenance or provenance,
+                metadata={"canonical_id": lemma.canonical_id},
             )
         )
-    for lemma in result.candidate_lemmas:
+    for lemma in record.generated_lemmas:
         signals.append(
             VerificationSignal(
                 signal_id=str(uuid4()),
                 project_id=project_id,
                 conjecture_id=conjecture_id,
                 experiment_id=experiment_id,
-                signal_type="reproducible_candidate_lemma" if provenance else "candidate_lemma",
-                label=lemma,
-                detail="Candidate lemma surfaced during verification-oriented result ingestion.",
-                confidence=0.75 if provenance else 0.45,
-                provenance=fallback_provenance,
+                signal_type="reproducible_candidate_lemma",
+                label=lemma.text,
+                detail="Structured verification record surfaced a reusable generated lemma.",
+                confidence=0.75,
+                provenance=lemma.provenance or provenance,
+                metadata={"canonical_id": lemma.canonical_id},
             )
         )
-    for goal in result.unresolved_goals:
+    for goal in record.unsolved_goals:
         signals.append(
             VerificationSignal(
                 signal_id=str(uuid4()),
@@ -385,13 +492,14 @@ def build_verification_signals(
                 conjecture_id=conjecture_id,
                 experiment_id=experiment_id,
                 signal_type="recurring_subgoal",
-                label=goal,
-                detail="Unresolved goal retained as a discovery object.",
-                confidence=0.8 if provenance else 0.5,
-                provenance=fallback_provenance,
+                label=goal.text,
+                detail="Structured verification retained this unsolved goal as a discovery object.",
+                confidence=0.8,
+                provenance=goal.provenance or provenance,
+                metadata={"canonical_id": goal.canonical_id},
             )
         )
-    for assumption in result.missing_assumptions or result.suspected_missing_assumptions:
+    for assumption in record.missing_assumptions:
         signals.append(
             VerificationSignal(
                 signal_id=str(uuid4()),
@@ -399,13 +507,14 @@ def build_verification_signals(
                 conjecture_id=conjecture_id,
                 experiment_id=experiment_id,
                 signal_type="assumption_boundary",
-                label=assumption,
-                detail=f"Potentially necessary assumption under outcome={result.proof_outcome}.",
-                confidence=0.78 if provenance else 0.5,
-                provenance=fallback_provenance,
+                label=assumption.text,
+                detail=f"Potentially necessary assumption under outcome={record.verification_status}.",
+                confidence=0.78,
+                provenance=assumption.provenance or provenance,
+                metadata={"canonical_id": assumption.canonical_id},
             )
         )
-    for witness in result.counterexample_witnesses:
+    for witness in record.counterexamples:
         signals.append(
             VerificationSignal(
                 signal_id=str(uuid4()),
@@ -413,25 +522,26 @@ def build_verification_signals(
                 conjecture_id=conjecture_id,
                 experiment_id=experiment_id,
                 signal_type="counterexample_witness",
-                label=witness,
-                detail="Candidate falsifying or fragility witness.",
-                confidence=0.82 if provenance else 0.5,
-                provenance=fallback_provenance,
+                label=witness.text,
+                detail="Structured verification captured a falsifying or fragility witness.",
+                confidence=0.82,
+                provenance=witness.provenance or provenance,
+                metadata={"canonical_id": witness.canonical_id},
             )
         )
-    if result.blocker_type in {"formalization", "malformed", "dns_failure", "network_unavailable"}:
+    for blocker in record.blocker_observations:
         signals.append(
             VerificationSignal(
                 signal_id=str(uuid4()),
                 project_id=project_id,
                 conjecture_id=conjecture_id,
                 experiment_id=experiment_id,
-                signal_type="infra_incident" if "failure" in result.proof_outcome else "formalization_blocker",
-                label=result.blocker_type,
+                signal_type="formalization_blocker" if "failure" not in record.verification_status else "infra_incident",
+                label=blocker.text,
                 detail=result.signal_summary or result.notes,
                 confidence=0.9,
-                provenance=fallback_provenance,
-                metadata={"proof_outcome": result.proof_outcome},
+                provenance=blocker.provenance or provenance,
+                metadata={"canonical_id": blocker.canonical_id, "proof_outcome": result.proof_outcome},
             )
         )
     return signals

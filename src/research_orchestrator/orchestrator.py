@@ -11,7 +11,7 @@ from research_orchestrator.manager_policy import choose_candidates_for_submissio
 from research_orchestrator.prompt_linter import lint_manager_prompt, lint_worker_prompt
 from research_orchestrator.prompts import build_worker_prompt
 from research_orchestrator.provider_registry import get_provider
-from research_orchestrator.result_ingestion import build_verification_signals, ingest_provider_result
+from research_orchestrator.result_ingestion import build_verification_signals, prepare_ingested_result
 from research_orchestrator.types import ExperimentBrief
 
 
@@ -102,22 +102,11 @@ def _finalize_result(
     manager_lint,
     worker_lint,
 ):
-    result = ingest_provider_result(result)
-    evaluation = score_result(db.get_charter(project_id), result)
-    db.update_experiment_result(
-        experiment_id=brief.experiment_id,
-        provider=provider_name,
-        result=result,
-        evaluation=evaluation.__dict__,
-    )
-    db.save_lemma_occurrences(
-        experiment_id=brief.experiment_id,
-        conjecture_id=brief.conjecture_id,
-        generated=result.generated_lemmas,
-        proved=result.proved_lemmas,
-        candidate=result.candidate_lemmas,
-    )
-    db.record_result_ingestion(
+    result.metadata = dict(result.metadata)
+    result.metadata.setdefault("provider_name", provider_name)
+    prepared = prepare_ingested_result(result)
+    result = prepared.provider_result
+    semantic_summary = db.record_result_ingestion(
         project_id=project_id,
         conjecture_id=brief.conjecture_id,
         experiment_id=brief.experiment_id,
@@ -135,6 +124,31 @@ def _finalize_result(
             experiment_id=brief.experiment_id,
             result=result,
         ),
+        verification_record=prepared.verification_record,
+        semantic_summary=prepared.semantic_summary,
+        theorem_family=db.get_conjecture(brief.conjecture_id).domain,
+    )
+    result.semantic_summary = semantic_summary
+    result.new_signal_count = semantic_summary.new_exact_count
+    result.reused_signal_count = semantic_summary.exact_reuse_count + semantic_summary.canonical_reuse_count
+    evaluation = score_result(
+        db.get_charter(project_id),
+        result,
+        verification_record=prepared.verification_record,
+        semantic_summary=semantic_summary,
+    )
+    db.save_lemma_occurrences(
+        experiment_id=brief.experiment_id,
+        conjecture_id=brief.conjecture_id,
+        generated=result.generated_lemmas,
+        proved=result.proved_lemmas,
+        candidate=result.candidate_lemmas,
+    )
+    db.update_experiment_result(
+        experiment_id=brief.experiment_id,
+        provider=provider_name,
+        result=result,
+        evaluation=evaluation.__dict__,
     )
     db.add_audit_event(
         project_id=project_id,
@@ -163,6 +177,14 @@ def _finalize_result(
             incident_type=incident_type,
             detail=result.metadata.get("incident_detail", result.notes or result.signal_summary),
             severity=result.metadata.get("incident_severity", "warning"),
+        )
+    for issue in prepared.validation_issues:
+        db.create_incident(
+            project_id=project_id,
+            experiment_id=brief.experiment_id,
+            incident_type=f"verification_validation_{issue.issue_type}",
+            detail=issue.detail,
+            severity=issue.severity,
         )
 
     if brief.move == "perturb_assumption":
@@ -246,7 +268,9 @@ def submit_one_cycle(db: Database, project_id: str, provider_name: str, workspac
         brief=brief,
         worker_prompt=prepared["worker_prompt"],
     )
-    result = ingest_provider_result(result)
+    result.metadata = dict(result.metadata)
+    result.metadata.setdefault("provider_name", provider.name)
+    result = prepare_ingested_result(result).provider_result
     db.update_experiment_result(
         experiment_id=brief.experiment_id,
         provider=provider.name,
@@ -326,7 +350,9 @@ def sync_provider_results(db: Database, project_id: str, provider_name: str, lim
             external_id=external_id,
             submitted_at=experiment.get("submitted_at", "") or "",
         )
-        result = ingest_provider_result(result)
+        result.metadata = dict(result.metadata)
+        result.metadata.setdefault("provider_name", provider.name)
+        result = prepare_ingested_result(result).provider_result
         if result.status in {"submitted", "in_progress"}:
             db.update_experiment_result(
                 experiment_id=brief.experiment_id,
@@ -379,7 +405,9 @@ def backfill_provider_results(db: Database, project_id: str, provider_name: str,
             external_id=external_id,
             submitted_at=experiment.get("submitted_at", "") or "",
         )
-        result = ingest_provider_result(result)
+        result.metadata = dict(result.metadata)
+        result.metadata.setdefault("provider_name", provider.name)
+        result = prepare_ingested_result(result).provider_result
         evaluation = _finalize_result(
             db=db,
             project_id=project_id,
@@ -441,7 +469,9 @@ def manager_tick(
             brief=prepared["brief"],
             worker_prompt=prepared["worker_prompt"],
         )
-        result = ingest_provider_result(result)
+        result.metadata = dict(result.metadata)
+        result.metadata.setdefault("provider_name", provider.name)
+        result = prepare_ingested_result(result).provider_result
         if provider.supports_async:
             if result.status in {"submitted", "in_progress"}:
                 db.update_experiment_result(

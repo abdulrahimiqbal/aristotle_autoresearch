@@ -106,6 +106,7 @@ class AristotleCLIProvider(Provider):
     supports_async = True
     GHOST_JOB_TIMEOUT_SECONDS = 2 * 3600
     STALE_PROGRESS_TIMEOUT_SECONDS = 6 * 3600
+    SUBPROCESS_TIMEOUT_SECONDS = 20 * 60
 
     def __init__(self, command_template: List[str] | None = None):
         self.command_template = command_template or [
@@ -149,7 +150,25 @@ class AristotleCLIProvider(Provider):
             capture_output=True,
             text=True,
             check=False,
+            timeout=self.SUBPROCESS_TIMEOUT_SECONDS,
         )
+
+    def _safe_extract_zip(self, archive: zipfile.ZipFile, destination: Path) -> None:
+        root = destination.resolve()
+        for member in archive.infolist():
+            member_path = (destination / member.filename).resolve()
+            if not str(member_path).startswith(str(root)):
+                raise OSError(f"Unsafe zip member path: {member.filename}")
+        archive.extractall(destination)
+
+    def _safe_extract_tar(self, archive: tarfile.TarFile, destination: Path) -> None:
+        root = destination.resolve()
+        members = archive.getmembers()
+        for member in members:
+            member_path = (destination / member.name).resolve()
+            if not str(member_path).startswith(str(root)):
+                raise OSError(f"Unsafe tar member path: {member.name}")
+        archive.extractall(destination, members=members)
 
     def _write_stream_artifacts(self, project_dir: str, prefix: str, stdout: str, stderr: str) -> List[str]:
         artifacts: List[str] = []
@@ -195,11 +214,11 @@ class AristotleCLIProvider(Provider):
             if zipfile.is_zipfile(destination):
                 extract_dir.mkdir(parents=True, exist_ok=True)
                 with zipfile.ZipFile(destination) as archive:
-                    archive.extractall(extract_dir)
+                    self._safe_extract_zip(archive, extract_dir)
             elif tarfile.is_tarfile(destination):
                 extract_dir.mkdir(parents=True, exist_ok=True)
                 with tarfile.open(destination) as archive:
-                    archive.extractall(extract_dir)
+                    self._safe_extract_tar(archive, extract_dir)
         except (tarfile.TarError, OSError, zipfile.BadZipFile):
             return artifacts
 
@@ -241,6 +260,13 @@ class AristotleCLIProvider(Provider):
                 status="failed",
                 blocker_type="malformed",
                 notes="The `aristotle` CLI executable was not found on PATH.",
+                confidence=0.0,
+            )
+        except subprocess.TimeoutExpired:
+            return ProviderResult(
+                status="failed",
+                blocker_type="network_unavailable",
+                notes="The `aristotle` CLI submission timed out locally before a structured result could be captured.",
                 confidence=0.0,
             )
 
@@ -479,6 +505,13 @@ class AristotleCLIProvider(Provider):
                 status="failed",
                 blocker_type="malformed",
                 notes="The `aristotle` CLI executable was not found on PATH.",
+                confidence=0.0,
+            )
+        except subprocess.TimeoutExpired:
+            return ProviderResult(
+                status="failed",
+                blocker_type="network_unavailable",
+                notes="The `aristotle` CLI command timed out locally before a structured result could be captured.",
                 confidence=0.0,
             )
 

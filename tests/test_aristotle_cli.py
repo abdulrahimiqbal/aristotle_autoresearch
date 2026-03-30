@@ -7,6 +7,7 @@ import stat
 import shutil
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 from subprocess import CompletedProcess
 from unittest.mock import patch
@@ -190,6 +191,19 @@ class AristotleCLIProviderTest(unittest.TestCase):
                 (tempdir / "aristotle_result_12345678-1234-1234-1234-123456789abc.bin").exists()
             )
             self.assertIn("--destination", calls[1])
+        finally:
+            shutil.rmtree(tempdir, ignore_errors=True)
+
+    def test_unsafe_archive_member_is_not_extracted(self):
+        tempdir = Path(tempfile.mkdtemp(prefix="aristotle_archive_test_"))
+        try:
+            provider = AristotleCLIProvider()
+            archive_path = tempdir / "payload.zip"
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr("../escape.txt", "bad")
+            artifacts = provider._collect_result_artifacts(archive_path)
+            self.assertEqual(artifacts, [str(archive_path)])
+            self.assertFalse((tempdir / "escape.txt").exists())
         finally:
             shutil.rmtree(tempdir, ignore_errors=True)
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import asdict
 import json
 import sqlite3
 from datetime import datetime, timezone
@@ -7,13 +8,18 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
 from research_orchestrator.lemma_utils import goal_fingerprint, lemma_fingerprint
+from research_orchestrator.schema_versions import EVALUATOR_VERSION, SEMANTIC_MEMORY_VERSION, VERIFICATION_PARSER_VERSION, VERIFICATION_SCHEMA_VERSION
+from research_orchestrator.semantic_memory import canonicalize_text, hydrate_semantic_summary
 from research_orchestrator.types import (
     CampaignSpec,
     Conjecture,
     DiscoveryQuestion,
     ProjectCharter,
     ProviderResult,
+    SemanticArtifact,
+    SemanticMemorySummary,
     VerificationSignal,
+    VerificationRecord,
 )
 
 
@@ -298,6 +304,54 @@ SCHEMA = [
         FOREIGN KEY(project_id) REFERENCES projects(project_id)
     )
     """,
+    """
+    CREATE TABLE IF NOT EXISTS verification_records (
+        record_id TEXT PRIMARY KEY,
+        experiment_id TEXT NOT NULL UNIQUE,
+        schema_version TEXT NOT NULL,
+        provider_name TEXT NOT NULL,
+        verification_status TEXT NOT NULL,
+        theorem_status TEXT NOT NULL,
+        validation_ok INTEGER NOT NULL DEFAULT 1,
+        record_json TEXT NOT NULL,
+        raw_payload_json TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(experiment_id) REFERENCES experiments(experiment_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS semantic_objects (
+        object_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        canonical_hash TEXT NOT NULL,
+        canonical_text TEXT NOT NULL,
+        representative_text TEXT NOT NULL,
+        theorem_family TEXT NOT NULL DEFAULT '',
+        normalization_version TEXT NOT NULL,
+        occurrence_count INTEGER NOT NULL DEFAULT 0,
+        first_seen_at TEXT NOT NULL,
+        last_seen_at TEXT NOT NULL,
+        metadata_json TEXT NOT NULL DEFAULT '{}',
+        UNIQUE(project_id, kind, canonical_hash)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS semantic_occurrences (
+        occurrence_id TEXT PRIMARY KEY,
+        object_id TEXT NOT NULL,
+        project_id TEXT NOT NULL,
+        conjecture_id TEXT NOT NULL,
+        experiment_id TEXT NOT NULL,
+        exact_hash TEXT NOT NULL,
+        exact_text TEXT NOT NULL,
+        match_type TEXT NOT NULL,
+        metadata_json TEXT NOT NULL DEFAULT '{}',
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(object_id) REFERENCES semantic_objects(object_id),
+        FOREIGN KEY(experiment_id) REFERENCES experiments(experiment_id)
+    )
+    """,
 ]
 
 
@@ -330,6 +384,10 @@ class Database:
             ("reused_signal_count", "INTEGER DEFAULT 0"),
             ("discovery_question_id", "TEXT"),
             ("attempt_count", "INTEGER DEFAULT 0"),
+            ("verification_schema_version", "TEXT"),
+            ("parser_version", "TEXT"),
+            ("semantic_memory_version", "TEXT"),
+            ("evaluator_version", "TEXT"),
         ):
             if column_name not in existing:
                 self.conn.execute(
@@ -545,6 +603,12 @@ class Database:
         )
         self.conn.commit()
 
+    def _provider_result_payload(self, result: ProviderResult) -> Dict[str, Any]:
+        payload = asdict(result)
+        payload["verification_record"] = asdict(result.verification_record) if result.verification_record else None
+        payload["semantic_summary"] = asdict(result.semantic_summary) if result.semantic_summary else None
+        return payload
+
     def update_experiment_result(
         self,
         experiment_id: str,
@@ -553,7 +617,7 @@ class Database:
         evaluation: Optional[Dict[str, Any]] = None,
     ) -> None:
         outcome_json = {
-            "provider_result": result.__dict__,
+            "provider_result": self._provider_result_payload(result),
         }
         ingestion_json = {
             "proof_outcome": result.proof_outcome,
@@ -569,6 +633,12 @@ class Database:
             "counterexample_witnesses": result.counterexample_witnesses,
             "new_signal_count": result.new_signal_count,
             "reused_signal_count": result.reused_signal_count,
+            "verification_schema_version": result.verification_record.schema_version if result.verification_record else VERIFICATION_SCHEMA_VERSION,
+            "parser_version": result.verification_record.run.parser_version if result.verification_record else VERIFICATION_PARSER_VERSION,
+            "semantic_memory_version": result.verification_record.run.semantic_memory_version if result.verification_record else SEMANTIC_MEMORY_VERSION,
+            "evaluator_version": result.verification_record.run.evaluator_version if result.verification_record else EVALUATOR_VERSION,
+            "verification_record": asdict(result.verification_record) if result.verification_record else None,
+            "semantic_summary": asdict(result.semantic_summary) if result.semantic_summary else None,
         }
         if evaluation is not None:
             outcome_json["evaluation"] = evaluation
@@ -580,7 +650,8 @@ class Database:
             UPDATE experiments
             SET provider = ?, status = ?, blocker_type = ?, outcome_json = ?, ingestion_json = ?, proof_outcome = ?, signal_summary = ?, external_id = ?, external_status = ?,
                 submitted_at = COALESCE(?, submitted_at), last_synced_at = ?, completed_at = COALESCE(?, completed_at),
-                new_signal_count = ?, reused_signal_count = ?, attempt_count = attempt_count + 1
+                new_signal_count = ?, reused_signal_count = ?, attempt_count = attempt_count + 1,
+                verification_schema_version = ?, parser_version = ?, semantic_memory_version = ?, evaluator_version = ?
             WHERE experiment_id = ?
             """,
             (
@@ -598,6 +669,10 @@ class Database:
                 completed_at,
                 result.new_signal_count,
                 result.reused_signal_count,
+                result.verification_record.schema_version if result.verification_record else VERIFICATION_SCHEMA_VERSION,
+                result.verification_record.run.parser_version if result.verification_record else VERIFICATION_PARSER_VERSION,
+                result.verification_record.run.semantic_memory_version if result.verification_record else SEMANTIC_MEMORY_VERSION,
+                result.verification_record.run.evaluator_version if result.verification_record else EVALUATOR_VERSION,
                 experiment_id,
             ),
         )
@@ -1201,15 +1276,33 @@ class Database:
         counterexample_witnesses: Iterable[str] = (),
         discovery_question_id: str = "",
         verification_signals: Iterable[VerificationSignal] = (),
-    ) -> None:
+        verification_record: Optional[VerificationRecord] = None,
+        semantic_summary: Optional[SemanticMemorySummary] = None,
+        theorem_family: str = "",
+    ) -> SemanticMemorySummary:
         import uuid
 
         verification_signals = list(verification_signals)
+        semantic_summary = semantic_summary or SemanticMemorySummary()
+        if not semantic_summary.artifacts:
+            semantic_summary.artifacts = [
+                canonicalize_text("goal", goal, theorem_family) for goal in unresolved_goals
+            ] + [
+                canonicalize_text("proof_trace", fragment, theorem_family) for fragment in proof_trace_fragments
+            ] + [
+                canonicalize_text("counterexample", witness, theorem_family) for witness in counterexample_witnesses
+            ] + (
+                [canonicalize_text("blocker", blocker_type, theorem_family)]
+                if blocker_type and blocker_type != "unknown"
+                else []
+            )
         self.conn.execute("DELETE FROM extracted_subgoals WHERE experiment_id = ?", (experiment_id,))
         self.conn.execute("DELETE FROM artifact_metadata WHERE experiment_id = ?", (experiment_id,))
         self.conn.execute("DELETE FROM blocker_observations WHERE experiment_id = ?", (experiment_id,))
         self.conn.execute("DELETE FROM proof_trace_observations WHERE experiment_id = ?", (experiment_id,))
         self.conn.execute("DELETE FROM counterexample_observations WHERE experiment_id = ?", (experiment_id,))
+        self.conn.execute("DELETE FROM semantic_occurrences WHERE experiment_id = ?", (experiment_id,))
+        self.conn.execute("DELETE FROM verification_records WHERE experiment_id = ?", (experiment_id,))
 
         for goal in unresolved_goals:
             normalized_goal, _ = goal_fingerprint(goal)
@@ -1295,6 +1388,119 @@ class Database:
                     utcnow(),
                 ),
             )
+
+        if verification_record is not None:
+            self.conn.execute(
+                """
+                INSERT INTO verification_records(
+                    record_id, experiment_id, schema_version, provider_name, verification_status,
+                    theorem_status, validation_ok, record_json, raw_payload_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(uuid.uuid4()),
+                    experiment_id,
+                    verification_record.schema_version,
+                    verification_record.provider.provider_name,
+                    verification_record.verification_status,
+                    verification_record.theorem_status,
+                    0 if verification_record.validation_issues else 1,
+                    json.dumps(asdict(verification_record)),
+                    json.dumps(verification_record.raw_payload),
+                    utcnow(),
+                ),
+            )
+
+        exact_reuse = 0
+        canonical_reuse = 0
+        new_exact = 0
+        blocker_reuse = 0
+        for artifact in semantic_summary.artifacts:
+            object_row = self.conn.execute(
+                """
+                SELECT object_id, occurrence_count
+                FROM semantic_objects
+                WHERE project_id = ? AND kind = ? AND canonical_hash = ?
+                """,
+                (project_id, artifact.kind, artifact.canonical_id),
+            ).fetchone()
+            if object_row is None:
+                object_id = str(uuid.uuid4())
+                self.conn.execute(
+                    """
+                    INSERT INTO semantic_objects(
+                        object_id, project_id, kind, canonical_hash, canonical_text,
+                        representative_text, theorem_family, normalization_version,
+                        occurrence_count, first_seen_at, last_seen_at, metadata_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        object_id,
+                        project_id,
+                        artifact.kind,
+                        artifact.canonical_id,
+                        artifact.canonical_text,
+                        artifact.raw_text,
+                        theorem_family,
+                        SEMANTIC_MEMORY_VERSION,
+                        1,
+                        utcnow(),
+                        utcnow(),
+                        json.dumps(artifact.metadata),
+                    ),
+                )
+                match_type = "new_exact"
+                new_exact += 1
+            else:
+                object_id = object_row["object_id"]
+                exact_row = self.conn.execute(
+                    """
+                    SELECT 1
+                    FROM semantic_occurrences
+                    WHERE object_id = ? AND exact_hash = ?
+                    LIMIT 1
+                    """,
+                    (object_id, artifact.exact_id),
+                ).fetchone()
+                match_type = "exact_reuse" if exact_row is not None else "normalized_equivalent_reuse"
+                if exact_row is not None:
+                    exact_reuse += 1
+                else:
+                    canonical_reuse += 1
+                if artifact.kind == "blocker":
+                    blocker_reuse += 1
+                self.conn.execute(
+                    """
+                    UPDATE semantic_objects
+                    SET occurrence_count = occurrence_count + 1, last_seen_at = ?
+                    WHERE object_id = ?
+                    """,
+                    (utcnow(), object_id),
+                )
+            self.conn.execute(
+                """
+                INSERT INTO semantic_occurrences(
+                    occurrence_id, object_id, project_id, conjecture_id, experiment_id,
+                    exact_hash, exact_text, match_type, metadata_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(uuid.uuid4()),
+                    object_id,
+                    project_id,
+                    conjecture_id,
+                    experiment_id,
+                    artifact.exact_id,
+                    artifact.raw_text,
+                    match_type,
+                    json.dumps(artifact.metadata),
+                    utcnow(),
+                ),
+            )
+        semantic_summary.new_exact_count = new_exact
+        semantic_summary.exact_reuse_count = exact_reuse
+        semantic_summary.canonical_reuse_count = canonical_reuse
+        semantic_summary.blocker_reuse_count = blocker_reuse
         question_node_id = ""
         if discovery_question_id:
             question_rows = self.conn.execute(
@@ -1371,9 +1577,12 @@ class Database:
                 "blocker_type": blocker_type,
                 "signal_summary": signal_summary,
                 "verification_signal_count": len(verification_signals),
+                "verification_schema_version": verification_record.schema_version if verification_record else VERIFICATION_SCHEMA_VERSION,
+                "semantic_objects": len(semantic_summary.artifacts),
             },
         )
         self.conn.commit()
+        return semantic_summary
 
     def record_assumption_observation(self, project_id: str, conjecture_id: str, experiment_id: str, assumption_name: str, outcome: str, sensitivity_score: float) -> None:
         import uuid
@@ -1432,12 +1641,10 @@ class Database:
     def recurring_subgoals(self, project_id: str, minimum_reuse: int = 2) -> List[Dict[str, Any]]:
         rows = self.conn.execute(
             """
-            SELECT statement, COUNT(*) AS observations
-            FROM extracted_subgoals
-            WHERE project_id = ?
-            GROUP BY statement
-            HAVING COUNT(*) >= ?
-            ORDER BY observations DESC, statement ASC
+            SELECT so.canonical_text AS statement, so.occurrence_count AS observations
+            FROM semantic_objects so
+            WHERE so.project_id = ? AND so.kind = 'goal' AND so.occurrence_count >= ?
+            ORDER BY so.occurrence_count DESC, so.canonical_text ASC
             """,
             (project_id, minimum_reuse),
         ).fetchall()
@@ -1446,12 +1653,10 @@ class Database:
     def recurring_proof_traces(self, project_id: str, minimum_reuse: int = 2) -> List[Dict[str, Any]]:
         rows = self.conn.execute(
             """
-            SELECT normalized_fragment AS fragment, COUNT(*) AS observations
-            FROM proof_trace_observations
-            WHERE project_id = ?
-            GROUP BY normalized_fragment
-            HAVING COUNT(*) >= ?
-            ORDER BY observations DESC, normalized_fragment ASC
+            SELECT so.canonical_text AS fragment, so.occurrence_count AS observations
+            FROM semantic_objects so
+            WHERE so.project_id = ? AND so.kind = 'proof_trace' AND so.occurrence_count >= ?
+            ORDER BY so.occurrence_count DESC, so.canonical_text ASC
             """,
             (project_id, minimum_reuse),
         ).fetchall()
@@ -1460,11 +1665,10 @@ class Database:
     def counterexample_summary(self, project_id: str) -> List[Dict[str, Any]]:
         rows = self.conn.execute(
             """
-            SELECT normalized_witness AS witness, COUNT(*) AS observations
-            FROM counterexample_observations
-            WHERE project_id = ?
-            GROUP BY normalized_witness
-            ORDER BY observations DESC, normalized_witness ASC
+            SELECT so.canonical_text AS witness, so.occurrence_count AS observations
+            FROM semantic_objects so
+            WHERE so.project_id = ? AND so.kind = 'counterexample'
+            ORDER BY so.occurrence_count DESC, so.canonical_text ASC
             """,
             (project_id,),
         ).fetchall()
@@ -1530,11 +1734,10 @@ class Database:
     def blocker_summary(self, project_id: str) -> List[Dict[str, Any]]:
         rows = self.conn.execute(
             """
-            SELECT blocker_type, proof_outcome, COUNT(*) AS observations
-            FROM blocker_observations
-            WHERE project_id = ?
-            GROUP BY blocker_type, proof_outcome
-            ORDER BY observations DESC, blocker_type ASC, proof_outcome ASC
+            SELECT so.canonical_text AS blocker_type, 'semantic' AS proof_outcome, so.occurrence_count AS observations
+            FROM semantic_objects so
+            WHERE so.project_id = ? AND so.kind = 'blocker'
+            ORDER BY so.occurrence_count DESC, so.canonical_text ASC
             """,
             (project_id,),
         ).fetchall()

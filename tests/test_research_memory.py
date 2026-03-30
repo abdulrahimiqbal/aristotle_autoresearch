@@ -12,6 +12,8 @@ from research_orchestrator.charter import load_charter, load_conjecture
 from research_orchestrator.db import Database
 from research_orchestrator.experiment_generator import choose_move
 from research_orchestrator.lemma_utils import normalize_goal, normalize_lemma
+from research_orchestrator.semantic_memory import canonicalize_text
+from research_orchestrator.types import SemanticMemorySummary
 
 
 class ResearchMemoryTest(unittest.TestCase):
@@ -75,6 +77,14 @@ class ResearchMemoryTest(unittest.TestCase):
             normalize_goal("show P n"),
             normalize_goal("goal: P m"),
         )
+
+    def test_canonicalization_is_deterministic(self):
+        left = canonicalize_text("lemma", "lemma bridge (n : Nat) : P n", self.conjecture.domain)
+        right = canonicalize_text("lemma", "lemma bridge (m : Nat) : P m", self.conjecture.domain)
+        again = canonicalize_text("lemma", "lemma bridge (n : Nat) : P n", self.conjecture.domain)
+        self.assertEqual(left.canonical_id, right.canonical_id)
+        self.assertEqual(left.canonical_id, again.canonical_id)
+        self.assertEqual(left.cluster_id, again.cluster_id)
 
     def test_no_signal_branches_are_aggregated(self):
         for idx in range(2):
@@ -174,6 +184,47 @@ class ResearchMemoryTest(unittest.TestCase):
         )
         self.assertEqual(move, "promote_lemma")
         self.assertEqual(modification["lemma_statement"], "lemma coverage_bridge : True")
+
+    def test_reuse_counters_reflect_exact_and_normalized_equivalent_reuse(self):
+        experiments = [
+            ("reuse-1", "lemma bridge (n : Nat) : P n", "show P n"),
+            ("reuse-2", "lemma bridge (m : Nat) : P m", "show P m"),
+        ]
+        for experiment_id, lemma, goal in experiments:
+            self.db.save_experiment_plan(
+                {
+                    "experiment_id": experiment_id,
+                    "project_id": self.charter.project_id,
+                    "conjecture_id": self.conjecture.conjecture_id,
+                    "phase": "mapping",
+                    "move": "underspecify",
+                    "objective": "seed",
+                    "expected_signal": "seed",
+                    "modification": {"mode": experiment_id},
+                    "workspace_dir": str(self.tempdir / experiment_id),
+                    "lean_file": str(self.tempdir / experiment_id / "Main.lean"),
+                }
+            )
+            summary = self.db.record_result_ingestion(
+                experiment_id=experiment_id,
+                project_id=self.charter.project_id,
+                conjecture_id=self.conjecture.conjecture_id,
+                proof_outcome="partial",
+                blocker_type="formalization",
+                unresolved_goals=[goal],
+                artifact_inventory=[],
+                signal_summary="seed",
+                verification_record=None,
+                semantic_summary=SemanticMemorySummary(
+                    artifacts=[
+                        canonicalize_text("lemma", lemma, self.conjecture.domain),
+                        canonicalize_text("goal", goal, self.conjecture.domain),
+                    ]
+                ),
+                theorem_family=self.conjecture.domain,
+            )
+        self.assertEqual(summary.new_exact_count, 0)
+        self.assertEqual(summary.canonical_reuse_count, 2)
 
     def test_recurring_subgoal_can_trigger_promotion(self):
         experiments = [

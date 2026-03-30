@@ -1,7 +1,45 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any, Dict, List, Optional
+
+
+class VerificationSchemaVersion(str, Enum):
+    V1 = "1.0"
+
+
+class VerificationStatus(str, Enum):
+    PROVED = "proved"
+    PARTIAL = "partial"
+    DISPROVED = "disproved"
+    STALLED = "stalled"
+    UNKNOWN = "unknown"
+    AUTH_FAILURE = "auth_failure"
+    INFRA_FAILURE = "infra_failure"
+    MALFORMED = "malformed"
+
+
+class TheoremStatus(str, Enum):
+    VERIFIED = "verified"
+    PARTIALLY_VERIFIED = "partially_verified"
+    REFUTED = "refuted"
+    UNRESOLVED = "unresolved"
+    INVALID = "invalid"
+
+
+class VerificationArtifactKind(str, Enum):
+    LEMMA = "lemma"
+    GOAL = "goal"
+    BLOCKER = "blocker"
+    COUNTEREXAMPLE = "counterexample"
+    PROOF_TRACE = "proof_trace"
+    ASSUMPTION = "assumption"
+
+
+class ValidationSeverity(str, Enum):
+    WARNING = "warning"
+    ERROR = "error"
 
 
 @dataclass
@@ -88,6 +126,112 @@ class ExperimentBrief:
 
 
 @dataclass
+class ArtifactProvenance:
+    kind: str
+    path: str
+    source: str
+    confidence: float = 1.0
+
+
+@dataclass
+class ProviderMetadata:
+    provider_name: str
+    adapter_name: str = "legacy-text-adapter"
+    adapter_version: str = ""
+    provider_status: str = ""
+    provider_blocker_type: str = ""
+    external_id: str = ""
+    external_status: str = ""
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class VerificationRunMetadata:
+    parser_version: str = ""
+    evaluator_version: str = ""
+    semantic_memory_version: str = ""
+    schema_version: str = VerificationSchemaVersion.V1.value
+    run_id: str = ""
+    workspace_dir: str = ""
+    lean_file: str = ""
+    artifact_paths: List[str] = field(default_factory=list)
+    raw_stdout_excerpt: str = ""
+    raw_stderr_excerpt: str = ""
+    notes: str = ""
+    timestamps: Dict[str, str] = field(default_factory=dict)
+
+
+@dataclass
+class VerificationObservation:
+    text: str
+    artifact_kind: str
+    normalized_text: str = ""
+    canonical_id: str = ""
+    cluster_id: str = ""
+    detail: str = ""
+    confidence: float = 0.5
+    provenance: List[ArtifactProvenance] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class VerificationValidationIssue:
+    issue_type: str
+    detail: str
+    severity: str = ValidationSeverity.ERROR.value
+    path: str = ""
+
+
+@dataclass
+class VerificationRecord:
+    schema_version: str = VerificationSchemaVersion.V1.value
+    provider: ProviderMetadata = field(default_factory=lambda: ProviderMetadata(provider_name="unknown"))
+    run: VerificationRunMetadata = field(default_factory=VerificationRunMetadata)
+    verification_status: str = VerificationStatus.UNKNOWN.value
+    theorem_status: str = TheoremStatus.UNRESOLVED.value
+    unsolved_goals: List[VerificationObservation] = field(default_factory=list)
+    generated_lemmas: List[VerificationObservation] = field(default_factory=list)
+    proved_lemmas: List[VerificationObservation] = field(default_factory=list)
+    missing_assumptions: List[VerificationObservation] = field(default_factory=list)
+    counterexamples: List[VerificationObservation] = field(default_factory=list)
+    blocker_observations: List[VerificationObservation] = field(default_factory=list)
+    proof_traces: List[VerificationObservation] = field(default_factory=list)
+    artifact_provenance: List[ArtifactProvenance] = field(default_factory=list)
+    raw_text_fallback: Dict[str, str] = field(default_factory=dict)
+    raw_payload: Dict[str, Any] = field(default_factory=dict)
+    validation_issues: List[VerificationValidationIssue] = field(default_factory=list)
+
+
+@dataclass
+class SemanticArtifact:
+    kind: str
+    raw_text: str
+    canonical_text: str
+    exact_id: str
+    canonical_id: str
+    cluster_id: str
+    theorem_family: str = ""
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class SemanticMemorySummary:
+    artifacts: List[SemanticArtifact] = field(default_factory=list)
+    new_exact_count: int = 0
+    normalized_equivalent_count: int = 0
+    exact_reuse_count: int = 0
+    canonical_reuse_count: int = 0
+    blocker_reuse_count: int = 0
+    duplicate_artifact_count: int = 0
+    parser_ambiguity_count: int = 0
+    reusable_artifact_count: int = 0
+    obstruction_artifact_count: int = 0
+    boundary_artifact_count: int = 0
+    proof_motif_count: int = 0
+    by_kind: Dict[str, Dict[str, int]] = field(default_factory=dict)
+
+
+@dataclass
 class ProviderResult:
     status: str
     blocker_type: str
@@ -115,6 +259,16 @@ class ProviderResult:
     external_id: str = ""
     external_status: str = ""
     metadata: Dict[str, Any] = field(default_factory=dict)
+    verification_record: Optional[VerificationRecord] = None
+    semantic_summary: Optional[SemanticMemorySummary] = None
+
+
+@dataclass
+class PreparedIngestion:
+    provider_result: ProviderResult
+    verification_record: VerificationRecord
+    semantic_summary: SemanticMemorySummary
+    validation_issues: List[VerificationValidationIssue] = field(default_factory=list)
 
 
 @dataclass
@@ -128,14 +282,6 @@ class DiscoveryQuestion:
     priority: int = 50
     status: str = "open"
     node_id: str = ""
-
-
-@dataclass
-class ArtifactProvenance:
-    kind: str
-    path: str
-    source: str
-    confidence: float = 1.0
 
 
 @dataclass
@@ -171,4 +317,8 @@ class EvaluationScore:
     boundary_sharpness: float
     cost_penalty: float
     total: float
+    obstruction_discovery: float = 0.0
+    transfer_potential: float = 0.0
+    duplication_penalty: float = 0.0
+    ambiguity_penalty: float = 0.0
     notes: List[str] = field(default_factory=list)
