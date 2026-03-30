@@ -1491,9 +1491,34 @@ class Database:
             SELECT conjecture_id, move, COUNT(*) AS observations
             FROM experiments
             WHERE project_id = ?
-              AND proof_outcome = 'unknown'
               AND COALESCE(new_signal_count, 0) = 0
               AND status IN ('stalled', 'failed')
+              AND (
+                proof_outcome = 'unknown'
+                OR (
+                  proof_outcome = 'disproved'
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM lemma_occurrences lo
+                    WHERE lo.experiment_id = experiments.experiment_id
+                  )
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM extracted_subgoals es
+                    WHERE es.experiment_id = experiments.experiment_id
+                  )
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM proof_trace_observations pto
+                    WHERE pto.experiment_id = experiments.experiment_id
+                  )
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM counterexample_observations co
+                    WHERE co.experiment_id = experiments.experiment_id
+                  )
+                )
+              )
             GROUP BY conjecture_id, move
             HAVING COUNT(*) >= ?
             ORDER BY observations DESC, conjecture_id ASC, move ASC

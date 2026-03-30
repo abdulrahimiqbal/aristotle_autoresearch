@@ -8,6 +8,14 @@ from uuid import uuid4
 from research_orchestrator.types import Conjecture, ExperimentBrief, ProjectCharter
 
 DEFAULT_LEAN_TOOLCHAIN = "leanprover/lean4:v4.28.0"
+NON_SIGNAL_PROOF_OUTCOMES = {"unknown", "auth_failure", "infra_failure", "malformed"}
+COUNTEREXAMPLE_TARGETS = [
+    "most_fragile_variant",
+    "boundary_variant",
+    "minimal_variant",
+    "negated_weakening",
+    "parameter_extreme",
+]
 
 
 def _strip_imports(lean_source: str) -> str:
@@ -52,23 +60,30 @@ def _next_phase(charter: ProjectCharter, num_experiments: int) -> str:
     return "consolidation"
 
 
+def _is_effective_experiment(experiment: dict) -> bool:
+    proof_outcome = experiment.get("proof_outcome")
+    new_signal_count = experiment.get("new_signal_count") or 0
+    return proof_outcome not in NON_SIGNAL_PROOF_OUTCOMES or new_signal_count > 0
+
+
 def choose_move(
     charter: ProjectCharter,
     conjecture: Conjecture,
     experiments: List[dict],
     recurring_lemmas: List[dict],
     recurring_subgoals: List[dict] | None = None,
-) -> tuple[str, Dict[str, str], str, str]:
+) -> tuple[str, Dict[str, object], str, str]:
     conjecture_experiments = [item for item in experiments if item["conjecture_id"] == conjecture.conjecture_id]
-    seen_moves = [item["move"] for item in conjecture_experiments]
+    effective_experiments = [item for item in conjecture_experiments if _is_effective_experiment(item)]
+    seen_moves = [item["move"] for item in effective_experiments]
     tested_assumptions = {
         item["modification"].get("assumption")
-        for item in experiments
+        for item in effective_experiments
         if item["move"] == "perturb_assumption" and item["modification"].get("assumption")
     }
     structural_count = sum(
         1
-        for item in conjecture_experiments
+        for item in effective_experiments
         if item["status"] in {"failed", "stalled"} and item.get("blocker_type") == "structural"
     )
     recurring_for_conjecture = [
@@ -77,10 +92,17 @@ def choose_move(
     recurring_subgoals = recurring_subgoals or []
     repeated_unknown = sum(
         1
-        for item in conjecture_experiments
+        for item in effective_experiments
         if item["status"] == "stalled"
         and item.get("proof_outcome") == "unknown"
         and not (item.get("new_signal_count") or 0)
+    )
+    counter_count = sum(1 for item in conjecture_experiments if item["move"] == "counterexample_mode")
+    counter_target = COUNTEREXAMPLE_TARGETS[counter_count % len(COUNTEREXAMPLE_TARGETS)]
+    counter_modification = {"target": counter_target, "attempt": counter_count + 1}
+    counter_objective = (
+        f"Fill in all sorries. Search for a counterexample or independence witness for the "
+        f"{counter_target.replace('_', ' ')}."
     )
 
     if "underspecify" not in seen_moves:
@@ -130,15 +152,15 @@ def choose_move(
     if structural_count >= 2 or repeated_unknown >= 2:
         return (
             "counterexample_mode",
-            {"target": "most_fragile_variant"},
-            "Fill in all sorries. Search for a counterexample or independence witness for this weakened variant.",
+            counter_modification,
+            counter_objective,
             "Disambiguate falsehood from search failure after repeated structural blockers or no-signal runs.",
         )
 
     return (
         "counterexample_mode",
-        {"target": "most_fragile_variant"},
-        "Fill in all sorries. Search for a counterexample or independence witness for this weakened variant.",
+        counter_modification,
+        counter_objective,
         "Disambiguate falsehood from search failure.",
     )
 

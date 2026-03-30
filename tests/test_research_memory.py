@@ -106,6 +106,37 @@ class ResearchMemoryTest(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["move"], "counterexample_mode")
 
+    def test_zero_signal_disproved_runs_without_artifacts_are_treated_as_no_signal(self):
+        for idx in range(2):
+            experiment_id = f"misclassified-{idx}"
+            self.db.save_experiment_plan(
+                {
+                    "experiment_id": experiment_id,
+                    "project_id": self.charter.project_id,
+                    "conjecture_id": self.conjecture.conjecture_id,
+                    "phase": "consolidation",
+                    "move": "counterexample_mode",
+                    "objective": "seed",
+                    "expected_signal": "seed",
+                    "modification": {"target": "boundary_variant", "attempt": idx + 1},
+                    "workspace_dir": str(self.tempdir / experiment_id),
+                    "lean_file": str(self.tempdir / experiment_id / "Main.lean"),
+                }
+            )
+            self.db.conn.execute(
+                """
+                UPDATE experiments
+                SET status = 'failed', proof_outcome = 'disproved', new_signal_count = 0
+                WHERE experiment_id = ?
+                """,
+                (experiment_id,),
+            )
+        self.db.conn.commit()
+
+        rows = self.db.no_signal_branches(self.charter.project_id)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["move"], "counterexample_mode")
+
     def test_recurring_lemma_signal_can_trigger_promotion(self):
         experiments = [
             {
