@@ -1900,9 +1900,9 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - synced `233580d4-c454-41ec-a83d-04187d52e451` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `182dd7b7-e92d-42a0-aa48-59be7c9b98a2` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `e217b2a9-78b3-47d8-a9a9-3afe0966c9f9` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- skipped `034b788d-9187-4a96-b310-13700093a3ae` for `erdos-123` (duplicate active experiment signature)
-- skipped `9d3d3b73-3fc0-49ae-b1ef-fc220e04b0f5` for `erdos-181` (duplicate active experiment signature)
-- skipped `7075411d-58e3-4126-9b36-5a6d3b96427c` for `erdos-44` (duplicate active experiment signature)
+- skipped `512b4214-4fc8-407c-96a4-fb32d97c6647` for `erdos-123` (duplicate active experiment signature)
+- skipped `525855e1-dc68-47df-88ec-8c6338f9ed01` for `erdos-181` (duplicate active experiment signature)
+- skipped `e5deb2f3-14dd-4192-b695-b47849066bad` for `erdos-44` (duplicate active experiment signature)
 
 ## Suggested next move
 
