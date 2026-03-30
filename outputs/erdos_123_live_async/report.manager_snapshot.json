@@ -1,0 +1,2113 @@
+{
+  "project_id": "erdos-combo-001",
+  "provider": "aristotle-cli",
+  "active_jobs": [
+    {
+      "experiment_id": "bff4c05f-d103-47ac-83f8-1164972a1bca",
+      "project_id": "erdos-combo-001",
+      "conjecture_id": "erdos-123",
+      "phase": "mapping",
+      "move": "underspecify",
+      "objective": "Fill in all sorries. Strip imports to expose hidden dependencies. Report intermediate lemmas or unresolved goals. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+      "expected_signal": "Surface hidden assumptions and early lemma needs. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+      "modification_json": "{\"mode\": \"minimal_context\"}",
+      "workspace_dir": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca",
+      "lean_file": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/Main.lean",
+      "provider": "aristotle-cli",
+      "status": "submitted",
+      "blocker_type": "unknown",
+      "outcome_json": "{\"provider_result\": {\"status\": \"submitted\", \"blocker_type\": \"unknown\", \"proof_outcome\": \"unknown\", \"signal_summary\": \"remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown\", \"generated_lemmas\": [], \"proved_lemmas\": [], \"candidate_lemmas\": [], \"unresolved_goals\": [], \"blocked_on\": [], \"missing_assumptions\": [], \"artifact_inventory\": [{\"path\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt\", \"kind\": \"txt\", \"size_bytes\": 54}, {\"path\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt\", \"kind\": \"txt\", \"size_bytes\": 0}], \"proof_trace_fragments\": [], \"counterexample_witnesses\": [], \"normalized_candidate_lemmas\": [], \"normalized_unresolved_goals\": [], \"new_signal_count\": 0, \"reused_signal_count\": 0, \"suspected_missing_assumptions\": [], \"notes\": \"Submitted Aristotle job without waiting for completion.\", \"confidence\": 0.6, \"raw_stdout\": \"\", \"raw_stderr\": \"Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\\n\", \"artifacts\": [\"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt\", \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt\"], \"external_id\": \"72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\", \"external_status\": \"QUEUED\", \"metadata\": {\"provider_name\": \"aristotle-cli\", \"verification_record\": {\"schema_version\": \"1.0\", \"provider\": {\"provider_name\": \"aristotle-cli\", \"adapter_name\": \"structured-verification-adapter\", \"adapter_version\": \"2026.03.phase1\", \"provider_status\": \"submitted\", \"provider_blocker_type\": \"unknown\", \"external_id\": \"72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\", \"external_status\": \"QUEUED\", \"metadata\": {\"provider_name\": \"aristotle-cli\"}}, \"run\": {\"parser_version\": \"2026.03.phase1\", \"evaluator_version\": \"2026.03.phase2\", \"semantic_memory_version\": \"2026.03.phase2\", \"schema_version\": \"1.0\", \"run_id\": \"\", \"workspace_dir\": \"\", \"lean_file\": \"\", \"artifact_paths\": [\"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt\", \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt\"], \"raw_stdout_excerpt\": \"\", \"raw_stderr_excerpt\": \"Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\\n\", \"notes\": \"Submitted Aristotle job without waiting for completion.\", \"timestamps\": {}}, \"verification_status\": \"unknown\", \"theorem_status\": \"unresolved\", \"unsolved_goals\": [], \"generated_lemmas\": [], \"proved_lemmas\": [], \"missing_assumptions\": [], \"counterexamples\": [], \"blocker_observations\": [], \"proof_traces\": [], \"artifact_provenance\": [{\"kind\": \"artifact\", \"path\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt\", \"source\": \"txt\", \"confidence\": 1.0}, {\"kind\": \"artifact\", \"path\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt\", \"source\": \"txt\", \"confidence\": 1.0}], \"raw_text_fallback\": {\"stdout\": \"\", \"stderr\": \"Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\\n\", \"notes\": \"Submitted Aristotle job without waiting for completion.\", \"combined_text\": \"Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\\n\\nSubmitted Aristotle job without waiting for completion.\\nProject created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\\n\"}, \"raw_payload\": {\"provider_result\": {\"status\": \"submitted\", \"blocker_type\": \"unknown\", \"proof_outcome\": \"unknown\", \"signal_summary\": \"\", \"generated_lemmas\": [], \"proved_lemmas\": [], \"candidate_lemmas\": [], \"unresolved_goals\": [], \"blocked_on\": [], \"missing_assumptions\": [], \"artifact_inventory\": [], \"proof_trace_fragments\": [], \"counterexample_witnesses\": [], \"normalized_candidate_lemmas\": [], \"normalized_unresolved_goals\": [], \"new_signal_count\": 0, \"reused_signal_count\": 0, \"suspected_missing_assumptions\": [], \"notes\": \"Submitted Aristotle job without waiting for completion.\", \"confidence\": 0.6, \"raw_stdout\": \"\", \"raw_stderr\": \"Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\\n\", \"artifacts\": [\"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt\", \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt\"], \"external_id\": \"72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\", \"external_status\": \"QUEUED\", \"metadata\": {\"provider_name\": \"aristotle-cli\"}, \"verification_record\": null, \"semantic_summary\": null}}, \"validation_issues\": []}, \"semantic_summary\": {\"artifacts\": [], \"new_exact_count\": 0, \"normalized_equivalent_count\": 0, \"exact_reuse_count\": 0, \"canonical_reuse_count\": 0, \"blocker_reuse_count\": 0, \"duplicate_artifact_count\": 0, \"parser_ambiguity_count\": 0, \"reusable_artifact_count\": 0, \"obstruction_artifact_count\": 0, \"boundary_artifact_count\": 0, \"proof_motif_count\": 0, \"by_kind\": {}}}, \"verification_record\": {\"schema_version\": \"1.0\", \"provider\": {\"provider_name\": \"aristotle-cli\", \"adapter_name\": \"structured-verification-adapter\", \"adapter_version\": \"2026.03.phase1\", \"provider_status\": \"submitted\", \"provider_blocker_type\": \"unknown\", \"external_id\": \"72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\", \"external_status\": \"QUEUED\", \"metadata\": {\"provider_name\": \"aristotle-cli\"}}, \"run\": {\"parser_version\": \"2026.03.phase1\", \"evaluator_version\": \"2026.03.phase2\", \"semantic_memory_version\": \"2026.03.phase2\", \"schema_version\": \"1.0\", \"run_id\": \"\", \"workspace_dir\": \"\", \"lean_file\": \"\", \"artifact_paths\": [\"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt\", \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt\"], \"raw_stdout_excerpt\": \"\", \"raw_stderr_excerpt\": \"Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\\n\", \"notes\": \"Submitted Aristotle job without waiting for completion.\", \"timestamps\": {}}, \"verification_status\": \"unknown\", \"theorem_status\": \"unresolved\", \"unsolved_goals\": [], \"generated_lemmas\": [], \"proved_lemmas\": [], \"missing_assumptions\": [], \"counterexamples\": [], \"blocker_observations\": [], \"proof_traces\": [], \"artifact_provenance\": [{\"kind\": \"artifact\", \"path\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt\", \"source\": \"txt\", \"confidence\": 1.0}, {\"kind\": \"artifact\", \"path\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt\", \"source\": \"txt\", \"confidence\": 1.0}], \"raw_text_fallback\": {\"stdout\": \"\", \"stderr\": \"Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\\n\", \"notes\": \"Submitted Aristotle job without waiting for completion.\", \"combined_text\": \"Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\\n\\nSubmitted Aristotle job without waiting for completion.\\nProject created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\\n\"}, \"raw_payload\": {\"provider_result\": {\"status\": \"submitted\", \"blocker_type\": \"unknown\", \"proof_outcome\": \"unknown\", \"signal_summary\": \"\", \"generated_lemmas\": [], \"proved_lemmas\": [], \"candidate_lemmas\": [], \"unresolved_goals\": [], \"blocked_on\": [], \"missing_assumptions\": [], \"artifact_inventory\": [], \"proof_trace_fragments\": [], \"counterexample_witnesses\": [], \"normalized_candidate_lemmas\": [], \"normalized_unresolved_goals\": [], \"new_signal_count\": 0, \"reused_signal_count\": 0, \"suspected_missing_assumptions\": [], \"notes\": \"Submitted Aristotle job without waiting for completion.\", \"confidence\": 0.6, \"raw_stdout\": \"\", \"raw_stderr\": \"Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\\n\", \"artifacts\": [\"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt\", \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt\"], \"external_id\": \"72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\", \"external_status\": \"QUEUED\", \"metadata\": {\"provider_name\": \"aristotle-cli\"}, \"verification_record\": null, \"semantic_summary\": null}}, \"validation_issues\": []}, \"semantic_summary\": {\"artifacts\": [], \"new_exact_count\": 0, \"normalized_equivalent_count\": 0, \"exact_reuse_count\": 0, \"canonical_reuse_count\": 0, \"blocker_reuse_count\": 0, \"duplicate_artifact_count\": 0, \"parser_ambiguity_count\": 0, \"reusable_artifact_count\": 0, \"obstruction_artifact_count\": 0, \"boundary_artifact_count\": 0, \"proof_motif_count\": 0, \"by_kind\": {}}}}",
+      "created_at": "2026-03-30T23:19:55.956335+00:00",
+      "completed_at": null,
+      "external_id": "72d3ca62-8ac6-4088-9d37-1d9f45d71fa4",
+      "external_status": "QUEUED",
+      "submitted_at": "2026-03-30T23:19:57.150000+00:00",
+      "last_synced_at": "2026-03-30T23:19:57.150012+00:00",
+      "proof_outcome": "unknown",
+      "signal_summary": "remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown",
+      "ingestion_json": "{\"proof_outcome\": \"unknown\", \"signal_summary\": \"remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown\", \"candidate_lemmas\": [], \"normalized_candidate_lemmas\": [], \"unresolved_goals\": [], \"normalized_unresolved_goals\": [], \"blocked_on\": [], \"missing_assumptions\": [], \"artifact_inventory\": [{\"path\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt\", \"kind\": \"txt\", \"size_bytes\": 54}, {\"path\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt\", \"kind\": \"txt\", \"size_bytes\": 0}], \"proof_trace_fragments\": [], \"counterexample_witnesses\": [], \"new_signal_count\": 0, \"reused_signal_count\": 0, \"verification_schema_version\": \"1.0\", \"parser_version\": \"2026.03.phase1\", \"semantic_memory_version\": \"2026.03.phase2\", \"evaluator_version\": \"2026.03.phase2\", \"verification_record\": {\"schema_version\": \"1.0\", \"provider\": {\"provider_name\": \"aristotle-cli\", \"adapter_name\": \"structured-verification-adapter\", \"adapter_version\": \"2026.03.phase1\", \"provider_status\": \"submitted\", \"provider_blocker_type\": \"unknown\", \"external_id\": \"72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\", \"external_status\": \"QUEUED\", \"metadata\": {\"provider_name\": \"aristotle-cli\"}}, \"run\": {\"parser_version\": \"2026.03.phase1\", \"evaluator_version\": \"2026.03.phase2\", \"semantic_memory_version\": \"2026.03.phase2\", \"schema_version\": \"1.0\", \"run_id\": \"\", \"workspace_dir\": \"\", \"lean_file\": \"\", \"artifact_paths\": [\"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt\", \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt\"], \"raw_stdout_excerpt\": \"\", \"raw_stderr_excerpt\": \"Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\\n\", \"notes\": \"Submitted Aristotle job without waiting for completion.\", \"timestamps\": {}}, \"verification_status\": \"unknown\", \"theorem_status\": \"unresolved\", \"unsolved_goals\": [], \"generated_lemmas\": [], \"proved_lemmas\": [], \"missing_assumptions\": [], \"counterexamples\": [], \"blocker_observations\": [], \"proof_traces\": [], \"artifact_provenance\": [{\"kind\": \"artifact\", \"path\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt\", \"source\": \"txt\", \"confidence\": 1.0}, {\"kind\": \"artifact\", \"path\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt\", \"source\": \"txt\", \"confidence\": 1.0}], \"raw_text_fallback\": {\"stdout\": \"\", \"stderr\": \"Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\\n\", \"notes\": \"Submitted Aristotle job without waiting for completion.\", \"combined_text\": \"Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\\n\\nSubmitted Aristotle job without waiting for completion.\\nProject created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\\n\"}, \"raw_payload\": {\"provider_result\": {\"status\": \"submitted\", \"blocker_type\": \"unknown\", \"proof_outcome\": \"unknown\", \"signal_summary\": \"\", \"generated_lemmas\": [], \"proved_lemmas\": [], \"candidate_lemmas\": [], \"unresolved_goals\": [], \"blocked_on\": [], \"missing_assumptions\": [], \"artifact_inventory\": [], \"proof_trace_fragments\": [], \"counterexample_witnesses\": [], \"normalized_candidate_lemmas\": [], \"normalized_unresolved_goals\": [], \"new_signal_count\": 0, \"reused_signal_count\": 0, \"suspected_missing_assumptions\": [], \"notes\": \"Submitted Aristotle job without waiting for completion.\", \"confidence\": 0.6, \"raw_stdout\": \"\", \"raw_stderr\": \"Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\\n\", \"artifacts\": [\"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt\", \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt\"], \"external_id\": \"72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\", \"external_status\": \"QUEUED\", \"metadata\": {\"provider_name\": \"aristotle-cli\"}, \"verification_record\": null, \"semantic_summary\": null}}, \"validation_issues\": []}, \"semantic_summary\": {\"artifacts\": [], \"new_exact_count\": 0, \"normalized_equivalent_count\": 0, \"exact_reuse_count\": 0, \"canonical_reuse_count\": 0, \"blocker_reuse_count\": 0, \"duplicate_artifact_count\": 0, \"parser_ambiguity_count\": 0, \"reusable_artifact_count\": 0, \"obstruction_artifact_count\": 0, \"boundary_artifact_count\": 0, \"proof_motif_count\": 0, \"by_kind\": {}}}",
+      "new_signal_count": 0,
+      "reused_signal_count": 0,
+      "discovery_question_id": "erdos-123-dq-boundary",
+      "attempt_count": 1,
+      "verification_schema_version": "1.0",
+      "parser_version": "2026.03.phase1",
+      "semantic_memory_version": "2026.03.phase2",
+      "evaluator_version": "2026.03.phase2",
+      "move_family": "legacy.underspecify",
+      "move_family_version": "v1",
+      "theorem_family_id": "erdos_problem",
+      "move_title": "legacy.underspecify",
+      "rationale": "Minimal context is the safest first pass for exposing missing structure.",
+      "candidate_metadata_json": "{\"legacy_move\": true, \"campaign_focus\": [\"d-completeness boundary cases\", \"special parameter triples\", \"reusable covering lemmas\", \"antichain and divisibility extraction lemmas\", \"obstruction patterns and counterexamples\", \"bridge lemmas from solved motifs\", \"transfer-worthy motifs\"], \"campaign_priority\": 0.0, \"preferred_for_campaign\": false, \"deprioritized_for_campaign\": false, \"novelty_score\": 1.1, \"reuse_potential\": 0.8, \"obstruction_targeting\": 0.0, \"diversity_group\": \"mapping\", \"duplicate_penalty\": 0.0, \"no_signal_penalty\": 0.0, \"transfer_score\": 0.0}",
+      "modification": {
+        "mode": "minimal_context"
+      },
+      "candidate_metadata": {
+        "legacy_move": true,
+        "campaign_focus": [
+          "d-completeness boundary cases",
+          "special parameter triples",
+          "reusable covering lemmas",
+          "antichain and divisibility extraction lemmas",
+          "obstruction patterns and counterexamples",
+          "bridge lemmas from solved motifs",
+          "transfer-worthy motifs"
+        ],
+        "campaign_priority": 0.0,
+        "preferred_for_campaign": false,
+        "deprioritized_for_campaign": false,
+        "novelty_score": 1.1,
+        "reuse_potential": 0.8,
+        "obstruction_targeting": 0.0,
+        "diversity_group": "mapping",
+        "duplicate_penalty": 0.0,
+        "no_signal_penalty": 0.0,
+        "transfer_score": 0.0
+      },
+      "outcome": {
+        "provider_result": {
+          "status": "submitted",
+          "blocker_type": "unknown",
+          "proof_outcome": "unknown",
+          "signal_summary": "remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown",
+          "generated_lemmas": [],
+          "proved_lemmas": [],
+          "candidate_lemmas": [],
+          "unresolved_goals": [],
+          "blocked_on": [],
+          "missing_assumptions": [],
+          "artifact_inventory": [
+            {
+              "path": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt",
+              "kind": "txt",
+              "size_bytes": 54
+            },
+            {
+              "path": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt",
+              "kind": "txt",
+              "size_bytes": 0
+            }
+          ],
+          "proof_trace_fragments": [],
+          "counterexample_witnesses": [],
+          "normalized_candidate_lemmas": [],
+          "normalized_unresolved_goals": [],
+          "new_signal_count": 0,
+          "reused_signal_count": 0,
+          "suspected_missing_assumptions": [],
+          "notes": "Submitted Aristotle job without waiting for completion.",
+          "confidence": 0.6,
+          "raw_stdout": "",
+          "raw_stderr": "Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\n",
+          "artifacts": [
+            "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt",
+            "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt"
+          ],
+          "external_id": "72d3ca62-8ac6-4088-9d37-1d9f45d71fa4",
+          "external_status": "QUEUED",
+          "metadata": {
+            "provider_name": "aristotle-cli",
+            "verification_record": {
+              "schema_version": "1.0",
+              "provider": {
+                "provider_name": "aristotle-cli",
+                "adapter_name": "structured-verification-adapter",
+                "adapter_version": "2026.03.phase1",
+                "provider_status": "submitted",
+                "provider_blocker_type": "unknown",
+                "external_id": "72d3ca62-8ac6-4088-9d37-1d9f45d71fa4",
+                "external_status": "QUEUED",
+                "metadata": {
+                  "provider_name": "aristotle-cli"
+                }
+              },
+              "run": {
+                "parser_version": "2026.03.phase1",
+                "evaluator_version": "2026.03.phase2",
+                "semantic_memory_version": "2026.03.phase2",
+                "schema_version": "1.0",
+                "run_id": "",
+                "workspace_dir": "",
+                "lean_file": "",
+                "artifact_paths": [
+                  "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt",
+                  "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt"
+                ],
+                "raw_stdout_excerpt": "",
+                "raw_stderr_excerpt": "Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\n",
+                "notes": "Submitted Aristotle job without waiting for completion.",
+                "timestamps": {}
+              },
+              "verification_status": "unknown",
+              "theorem_status": "unresolved",
+              "unsolved_goals": [],
+              "generated_lemmas": [],
+              "proved_lemmas": [],
+              "missing_assumptions": [],
+              "counterexamples": [],
+              "blocker_observations": [],
+              "proof_traces": [],
+              "artifact_provenance": [
+                {
+                  "kind": "artifact",
+                  "path": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt",
+                  "source": "txt",
+                  "confidence": 1.0
+                },
+                {
+                  "kind": "artifact",
+                  "path": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt",
+                  "source": "txt",
+                  "confidence": 1.0
+                }
+              ],
+              "raw_text_fallback": {
+                "stdout": "",
+                "stderr": "Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\n",
+                "notes": "Submitted Aristotle job without waiting for completion.",
+                "combined_text": "Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\n\nSubmitted Aristotle job without waiting for completion.\nProject created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\n"
+              },
+              "raw_payload": {
+                "provider_result": {
+                  "status": "submitted",
+                  "blocker_type": "unknown",
+                  "proof_outcome": "unknown",
+                  "signal_summary": "",
+                  "generated_lemmas": [],
+                  "proved_lemmas": [],
+                  "candidate_lemmas": [],
+                  "unresolved_goals": [],
+                  "blocked_on": [],
+                  "missing_assumptions": [],
+                  "artifact_inventory": [],
+                  "proof_trace_fragments": [],
+                  "counterexample_witnesses": [],
+                  "normalized_candidate_lemmas": [],
+                  "normalized_unresolved_goals": [],
+                  "new_signal_count": 0,
+                  "reused_signal_count": 0,
+                  "suspected_missing_assumptions": [],
+                  "notes": "Submitted Aristotle job without waiting for completion.",
+                  "confidence": 0.6,
+                  "raw_stdout": "",
+                  "raw_stderr": "Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\n",
+                  "artifacts": [
+                    "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt",
+                    "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt"
+                  ],
+                  "external_id": "72d3ca62-8ac6-4088-9d37-1d9f45d71fa4",
+                  "external_status": "QUEUED",
+                  "metadata": {
+                    "provider_name": "aristotle-cli"
+                  },
+                  "verification_record": null,
+                  "semantic_summary": null
+                }
+              },
+              "validation_issues": []
+            },
+            "semantic_summary": {
+              "artifacts": [],
+              "new_exact_count": 0,
+              "normalized_equivalent_count": 0,
+              "exact_reuse_count": 0,
+              "canonical_reuse_count": 0,
+              "blocker_reuse_count": 0,
+              "duplicate_artifact_count": 0,
+              "parser_ambiguity_count": 0,
+              "reusable_artifact_count": 0,
+              "obstruction_artifact_count": 0,
+              "boundary_artifact_count": 0,
+              "proof_motif_count": 0,
+              "by_kind": {}
+            }
+          },
+          "verification_record": {
+            "schema_version": "1.0",
+            "provider": {
+              "provider_name": "aristotle-cli",
+              "adapter_name": "structured-verification-adapter",
+              "adapter_version": "2026.03.phase1",
+              "provider_status": "submitted",
+              "provider_blocker_type": "unknown",
+              "external_id": "72d3ca62-8ac6-4088-9d37-1d9f45d71fa4",
+              "external_status": "QUEUED",
+              "metadata": {
+                "provider_name": "aristotle-cli"
+              }
+            },
+            "run": {
+              "parser_version": "2026.03.phase1",
+              "evaluator_version": "2026.03.phase2",
+              "semantic_memory_version": "2026.03.phase2",
+              "schema_version": "1.0",
+              "run_id": "",
+              "workspace_dir": "",
+              "lean_file": "",
+              "artifact_paths": [
+                "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt",
+                "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt"
+              ],
+              "raw_stdout_excerpt": "",
+              "raw_stderr_excerpt": "Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\n",
+              "notes": "Submitted Aristotle job without waiting for completion.",
+              "timestamps": {}
+            },
+            "verification_status": "unknown",
+            "theorem_status": "unresolved",
+            "unsolved_goals": [],
+            "generated_lemmas": [],
+            "proved_lemmas": [],
+            "missing_assumptions": [],
+            "counterexamples": [],
+            "blocker_observations": [],
+            "proof_traces": [],
+            "artifact_provenance": [
+              {
+                "kind": "artifact",
+                "path": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt",
+                "source": "txt",
+                "confidence": 1.0
+              },
+              {
+                "kind": "artifact",
+                "path": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt",
+                "source": "txt",
+                "confidence": 1.0
+              }
+            ],
+            "raw_text_fallback": {
+              "stdout": "",
+              "stderr": "Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\n",
+              "notes": "Submitted Aristotle job without waiting for completion.",
+              "combined_text": "Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\n\nSubmitted Aristotle job without waiting for completion.\nProject created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\n"
+            },
+            "raw_payload": {
+              "provider_result": {
+                "status": "submitted",
+                "blocker_type": "unknown",
+                "proof_outcome": "unknown",
+                "signal_summary": "",
+                "generated_lemmas": [],
+                "proved_lemmas": [],
+                "candidate_lemmas": [],
+                "unresolved_goals": [],
+                "blocked_on": [],
+                "missing_assumptions": [],
+                "artifact_inventory": [],
+                "proof_trace_fragments": [],
+                "counterexample_witnesses": [],
+                "normalized_candidate_lemmas": [],
+                "normalized_unresolved_goals": [],
+                "new_signal_count": 0,
+                "reused_signal_count": 0,
+                "suspected_missing_assumptions": [],
+                "notes": "Submitted Aristotle job without waiting for completion.",
+                "confidence": 0.6,
+                "raw_stdout": "",
+                "raw_stderr": "Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\n",
+                "artifacts": [
+                  "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt",
+                  "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt"
+                ],
+                "external_id": "72d3ca62-8ac6-4088-9d37-1d9f45d71fa4",
+                "external_status": "QUEUED",
+                "metadata": {
+                  "provider_name": "aristotle-cli"
+                },
+                "verification_record": null,
+                "semantic_summary": null
+              }
+            },
+            "validation_issues": []
+          },
+          "semantic_summary": {
+            "artifacts": [],
+            "new_exact_count": 0,
+            "normalized_equivalent_count": 0,
+            "exact_reuse_count": 0,
+            "canonical_reuse_count": 0,
+            "blocker_reuse_count": 0,
+            "duplicate_artifact_count": 0,
+            "parser_ambiguity_count": 0,
+            "reusable_artifact_count": 0,
+            "obstruction_artifact_count": 0,
+            "boundary_artifact_count": 0,
+            "proof_motif_count": 0,
+            "by_kind": {}
+          }
+        }
+      },
+      "ingestion": {
+        "proof_outcome": "unknown",
+        "signal_summary": "remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown",
+        "candidate_lemmas": [],
+        "normalized_candidate_lemmas": [],
+        "unresolved_goals": [],
+        "normalized_unresolved_goals": [],
+        "blocked_on": [],
+        "missing_assumptions": [],
+        "artifact_inventory": [
+          {
+            "path": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt",
+            "kind": "txt",
+            "size_bytes": 54
+          },
+          {
+            "path": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt",
+            "kind": "txt",
+            "size_bytes": 0
+          }
+        ],
+        "proof_trace_fragments": [],
+        "counterexample_witnesses": [],
+        "new_signal_count": 0,
+        "reused_signal_count": 0,
+        "verification_schema_version": "1.0",
+        "parser_version": "2026.03.phase1",
+        "semantic_memory_version": "2026.03.phase2",
+        "evaluator_version": "2026.03.phase2",
+        "verification_record": {
+          "schema_version": "1.0",
+          "provider": {
+            "provider_name": "aristotle-cli",
+            "adapter_name": "structured-verification-adapter",
+            "adapter_version": "2026.03.phase1",
+            "provider_status": "submitted",
+            "provider_blocker_type": "unknown",
+            "external_id": "72d3ca62-8ac6-4088-9d37-1d9f45d71fa4",
+            "external_status": "QUEUED",
+            "metadata": {
+              "provider_name": "aristotle-cli"
+            }
+          },
+          "run": {
+            "parser_version": "2026.03.phase1",
+            "evaluator_version": "2026.03.phase2",
+            "semantic_memory_version": "2026.03.phase2",
+            "schema_version": "1.0",
+            "run_id": "",
+            "workspace_dir": "",
+            "lean_file": "",
+            "artifact_paths": [
+              "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt",
+              "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt"
+            ],
+            "raw_stdout_excerpt": "",
+            "raw_stderr_excerpt": "Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\n",
+            "notes": "Submitted Aristotle job without waiting for completion.",
+            "timestamps": {}
+          },
+          "verification_status": "unknown",
+          "theorem_status": "unresolved",
+          "unsolved_goals": [],
+          "generated_lemmas": [],
+          "proved_lemmas": [],
+          "missing_assumptions": [],
+          "counterexamples": [],
+          "blocker_observations": [],
+          "proof_traces": [],
+          "artifact_provenance": [
+            {
+              "kind": "artifact",
+              "path": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt",
+              "source": "txt",
+              "confidence": 1.0
+            },
+            {
+              "kind": "artifact",
+              "path": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt",
+              "source": "txt",
+              "confidence": 1.0
+            }
+          ],
+          "raw_text_fallback": {
+            "stdout": "",
+            "stderr": "Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\n",
+            "notes": "Submitted Aristotle job without waiting for completion.",
+            "combined_text": "Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\n\nSubmitted Aristotle job without waiting for completion.\nProject created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\n"
+          },
+          "raw_payload": {
+            "provider_result": {
+              "status": "submitted",
+              "blocker_type": "unknown",
+              "proof_outcome": "unknown",
+              "signal_summary": "",
+              "generated_lemmas": [],
+              "proved_lemmas": [],
+              "candidate_lemmas": [],
+              "unresolved_goals": [],
+              "blocked_on": [],
+              "missing_assumptions": [],
+              "artifact_inventory": [],
+              "proof_trace_fragments": [],
+              "counterexample_witnesses": [],
+              "normalized_candidate_lemmas": [],
+              "normalized_unresolved_goals": [],
+              "new_signal_count": 0,
+              "reused_signal_count": 0,
+              "suspected_missing_assumptions": [],
+              "notes": "Submitted Aristotle job without waiting for completion.",
+              "confidence": 0.6,
+              "raw_stdout": "",
+              "raw_stderr": "Project created: 72d3ca62-8ac6-4088-9d37-1d9f45d71fa4\n",
+              "artifacts": [
+                "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stdout.txt",
+                "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_submit_stderr.txt"
+              ],
+              "external_id": "72d3ca62-8ac6-4088-9d37-1d9f45d71fa4",
+              "external_status": "QUEUED",
+              "metadata": {
+                "provider_name": "aristotle-cli"
+              },
+              "verification_record": null,
+              "semantic_summary": null
+            }
+          },
+          "validation_issues": []
+        },
+        "semantic_summary": {
+          "artifacts": [],
+          "new_exact_count": 0,
+          "normalized_equivalent_count": 0,
+          "exact_reuse_count": 0,
+          "canonical_reuse_count": 0,
+          "blocker_reuse_count": 0,
+          "duplicate_artifact_count": 0,
+          "parser_ambiguity_count": 0,
+          "reusable_artifact_count": 0,
+          "obstruction_artifact_count": 0,
+          "boundary_artifact_count": 0,
+          "proof_motif_count": 0,
+          "by_kind": {}
+        }
+      }
+    }
+  ],
+  "chosen_submissions": [
+    {
+      "experiment_id": "bff4c05f-d103-47ac-83f8-1164972a1bca",
+      "conjecture_id": "erdos-123",
+      "move": "underspecify",
+      "move_family": "legacy.underspecify",
+      "theorem_family_id": "erdos_problem",
+      "phase": "mapping",
+      "status": "submitted",
+      "external_id": "72d3ca62-8ac6-4088-9d37-1d9f45d71fa4",
+      "external_status": "QUEUED",
+      "reason": "chosen by deterministic fallback policy; move_family=legacy.underspecify; rationale=Minimal context is the safest first pass for exposing missing structure."
+    }
+  ],
+  "skipped_candidates": [
+    {
+      "experiment_id": "d60ecec3-bd00-43c3-9e95-a74e54e037a9",
+      "conjecture_id": "erdos-123",
+      "reason": "frontier throttled for duplicate move-family pressure"
+    },
+    {
+      "experiment_id": "ce470af6-b94b-47f7-8474-fd0eb880aea0",
+      "conjecture_id": "erdos-123",
+      "reason": "frontier throttled for duplicate move-family pressure"
+    },
+    {
+      "experiment_id": "bf67ff6b-246b-442c-a9d2-96e69076a9a5",
+      "conjecture_id": "erdos-123",
+      "reason": "frontier throttled for duplicate move-family pressure"
+    }
+  ],
+  "candidate_audits": [
+    {
+      "experiment_id": "bff4c05f-d103-47ac-83f8-1164972a1bca",
+      "conjecture_id": "erdos-123",
+      "rank_position": 1,
+      "selected": true,
+      "selection_reason": "selected",
+      "policy_score": 6.79,
+      "score_breakdown": {
+        "policy_version": "2026.03.phase6",
+        "bonuses": {
+          "discovery_priority": 0.0,
+          "campaign_priority": 0.0,
+          "signal_priority": 0.0,
+          "transfer_opportunity": 0.0,
+          "reuse_potential": 0.8,
+          "obstruction_targeting": 0.0,
+          "semantic_novelty": 0.9900000000000001,
+          "targets_recurring_structure": 0.0,
+          "move_family_priority": 5.0
+        },
+        "penalties": {
+          "active_load": 0.0,
+          "existing_coverage": 0.0,
+          "no_signal_penalty": 0.0,
+          "duplicate_active_signature": 0.0
+        },
+        "heuristic_key": [
+          0,
+          0,
+          0,
+          0,
+          -0.0,
+          -0.0,
+          -0.8,
+          -0.0,
+          -1.1,
+          1,
+          0.0,
+          0,
+          0,
+          "legacy.underspecify",
+          "erdos-123"
+        ],
+        "score": 6.79
+      },
+      "candidate": {
+        "experiment_id": "bff4c05f-d103-47ac-83f8-1164972a1bca",
+        "project_id": "erdos-combo-001",
+        "conjecture_id": "erdos-123",
+        "existing_experiments": 0,
+        "phase": "mapping",
+        "move": "underspecify",
+        "move_family": "legacy.underspecify",
+        "theorem_family_id": "erdos_problem",
+        "move_title": "legacy.underspecify",
+        "objective": "Fill in all sorries. Strip imports to expose hidden dependencies. Report intermediate lemmas or unresolved goals. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "expected_signal": "Surface hidden assumptions and early lemma needs. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "modification": {
+          "mode": "minimal_context"
+        },
+        "workspace_dir": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca",
+        "lean_file": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/Main.lean",
+        "rationale": "Minimal context is the safest first pass for exposing missing structure.",
+        "candidate_metadata": {
+          "legacy_move": true,
+          "campaign_focus": [
+            "d-completeness boundary cases",
+            "special parameter triples",
+            "reusable covering lemmas",
+            "antichain and divisibility extraction lemmas",
+            "obstruction patterns and counterexamples",
+            "bridge lemmas from solved motifs",
+            "transfer-worthy motifs"
+          ],
+          "campaign_priority": 0.0,
+          "preferred_for_campaign": false,
+          "deprioritized_for_campaign": false,
+          "novelty_score": 1.1,
+          "reuse_potential": 0.8,
+          "obstruction_targeting": 0.0,
+          "diversity_group": "mapping",
+          "duplicate_penalty": 0.0,
+          "no_signal_penalty": 0.0,
+          "transfer_score": 0.0
+        },
+        "discovery_question_id": "erdos-123-dq-boundary",
+        "discovery_question": "Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "discovery_priority": 0,
+        "active_count_for_conjecture": 0,
+        "duplicate_active_signature": false,
+        "targets_recurring_structure": false,
+        "signal_priority": 0,
+        "no_signal_penalty": 0.0,
+        "semantic_novelty": 1.1,
+        "reuse_potential": 0.8,
+        "obstruction_targeting": 0.0,
+        "transfer_opportunity": 0.0,
+        "campaign_priority": 0.0
+      }
+    },
+    {
+      "experiment_id": "64f09d80-dd48-4a75-aaff-1439367f38da",
+      "conjecture_id": "erdos-123",
+      "rank_position": 2,
+      "selected": false,
+      "selection_reason": "",
+      "policy_score": 6.81,
+      "score_breakdown": {
+        "policy_version": "2026.03.phase6",
+        "bonuses": {
+          "discovery_priority": 0.0,
+          "campaign_priority": 0.0,
+          "signal_priority": 0.0,
+          "transfer_opportunity": 0.0,
+          "reuse_potential": 0.8,
+          "obstruction_targeting": 1.2,
+          "semantic_novelty": 0.81,
+          "targets_recurring_structure": 0.0,
+          "move_family_priority": 4.0
+        },
+        "penalties": {
+          "active_load": 0.0,
+          "existing_coverage": 0.0,
+          "no_signal_penalty": 0.0,
+          "duplicate_active_signature": 0.0
+        },
+        "heuristic_key": [
+          0,
+          0,
+          0,
+          1,
+          -0.0,
+          -0.0,
+          -0.8,
+          -1.2,
+          -0.9,
+          1,
+          0.0,
+          0,
+          0,
+          "legacy.perturb_assumption",
+          "erdos-123"
+        ],
+        "score": 6.81
+      },
+      "candidate": {
+        "experiment_id": "64f09d80-dd48-4a75-aaff-1439367f38da",
+        "project_id": "erdos-combo-001",
+        "conjecture_id": "erdos-123",
+        "existing_experiments": 0,
+        "phase": "mapping",
+        "move": "perturb_assumption",
+        "move_family": "legacy.perturb_assumption",
+        "theorem_family_id": "erdos_problem",
+        "move_title": "legacy.perturb assumption",
+        "objective": "Fill in all sorries. The assumption 'a, b, c are pairwise coprime' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "expected_signal": "Measure assumption sensitivity and classify the blocker. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "modification": {
+          "assumption": "a, b, c are pairwise coprime",
+          "operation": "remove"
+        },
+        "workspace_dir": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/64f09d80-dd48-4a75-aaff-1439367f38da",
+        "lean_file": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/64f09d80-dd48-4a75-aaff-1439367f38da/Main.lean",
+        "rationale": "Assumption 'a, b, c are pairwise coprime' has not yet been stress-tested under verification pressure.",
+        "candidate_metadata": {
+          "campaign_focus": [
+            "d-completeness boundary cases",
+            "special parameter triples",
+            "reusable covering lemmas",
+            "antichain and divisibility extraction lemmas",
+            "obstruction patterns and counterexamples",
+            "bridge lemmas from solved motifs",
+            "transfer-worthy motifs"
+          ],
+          "campaign_priority": 0.0,
+          "preferred_for_campaign": false,
+          "deprioritized_for_campaign": false,
+          "novelty_score": 0.9,
+          "reuse_potential": 0.8,
+          "obstruction_targeting": 1.2,
+          "diversity_group": "assumption_boundary",
+          "duplicate_penalty": 0.0,
+          "no_signal_penalty": 0.0,
+          "transfer_score": 0.0
+        },
+        "discovery_question_id": "erdos-123-dq-boundary",
+        "discovery_question": "Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "discovery_priority": 0,
+        "active_count_for_conjecture": 0,
+        "duplicate_active_signature": false,
+        "targets_recurring_structure": false,
+        "signal_priority": 0,
+        "no_signal_penalty": 0.0,
+        "semantic_novelty": 0.9,
+        "reuse_potential": 0.8,
+        "obstruction_targeting": 1.2,
+        "transfer_opportunity": 0.0,
+        "campaign_priority": 0.0
+      }
+    },
+    {
+      "experiment_id": "8dee98ae-3ce1-48fc-ad80-6542462ad3e3",
+      "conjecture_id": "erdos-123",
+      "rank_position": 3,
+      "selected": false,
+      "selection_reason": "",
+      "policy_score": 6.81,
+      "score_breakdown": {
+        "policy_version": "2026.03.phase6",
+        "bonuses": {
+          "discovery_priority": 0.0,
+          "campaign_priority": 0.0,
+          "signal_priority": 0.0,
+          "transfer_opportunity": 0.0,
+          "reuse_potential": 0.8,
+          "obstruction_targeting": 1.2,
+          "semantic_novelty": 0.81,
+          "targets_recurring_structure": 0.0,
+          "move_family_priority": 4.0
+        },
+        "penalties": {
+          "active_load": 0.0,
+          "existing_coverage": 0.0,
+          "no_signal_penalty": 0.0,
+          "duplicate_active_signature": 0.0
+        },
+        "heuristic_key": [
+          0,
+          0,
+          0,
+          1,
+          -0.0,
+          -0.0,
+          -0.8,
+          -1.2,
+          -0.9,
+          1,
+          0.0,
+          0,
+          0,
+          "legacy.perturb_assumption",
+          "erdos-123"
+        ],
+        "score": 6.81
+      },
+      "candidate": {
+        "experiment_id": "8dee98ae-3ce1-48fc-ad80-6542462ad3e3",
+        "project_id": "erdos-combo-001",
+        "conjecture_id": "erdos-123",
+        "existing_experiments": 0,
+        "phase": "mapping",
+        "move": "perturb_assumption",
+        "move_family": "legacy.perturb_assumption",
+        "theorem_family_id": "erdos_problem",
+        "move_title": "legacy.perturb assumption",
+        "objective": "Fill in all sorries. The assumption 'no chosen summand divides another' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "expected_signal": "Measure assumption sensitivity and classify the blocker. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "modification": {
+          "assumption": "no chosen summand divides another",
+          "operation": "remove"
+        },
+        "workspace_dir": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/8dee98ae-3ce1-48fc-ad80-6542462ad3e3",
+        "lean_file": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/8dee98ae-3ce1-48fc-ad80-6542462ad3e3/Main.lean",
+        "rationale": "Assumption 'no chosen summand divides another' has not yet been stress-tested under verification pressure.",
+        "candidate_metadata": {
+          "campaign_focus": [
+            "d-completeness boundary cases",
+            "special parameter triples",
+            "reusable covering lemmas",
+            "antichain and divisibility extraction lemmas",
+            "obstruction patterns and counterexamples",
+            "bridge lemmas from solved motifs",
+            "transfer-worthy motifs"
+          ],
+          "campaign_priority": 0.0,
+          "preferred_for_campaign": false,
+          "deprioritized_for_campaign": false,
+          "novelty_score": 0.9,
+          "reuse_potential": 0.8,
+          "obstruction_targeting": 1.2,
+          "diversity_group": "assumption_boundary",
+          "duplicate_penalty": 0.0,
+          "no_signal_penalty": 0.0,
+          "transfer_score": 0.0
+        },
+        "discovery_question_id": "erdos-123-dq-boundary",
+        "discovery_question": "Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "discovery_priority": 0,
+        "active_count_for_conjecture": 0,
+        "duplicate_active_signature": false,
+        "targets_recurring_structure": false,
+        "signal_priority": 0,
+        "no_signal_penalty": 0.0,
+        "semantic_novelty": 0.9,
+        "reuse_potential": 0.8,
+        "obstruction_targeting": 1.2,
+        "transfer_opportunity": 0.0,
+        "campaign_priority": 0.0
+      }
+    },
+    {
+      "experiment_id": "d60ecec3-bd00-43c3-9e95-a74e54e037a9",
+      "conjecture_id": "erdos-123",
+      "rank_position": 4,
+      "selected": false,
+      "selection_reason": "frontier throttled for duplicate move-family pressure",
+      "policy_score": 6.81,
+      "score_breakdown": {
+        "policy_version": "2026.03.phase6",
+        "bonuses": {
+          "discovery_priority": 0.0,
+          "campaign_priority": 0.0,
+          "signal_priority": 0.0,
+          "transfer_opportunity": 0.0,
+          "reuse_potential": 0.8,
+          "obstruction_targeting": 1.2,
+          "semantic_novelty": 0.81,
+          "targets_recurring_structure": 0.0,
+          "move_family_priority": 4.0
+        },
+        "penalties": {
+          "active_load": 0.0,
+          "existing_coverage": 0.0,
+          "no_signal_penalty": 0.0,
+          "duplicate_active_signature": 0.0
+        },
+        "heuristic_key": [
+          0,
+          0,
+          0,
+          1,
+          -0.0,
+          -0.0,
+          -0.8,
+          -1.2,
+          -0.9,
+          1,
+          0.0,
+          0,
+          0,
+          "legacy.perturb_assumption",
+          "erdos-123"
+        ],
+        "score": 6.81
+      },
+      "candidate": {
+        "experiment_id": "d60ecec3-bd00-43c3-9e95-a74e54e037a9",
+        "project_id": "erdos-combo-001",
+        "conjecture_id": "erdos-123",
+        "existing_experiments": 0,
+        "phase": "mapping",
+        "move": "perturb_assumption",
+        "move_family": "legacy.perturb_assumption",
+        "theorem_family_id": "erdos_problem",
+        "move_title": "legacy.perturb assumption",
+        "objective": "Fill in all sorries. The assumption 'the representation is required only for sufficiently large integers' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "expected_signal": "Measure assumption sensitivity and classify the blocker. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "modification": {
+          "assumption": "the representation is required only for sufficiently large integers",
+          "operation": "remove"
+        },
+        "workspace_dir": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/d60ecec3-bd00-43c3-9e95-a74e54e037a9",
+        "lean_file": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/d60ecec3-bd00-43c3-9e95-a74e54e037a9/Main.lean",
+        "rationale": "Assumption 'the representation is required only for sufficiently large integers' has not yet been stress-tested under verification pressure.",
+        "candidate_metadata": {
+          "campaign_focus": [
+            "d-completeness boundary cases",
+            "special parameter triples",
+            "reusable covering lemmas",
+            "antichain and divisibility extraction lemmas",
+            "obstruction patterns and counterexamples",
+            "bridge lemmas from solved motifs",
+            "transfer-worthy motifs"
+          ],
+          "campaign_priority": 0.0,
+          "preferred_for_campaign": false,
+          "deprioritized_for_campaign": false,
+          "novelty_score": 0.9,
+          "reuse_potential": 0.8,
+          "obstruction_targeting": 1.2,
+          "diversity_group": "assumption_boundary",
+          "duplicate_penalty": 0.0,
+          "no_signal_penalty": 0.0,
+          "transfer_score": 0.0
+        },
+        "discovery_question_id": "erdos-123-dq-boundary",
+        "discovery_question": "Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "discovery_priority": 0,
+        "active_count_for_conjecture": 0,
+        "duplicate_active_signature": false,
+        "targets_recurring_structure": false,
+        "signal_priority": 0,
+        "no_signal_penalty": 0.0,
+        "semantic_novelty": 0.9,
+        "reuse_potential": 0.8,
+        "obstruction_targeting": 1.2,
+        "transfer_opportunity": 0.0,
+        "campaign_priority": 0.0
+      }
+    },
+    {
+      "experiment_id": "ce470af6-b94b-47f7-8474-fd0eb880aea0",
+      "conjecture_id": "erdos-123",
+      "rank_position": 5,
+      "selected": false,
+      "selection_reason": "frontier throttled for duplicate move-family pressure",
+      "policy_score": 6.31,
+      "score_breakdown": {
+        "policy_version": "2026.03.phase6",
+        "bonuses": {
+          "discovery_priority": 0.0,
+          "campaign_priority": 0.0,
+          "signal_priority": 0.0,
+          "transfer_opportunity": 0.0,
+          "reuse_potential": 0.8,
+          "obstruction_targeting": 0.7,
+          "semantic_novelty": 0.81,
+          "targets_recurring_structure": 0.0,
+          "move_family_priority": 4.0
+        },
+        "penalties": {
+          "active_load": 0.0,
+          "existing_coverage": 0.0,
+          "no_signal_penalty": 0.0,
+          "duplicate_active_signature": 0.0
+        },
+        "heuristic_key": [
+          0,
+          0,
+          0,
+          1,
+          -0.0,
+          -0.0,
+          -0.8,
+          -0.7,
+          -0.9,
+          1,
+          0.0,
+          0,
+          0,
+          "legacy.perturb_assumption",
+          "erdos-123"
+        ],
+        "score": 6.31
+      },
+      "candidate": {
+        "experiment_id": "ce470af6-b94b-47f7-8474-fd0eb880aea0",
+        "project_id": "erdos-combo-001",
+        "conjecture_id": "erdos-123",
+        "existing_experiments": 0,
+        "phase": "mapping",
+        "move": "perturb_assumption",
+        "move_family": "legacy.perturb_assumption",
+        "theorem_family_id": "erdos_problem",
+        "move_title": "legacy.perturb assumption",
+        "objective": "Fill in all sorries. The assumption 'a, b, c are integers greater than 1' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "expected_signal": "Measure assumption sensitivity and classify the blocker. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "modification": {
+          "assumption": "a, b, c are integers greater than 1",
+          "operation": "remove"
+        },
+        "workspace_dir": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ce470af6-b94b-47f7-8474-fd0eb880aea0",
+        "lean_file": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ce470af6-b94b-47f7-8474-fd0eb880aea0/Main.lean",
+        "rationale": "Assumption 'a, b, c are integers greater than 1' has not yet been stress-tested under verification pressure.",
+        "candidate_metadata": {
+          "campaign_focus": [
+            "d-completeness boundary cases",
+            "special parameter triples",
+            "reusable covering lemmas",
+            "antichain and divisibility extraction lemmas",
+            "obstruction patterns and counterexamples",
+            "bridge lemmas from solved motifs",
+            "transfer-worthy motifs"
+          ],
+          "campaign_priority": 0.0,
+          "preferred_for_campaign": false,
+          "deprioritized_for_campaign": false,
+          "novelty_score": 0.9,
+          "reuse_potential": 0.8,
+          "obstruction_targeting": 0.7,
+          "diversity_group": "assumption_boundary",
+          "duplicate_penalty": 0.0,
+          "no_signal_penalty": 0.0,
+          "transfer_score": 0.0
+        },
+        "discovery_question_id": "erdos-123-dq-boundary",
+        "discovery_question": "Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "discovery_priority": 0,
+        "active_count_for_conjecture": 0,
+        "duplicate_active_signature": false,
+        "targets_recurring_structure": false,
+        "signal_priority": 0,
+        "no_signal_penalty": 0.0,
+        "semantic_novelty": 0.9,
+        "reuse_potential": 0.8,
+        "obstruction_targeting": 0.7,
+        "transfer_opportunity": 0.0,
+        "campaign_priority": 0.0
+      }
+    },
+    {
+      "experiment_id": "bf67ff6b-246b-442c-a9d2-96e69076a9a5",
+      "conjecture_id": "erdos-123",
+      "rank_position": 6,
+      "selected": false,
+      "selection_reason": "frontier throttled for duplicate move-family pressure",
+      "policy_score": 6.31,
+      "score_breakdown": {
+        "policy_version": "2026.03.phase6",
+        "bonuses": {
+          "discovery_priority": 0.0,
+          "campaign_priority": 0.0,
+          "signal_priority": 0.0,
+          "transfer_opportunity": 0.0,
+          "reuse_potential": 0.8,
+          "obstruction_targeting": 0.7,
+          "semantic_novelty": 0.81,
+          "targets_recurring_structure": 0.0,
+          "move_family_priority": 4.0
+        },
+        "penalties": {
+          "active_load": 0.0,
+          "existing_coverage": 0.0,
+          "no_signal_penalty": 0.0,
+          "duplicate_active_signature": 0.0
+        },
+        "heuristic_key": [
+          0,
+          0,
+          0,
+          1,
+          -0.0,
+          -0.0,
+          -0.8,
+          -0.7,
+          -0.9,
+          1,
+          0.0,
+          0,
+          0,
+          "legacy.perturb_assumption",
+          "erdos-123"
+        ],
+        "score": 6.31
+      },
+      "candidate": {
+        "experiment_id": "bf67ff6b-246b-442c-a9d2-96e69076a9a5",
+        "project_id": "erdos-combo-001",
+        "conjecture_id": "erdos-123",
+        "existing_experiments": 0,
+        "phase": "mapping",
+        "move": "perturb_assumption",
+        "move_family": "legacy.perturb_assumption",
+        "theorem_family_id": "erdos_problem",
+        "move_title": "legacy.perturb assumption",
+        "objective": "Fill in all sorries. The assumption 'summands are distinct' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "expected_signal": "Measure assumption sensitivity and classify the blocker. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "modification": {
+          "assumption": "summands are distinct",
+          "operation": "remove"
+        },
+        "workspace_dir": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bf67ff6b-246b-442c-a9d2-96e69076a9a5",
+        "lean_file": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bf67ff6b-246b-442c-a9d2-96e69076a9a5/Main.lean",
+        "rationale": "Assumption 'summands are distinct' has not yet been stress-tested under verification pressure.",
+        "candidate_metadata": {
+          "campaign_focus": [
+            "d-completeness boundary cases",
+            "special parameter triples",
+            "reusable covering lemmas",
+            "antichain and divisibility extraction lemmas",
+            "obstruction patterns and counterexamples",
+            "bridge lemmas from solved motifs",
+            "transfer-worthy motifs"
+          ],
+          "campaign_priority": 0.0,
+          "preferred_for_campaign": false,
+          "deprioritized_for_campaign": false,
+          "novelty_score": 0.9,
+          "reuse_potential": 0.8,
+          "obstruction_targeting": 0.7,
+          "diversity_group": "assumption_boundary",
+          "duplicate_penalty": 0.0,
+          "no_signal_penalty": 0.0,
+          "transfer_score": 0.0
+        },
+        "discovery_question_id": "erdos-123-dq-boundary",
+        "discovery_question": "Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "discovery_priority": 0,
+        "active_count_for_conjecture": 0,
+        "duplicate_active_signature": false,
+        "targets_recurring_structure": false,
+        "signal_priority": 0,
+        "no_signal_penalty": 0.0,
+        "semantic_novelty": 0.9,
+        "reuse_potential": 0.8,
+        "obstruction_targeting": 0.7,
+        "transfer_opportunity": 0.0,
+        "campaign_priority": 0.0
+      }
+    },
+    {
+      "experiment_id": "5ae24c44-4347-4543-87ca-8f35126b3cdc",
+      "conjecture_id": "erdos-123",
+      "rank_position": 7,
+      "selected": false,
+      "selection_reason": "",
+      "policy_score": 11.428,
+      "score_breakdown": {
+        "policy_version": "2026.03.phase6",
+        "bonuses": {
+          "discovery_priority": 0.0,
+          "campaign_priority": 2.4000000000000004,
+          "signal_priority": 1.2,
+          "transfer_opportunity": 0.30250000000000005,
+          "reuse_potential": 1.335,
+          "obstruction_targeting": 1.5300000000000002,
+          "semantic_novelty": 1.6605,
+          "targets_recurring_structure": 0.0,
+          "move_family_priority": 3.0
+        },
+        "penalties": {
+          "active_load": 0.0,
+          "existing_coverage": 0.0,
+          "no_signal_penalty": 0.0,
+          "duplicate_active_signature": 0.0
+        },
+        "heuristic_key": [
+          0,
+          0,
+          0,
+          2,
+          -1.6,
+          -0.275,
+          -1.335,
+          -1.5300000000000002,
+          -1.845,
+          1,
+          0.0,
+          -1,
+          0,
+          "extremal_case",
+          "erdos-123"
+        ],
+        "score": 11.428
+      },
+      "candidate": {
+        "experiment_id": "5ae24c44-4347-4543-87ca-8f35126b3cdc",
+        "project_id": "erdos-combo-001",
+        "conjecture_id": "erdos-123",
+        "existing_experiments": 0,
+        "phase": "mapping",
+        "move": "reformulate",
+        "move_family": "extremal_case",
+        "theorem_family_id": "erdos_problem",
+        "move_title": "extremal case",
+        "objective": "Fill in all sorries. Reformulate the conjecture around the extremal or boundary case suggested by 'parameter triples with one base much larger than the other two'. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "expected_signal": "Expose whether the hard regime is genuinely extremal or an artifact of presentation. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "modification": {
+          "extremal_target": "parameter triples with one base much larger than the other two"
+        },
+        "workspace_dir": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5ae24c44-4347-4543-87ca-8f35126b3cdc",
+        "lean_file": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5ae24c44-4347-4543-87ca-8f35126b3cdc/Main.lean",
+        "rationale": "Campaign seed 'parameter triples with one base much larger than the other two' is a high-value boundary regime for this theorem family.",
+        "candidate_metadata": {
+          "seeded_by_campaign": true,
+          "campaign_focus": [
+            "d-completeness boundary cases",
+            "special parameter triples",
+            "reusable covering lemmas",
+            "antichain and divisibility extraction lemmas",
+            "obstruction patterns and counterexamples",
+            "bridge lemmas from solved motifs",
+            "transfer-worthy motifs"
+          ],
+          "campaign_priority": 1.6,
+          "preferred_for_campaign": true,
+          "deprioritized_for_campaign": false,
+          "novelty_score": 1.845,
+          "reuse_potential": 1.335,
+          "obstruction_targeting": 1.5300000000000002,
+          "diversity_group": "boundary",
+          "duplicate_penalty": 0.0,
+          "no_signal_penalty": 0.0,
+          "transfer_score": 0.275
+        },
+        "discovery_question_id": "erdos-123-dq-boundary",
+        "discovery_question": "Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "discovery_priority": 0,
+        "active_count_for_conjecture": 0,
+        "duplicate_active_signature": false,
+        "targets_recurring_structure": false,
+        "signal_priority": 1,
+        "no_signal_penalty": 0.0,
+        "semantic_novelty": 1.845,
+        "reuse_potential": 1.335,
+        "obstruction_targeting": 1.5300000000000002,
+        "transfer_opportunity": 0.275,
+        "campaign_priority": 1.6
+      }
+    },
+    {
+      "experiment_id": "92380cc4-3961-449c-8ab2-9238ad953edb",
+      "conjecture_id": "erdos-123",
+      "rank_position": 8,
+      "selected": false,
+      "selection_reason": "",
+      "policy_score": 12.615,
+      "score_breakdown": {
+        "policy_version": "2026.03.phase6",
+        "bonuses": {
+          "discovery_priority": 0.0,
+          "campaign_priority": 2.25,
+          "signal_priority": 1.2,
+          "transfer_opportunity": 1.9250000000000003,
+          "reuse_potential": 1.7000000000000002,
+          "obstruction_targeting": 1.1,
+          "semantic_novelty": 1.44,
+          "targets_recurring_structure": 0.0,
+          "move_family_priority": 3.0
+        },
+        "penalties": {
+          "active_load": 0.0,
+          "existing_coverage": 0.0,
+          "no_signal_penalty": 0.0,
+          "duplicate_active_signature": 0.0
+        },
+        "heuristic_key": [
+          0,
+          0,
+          0,
+          2,
+          -1.5,
+          -1.75,
+          -1.7000000000000002,
+          -1.1,
+          -1.5999999999999999,
+          1,
+          0.0,
+          -1,
+          0,
+          "transfer_reformulation",
+          "erdos-123"
+        ],
+        "score": 12.615
+      },
+      "candidate": {
+        "experiment_id": "92380cc4-3961-449c-8ab2-9238ad953edb",
+        "project_id": "erdos-combo-001",
+        "conjecture_id": "erdos-123",
+        "existing_experiments": 0,
+        "phase": "mapping",
+        "move": "reformulate",
+        "move_family": "transfer_reformulation",
+        "theorem_family_id": "erdos_problem",
+        "move_title": "transfer reformulation",
+        "objective": "Fill in all sorries. Reformulate the current conjecture using the transferable artifact 'special-case covering lemmas can often be transferred by isolating the divisibility obstruction' from additive number theory. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "expected_signal": "Test whether reusable structure transfers across theorem families or adjacent domains. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "modification": {
+          "source_conjecture_id": "erdos-44",
+          "source_domain": "additive number theory",
+          "artifact": "special-case covering lemmas can often be transferred by isolating the divisibility obstruction"
+        },
+        "workspace_dir": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/92380cc4-3961-449c-8ab2-9238ad953edb",
+        "lean_file": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/92380cc4-3961-449c-8ab2-9238ad953edb/Main.lean",
+        "rationale": "Reusable signal from erdos-44 suggests a cross-family transfer opportunity.",
+        "candidate_metadata": {
+          "transfer_hint": {
+            "source_conjecture_id": "erdos-44",
+            "source_domain": "additive number theory",
+            "artifact": "special-case covering lemmas can often be transferred by isolating the divisibility obstruction",
+            "reuse_count": 1
+          },
+          "seeded_by_campaign": true,
+          "campaign_focus": [
+            "d-completeness boundary cases",
+            "special parameter triples",
+            "reusable covering lemmas",
+            "antichain and divisibility extraction lemmas",
+            "obstruction patterns and counterexamples",
+            "bridge lemmas from solved motifs",
+            "transfer-worthy motifs"
+          ],
+          "campaign_priority": 1.5,
+          "preferred_for_campaign": true,
+          "deprioritized_for_campaign": false,
+          "novelty_score": 1.5999999999999999,
+          "reuse_potential": 1.7000000000000002,
+          "obstruction_targeting": 1.1,
+          "diversity_group": "transfer",
+          "duplicate_penalty": 0.0,
+          "no_signal_penalty": 0.0,
+          "transfer_score": 1.75
+        },
+        "discovery_question_id": "erdos-123-dq-boundary",
+        "discovery_question": "Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "discovery_priority": 0,
+        "active_count_for_conjecture": 0,
+        "duplicate_active_signature": false,
+        "targets_recurring_structure": false,
+        "signal_priority": 1,
+        "no_signal_penalty": 0.0,
+        "semantic_novelty": 1.5999999999999999,
+        "reuse_potential": 1.7000000000000002,
+        "obstruction_targeting": 1.1,
+        "transfer_opportunity": 1.75,
+        "campaign_priority": 1.5
+      }
+    },
+    {
+      "experiment_id": "ee0d4c30-2142-4cf8-8a52-d1489a1721bd",
+      "conjecture_id": "erdos-123",
+      "rank_position": 9,
+      "selected": false,
+      "selection_reason": "",
+      "policy_score": 9.7435,
+      "score_breakdown": {
+        "policy_version": "2026.03.phase6",
+        "bonuses": {
+          "discovery_priority": 0.0,
+          "campaign_priority": 2.175,
+          "signal_priority": 1.2,
+          "transfer_opportunity": 0.26125,
+          "reuse_potential": 1.4825,
+          "obstruction_targeting": 0.385,
+          "semantic_novelty": 1.23975,
+          "targets_recurring_structure": 0.0,
+          "move_family_priority": 3.0
+        },
+        "penalties": {
+          "active_load": 0.0,
+          "existing_coverage": 0.0,
+          "no_signal_penalty": 0.0,
+          "duplicate_active_signature": 0.0
+        },
+        "heuristic_key": [
+          0,
+          0,
+          0,
+          2,
+          -1.45,
+          -0.2375,
+          -1.4825,
+          -0.385,
+          -1.3775,
+          1,
+          0.0,
+          -1,
+          0,
+          "equivalent_view",
+          "erdos-123"
+        ],
+        "score": 9.7435
+      },
+      "candidate": {
+        "experiment_id": "ee0d4c30-2142-4cf8-8a52-d1489a1721bd",
+        "project_id": "erdos-combo-001",
+        "conjecture_id": "erdos-123",
+        "existing_experiments": 0,
+        "phase": "mapping",
+        "move": "reformulate",
+        "move_family": "equivalent_view",
+        "theorem_family_id": "erdos_problem",
+        "move_title": "equivalent view",
+        "objective": "Fill in all sorries. This is a reformulation as every sufficiently large integer has an antichain sum representation drawn from the triple-power semigroup. Determine whether this form is easier or harder to prove and report intermediate progress. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "expected_signal": "Separate structural difficulty from representation-specific difficulty. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "modification": {
+          "form": "every sufficiently large integer has an antichain sum representation drawn from the triple-power semigroup"
+        },
+        "workspace_dir": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ee0d4c30-2142-4cf8-8a52-d1489a1721bd",
+        "lean_file": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ee0d4c30-2142-4cf8-8a52-d1489a1721bd/Main.lean",
+        "rationale": "Equivalent form 'every sufficiently large integer has an antichain sum representation drawn from the triple-power semigroup' may expose different proof obligations.",
+        "candidate_metadata": {
+          "campaign_focus": [
+            "d-completeness boundary cases",
+            "special parameter triples",
+            "reusable covering lemmas",
+            "antichain and divisibility extraction lemmas",
+            "obstruction patterns and counterexamples",
+            "bridge lemmas from solved motifs",
+            "transfer-worthy motifs"
+          ],
+          "campaign_priority": 1.45,
+          "preferred_for_campaign": true,
+          "deprioritized_for_campaign": false,
+          "novelty_score": 1.3775,
+          "reuse_potential": 1.4825,
+          "obstruction_targeting": 0.385,
+          "diversity_group": "reformulation",
+          "duplicate_penalty": 0.0,
+          "no_signal_penalty": 0.0,
+          "transfer_score": 0.2375
+        },
+        "discovery_question_id": "erdos-123-dq-boundary",
+        "discovery_question": "Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "discovery_priority": 0,
+        "active_count_for_conjecture": 0,
+        "duplicate_active_signature": false,
+        "targets_recurring_structure": false,
+        "signal_priority": 1,
+        "no_signal_penalty": 0.0,
+        "semantic_novelty": 1.3775,
+        "reuse_potential": 1.4825,
+        "obstruction_targeting": 0.385,
+        "transfer_opportunity": 0.2375,
+        "campaign_priority": 1.45
+      }
+    },
+    {
+      "experiment_id": "5a575d0c-241a-47dc-ab83-24945ca984f8",
+      "conjecture_id": "erdos-123",
+      "rank_position": 10,
+      "selected": false,
+      "selection_reason": "",
+      "policy_score": 9.7435,
+      "score_breakdown": {
+        "policy_version": "2026.03.phase6",
+        "bonuses": {
+          "discovery_priority": 0.0,
+          "campaign_priority": 2.175,
+          "signal_priority": 1.2,
+          "transfer_opportunity": 0.26125,
+          "reuse_potential": 1.4825,
+          "obstruction_targeting": 0.385,
+          "semantic_novelty": 1.23975,
+          "targets_recurring_structure": 0.0,
+          "move_family_priority": 3.0
+        },
+        "penalties": {
+          "active_load": 0.0,
+          "existing_coverage": 0.0,
+          "no_signal_penalty": 0.0,
+          "duplicate_active_signature": 0.0
+        },
+        "heuristic_key": [
+          0,
+          0,
+          0,
+          2,
+          -1.45,
+          -0.2375,
+          -1.4825,
+          -0.385,
+          -1.3775,
+          1,
+          0.0,
+          -1,
+          0,
+          "equivalent_view",
+          "erdos-123"
+        ],
+        "score": 9.7435
+      },
+      "candidate": {
+        "experiment_id": "5a575d0c-241a-47dc-ab83-24945ca984f8",
+        "project_id": "erdos-combo-001",
+        "conjecture_id": "erdos-123",
+        "existing_experiments": 0,
+        "phase": "mapping",
+        "move": "reformulate",
+        "move_family": "equivalent_view",
+        "theorem_family_id": "erdos_problem",
+        "move_title": "equivalent view",
+        "objective": "Fill in all sorries. This is a reformulation as the set {a^k b^l c^m : k, l, m >= 0} is d-complete. Determine whether this form is easier or harder to prove and report intermediate progress. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "expected_signal": "Separate structural difficulty from representation-specific difficulty. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "modification": {
+          "form": "the set {a^k b^l c^m : k, l, m >= 0} is d-complete"
+        },
+        "workspace_dir": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5a575d0c-241a-47dc-ab83-24945ca984f8",
+        "lean_file": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5a575d0c-241a-47dc-ab83-24945ca984f8/Main.lean",
+        "rationale": "Equivalent form 'the set {a^k b^l c^m : k, l, m >= 0} is d-complete' may expose different proof obligations.",
+        "candidate_metadata": {
+          "campaign_focus": [
+            "d-completeness boundary cases",
+            "special parameter triples",
+            "reusable covering lemmas",
+            "antichain and divisibility extraction lemmas",
+            "obstruction patterns and counterexamples",
+            "bridge lemmas from solved motifs",
+            "transfer-worthy motifs"
+          ],
+          "campaign_priority": 1.45,
+          "preferred_for_campaign": true,
+          "deprioritized_for_campaign": false,
+          "novelty_score": 1.3775,
+          "reuse_potential": 1.4825,
+          "obstruction_targeting": 0.385,
+          "diversity_group": "reformulation",
+          "duplicate_penalty": 0.0,
+          "no_signal_penalty": 0.0,
+          "transfer_score": 0.2375
+        },
+        "discovery_question_id": "erdos-123-dq-boundary",
+        "discovery_question": "Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "discovery_priority": 0,
+        "active_count_for_conjecture": 0,
+        "duplicate_active_signature": false,
+        "targets_recurring_structure": false,
+        "signal_priority": 1,
+        "no_signal_penalty": 0.0,
+        "semantic_novelty": 1.3775,
+        "reuse_potential": 1.4825,
+        "obstruction_targeting": 0.385,
+        "transfer_opportunity": 0.2375,
+        "campaign_priority": 1.45
+      }
+    },
+    {
+      "experiment_id": "d903c0a9-1428-40f0-883a-dad788a8c9bb",
+      "conjecture_id": "erdos-123",
+      "rank_position": 11,
+      "selected": false,
+      "selection_reason": "",
+      "policy_score": 14.1875,
+      "score_breakdown": {
+        "policy_version": "2026.03.phase6",
+        "bonuses": {
+          "discovery_priority": 0.0,
+          "campaign_priority": 2.625,
+          "signal_priority": 2.4,
+          "transfer_opportunity": 0.34375,
+          "reuse_potential": 2.0875,
+          "obstruction_targeting": 1.375,
+          "semantic_novelty": 1.85625,
+          "targets_recurring_structure": 1.5,
+          "move_family_priority": 2.0
+        },
+        "penalties": {
+          "active_load": 0.0,
+          "existing_coverage": 0.0,
+          "no_signal_penalty": 0.0,
+          "duplicate_active_signature": 0.0
+        },
+        "heuristic_key": [
+          0,
+          0,
+          0,
+          3,
+          -1.75,
+          -0.3125,
+          -2.0875,
+          -1.375,
+          -2.0625,
+          0,
+          0.0,
+          -2,
+          0,
+          "invariant_mining",
+          "erdos-123"
+        ],
+        "score": 14.1875
+      },
+      "candidate": {
+        "experiment_id": "d903c0a9-1428-40f0-883a-dad788a8c9bb",
+        "project_id": "erdos-combo-001",
+        "conjecture_id": "erdos-123",
+        "existing_experiments": 0,
+        "phase": "mapping",
+        "move": "promote_lemma",
+        "move_family": "invariant_mining",
+        "theorem_family_id": "erdos_problem",
+        "move_title": "invariant mining",
+        "objective": "Fill in all sorries. Mine a reusable invariant or monotonicity principle that explains the recurring signal 'when interval coverage can be upgraded to exact divisibility-antichain coverage'. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "expected_signal": "Extract a reusable invariant from repeated blockers or proof motifs. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "modification": {
+          "invariant_hint": "when interval coverage can be upgraded to exact divisibility-antichain coverage"
+        },
+        "workspace_dir": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/d903c0a9-1428-40f0-883a-dad788a8c9bb",
+        "lean_file": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/d903c0a9-1428-40f0-883a-dad788a8c9bb/Main.lean",
+        "rationale": "Campaign seed 'when interval coverage can be upgraded to exact divisibility-antichain coverage' targets the kind of invariant Erdos #123 needs before broader search.",
+        "candidate_metadata": {
+          "evaluation_average": 0.0,
+          "seeded_by_campaign": true,
+          "campaign_focus": [
+            "d-completeness boundary cases",
+            "special parameter triples",
+            "reusable covering lemmas",
+            "antichain and divisibility extraction lemmas",
+            "obstruction patterns and counterexamples",
+            "bridge lemmas from solved motifs",
+            "transfer-worthy motifs"
+          ],
+          "campaign_priority": 1.75,
+          "preferred_for_campaign": true,
+          "deprioritized_for_campaign": false,
+          "novelty_score": 2.0625,
+          "reuse_potential": 2.0875,
+          "obstruction_targeting": 1.375,
+          "diversity_group": "reuse",
+          "duplicate_penalty": 0.0,
+          "no_signal_penalty": 0.0,
+          "transfer_score": 0.3125
+        },
+        "discovery_question_id": "erdos-123-dq-boundary",
+        "discovery_question": "Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "discovery_priority": 0,
+        "active_count_for_conjecture": 0,
+        "duplicate_active_signature": false,
+        "targets_recurring_structure": true,
+        "signal_priority": 2,
+        "no_signal_penalty": 0.0,
+        "semantic_novelty": 2.0625,
+        "reuse_potential": 2.0875,
+        "obstruction_targeting": 1.375,
+        "transfer_opportunity": 0.3125,
+        "campaign_priority": 1.75
+      }
+    },
+    {
+      "experiment_id": "4d918c5b-da4e-4a4c-8333-05df14e15963",
+      "conjecture_id": "erdos-123",
+      "rank_position": 12,
+      "selected": false,
+      "selection_reason": "",
+      "policy_score": 13.891,
+      "score_breakdown": {
+        "policy_version": "2026.03.phase6",
+        "bonuses": {
+          "discovery_priority": 0.0,
+          "campaign_priority": 2.55,
+          "signal_priority": 2.4,
+          "transfer_opportunity": 0.33,
+          "reuse_potential": 2.2199999999999998,
+          "obstruction_targeting": 1.46,
+          "semantic_novelty": 1.4309999999999998,
+          "targets_recurring_structure": 1.5,
+          "move_family_priority": 2.0
+        },
+        "penalties": {
+          "active_load": 0.0,
+          "existing_coverage": 0.0,
+          "no_signal_penalty": 0.0,
+          "duplicate_active_signature": 0.0
+        },
+        "heuristic_key": [
+          0,
+          0,
+          0,
+          3,
+          -1.7,
+          -0.3,
+          -2.2199999999999998,
+          -1.46,
+          -1.5899999999999999,
+          0,
+          0.0,
+          -2,
+          0,
+          "decompose_subclaim",
+          "erdos-123"
+        ],
+        "score": 13.891
+      },
+      "candidate": {
+        "experiment_id": "4d918c5b-da4e-4a4c-8333-05df14e15963",
+        "project_id": "erdos-combo-001",
+        "conjecture_id": "erdos-123",
+        "existing_experiments": 0,
+        "phase": "mapping",
+        "move": "promote_lemma",
+        "move_family": "decompose_subclaim",
+        "theorem_family_id": "erdos_problem",
+        "move_title": "decompose subclaim",
+        "objective": "Fill in all sorries. Split the current theorem into a bridge lemma and a remaining reduction built around the recurring subgoal. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "expected_signal": "Convert repeated subgoal pressure into a reusable bridge lemma candidate. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "modification": {
+          "subclaim": "derive a covering lemma that upgrades interval coverage to eventual d-completeness"
+        },
+        "workspace_dir": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/4d918c5b-da4e-4a4c-8333-05df14e15963",
+        "lean_file": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/4d918c5b-da4e-4a4c-8333-05df14e15963/Main.lean",
+        "rationale": "Campaign seed 'derive a covering lemma that upgrades interval coverage to eventual d-completeness' is an explicitly requested bridge lemma target.",
+        "candidate_metadata": {
+          "seeded_by_campaign": true,
+          "campaign_focus": [
+            "d-completeness boundary cases",
+            "special parameter triples",
+            "reusable covering lemmas",
+            "antichain and divisibility extraction lemmas",
+            "obstruction patterns and counterexamples",
+            "bridge lemmas from solved motifs",
+            "transfer-worthy motifs"
+          ],
+          "campaign_priority": 1.7,
+          "preferred_for_campaign": true,
+          "deprioritized_for_campaign": false,
+          "novelty_score": 1.5899999999999999,
+          "reuse_potential": 2.2199999999999998,
+          "obstruction_targeting": 1.46,
+          "diversity_group": "reuse",
+          "duplicate_penalty": 0.0,
+          "no_signal_penalty": 0.0,
+          "transfer_score": 0.3
+        },
+        "discovery_question_id": "erdos-123-dq-boundary",
+        "discovery_question": "Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "discovery_priority": 0,
+        "active_count_for_conjecture": 0,
+        "duplicate_active_signature": false,
+        "targets_recurring_structure": true,
+        "signal_priority": 2,
+        "no_signal_penalty": 0.0,
+        "semantic_novelty": 1.5899999999999999,
+        "reuse_potential": 2.2199999999999998,
+        "obstruction_targeting": 1.46,
+        "transfer_opportunity": 0.3,
+        "campaign_priority": 1.7
+      }
+    },
+    {
+      "experiment_id": "11261da4-5daa-40e0-b9d6-0f60e6b1d49b",
+      "conjecture_id": "erdos-123",
+      "rank_position": 13,
+      "selected": false,
+      "selection_reason": "",
+      "policy_score": 8.4345,
+      "score_breakdown": {
+        "policy_version": "2026.03.phase6",
+        "bonuses": {
+          "discovery_priority": 0.0,
+          "campaign_priority": 2.4749999999999996,
+          "signal_priority": 0.0,
+          "transfer_opportunity": 0.31625,
+          "reuse_potential": 1.1524999999999999,
+          "obstruction_targeting": 1.945,
+          "semantic_novelty": 1.54575,
+          "targets_recurring_structure": 0.0,
+          "move_family_priority": 1.0
+        },
+        "penalties": {
+          "active_load": 0.0,
+          "existing_coverage": 0.0,
+          "no_signal_penalty": 0.0,
+          "duplicate_active_signature": 0.0
+        },
+        "heuristic_key": [
+          0,
+          0,
+          0,
+          4,
+          -1.65,
+          -0.2875,
+          -1.1524999999999999,
+          -1.945,
+          -1.7174999999999998,
+          1,
+          0.0,
+          0,
+          0,
+          "adversarial_counterexample",
+          "erdos-123"
+        ],
+        "score": 8.4345
+      },
+      "candidate": {
+        "experiment_id": "11261da4-5daa-40e0-b9d6-0f60e6b1d49b",
+        "project_id": "erdos-combo-001",
+        "conjecture_id": "erdos-123",
+        "existing_experiments": 0,
+        "phase": "mapping",
+        "move": "counterexample_mode",
+        "move_family": "adversarial_counterexample",
+        "theorem_family_id": "erdos_problem",
+        "move_title": "adversarial counterexample",
+        "objective": "Fill in all sorries. Construct an adversarial witness that sharpens or refutes the blocker pattern 'minimal obstruction built from a divisibility chain inside a candidate representation'. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "expected_signal": "Stress-test the current obstruction with a deliberately adversarial witness search. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "modification": {
+          "target": "minimal obstruction built from a divisibility chain inside a candidate representation",
+          "mode": "adversarial"
+        },
+        "workspace_dir": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/11261da4-5daa-40e0-b9d6-0f60e6b1d49b",
+        "lean_file": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/11261da4-5daa-40e0-b9d6-0f60e6b1d49b/Main.lean",
+        "rationale": "Campaign seed 'minimal obstruction built from a divisibility chain inside a candidate representation' is a plausible obstruction pattern worth attacking immediately.",
+        "candidate_metadata": {
+          "seeded_by_campaign": true,
+          "campaign_focus": [
+            "d-completeness boundary cases",
+            "special parameter triples",
+            "reusable covering lemmas",
+            "antichain and divisibility extraction lemmas",
+            "obstruction patterns and counterexamples",
+            "bridge lemmas from solved motifs",
+            "transfer-worthy motifs"
+          ],
+          "campaign_priority": 1.65,
+          "preferred_for_campaign": true,
+          "deprioritized_for_campaign": false,
+          "novelty_score": 1.7174999999999998,
+          "reuse_potential": 1.1524999999999999,
+          "obstruction_targeting": 1.945,
+          "diversity_group": "boundary",
+          "duplicate_penalty": 0.0,
+          "no_signal_penalty": 0.0,
+          "transfer_score": 0.2875
+        },
+        "discovery_question_id": "erdos-123-dq-boundary",
+        "discovery_question": "Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "discovery_priority": 0,
+        "active_count_for_conjecture": 0,
+        "duplicate_active_signature": false,
+        "targets_recurring_structure": false,
+        "signal_priority": 0,
+        "no_signal_penalty": 0.0,
+        "semantic_novelty": 1.7174999999999998,
+        "reuse_potential": 1.1524999999999999,
+        "obstruction_targeting": 1.945,
+        "transfer_opportunity": 0.2875,
+        "campaign_priority": 1.65
+      }
+    },
+    {
+      "experiment_id": "625b4652-3e5f-44dc-beaf-b72c84eb6d38",
+      "conjecture_id": "erdos-123",
+      "rank_position": 14,
+      "selected": false,
+      "selection_reason": "",
+      "policy_score": 7.9615,
+      "score_breakdown": {
+        "policy_version": "2026.03.phase6",
+        "bonuses": {
+          "discovery_priority": 0.0,
+          "campaign_priority": 2.325,
+          "signal_priority": 0.0,
+          "transfer_opportunity": 0.28875000000000006,
+          "reuse_potential": 1.2175,
+          "obstruction_targeting": 1.715,
+          "semantic_novelty": 1.4152500000000001,
+          "targets_recurring_structure": 0.0,
+          "move_family_priority": 1.0
+        },
+        "penalties": {
+          "active_load": 0.0,
+          "existing_coverage": 0.0,
+          "no_signal_penalty": 0.0,
+          "duplicate_active_signature": 0.0
+        },
+        "heuristic_key": [
+          0,
+          0,
+          0,
+          4,
+          -1.55,
+          -0.2625,
+          -1.2175,
+          -1.715,
+          -1.5725,
+          1,
+          0.0,
+          0,
+          0,
+          "witness_minimization",
+          "erdos-123"
+        ],
+        "score": 7.9615
+      },
+      "candidate": {
+        "experiment_id": "625b4652-3e5f-44dc-beaf-b72c84eb6d38",
+        "project_id": "erdos-combo-001",
+        "conjecture_id": "erdos-123",
+        "existing_experiments": 0,
+        "phase": "mapping",
+        "move": "counterexample_mode",
+        "move_family": "witness_minimization",
+        "theorem_family_id": "erdos_problem",
+        "move_title": "witness minimization",
+        "objective": "Fill in all sorries. Minimize the witness or blocker around 'least uncovered large integer for a special parameter triple' to identify the sharp boundary case. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "expected_signal": "Turn a coarse witness into a sharp obstruction description. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "modification": {
+          "witness_target": "least uncovered large integer for a special parameter triple",
+          "mode": "minimize"
+        },
+        "workspace_dir": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/625b4652-3e5f-44dc-beaf-b72c84eb6d38",
+        "lean_file": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/625b4652-3e5f-44dc-beaf-b72c84eb6d38/Main.lean",
+        "rationale": "Campaign seed 'least uncovered large integer for a special parameter triple' should be sharpened into the smallest meaningful obstruction.",
+        "candidate_metadata": {
+          "seeded_by_campaign": true,
+          "campaign_focus": [
+            "d-completeness boundary cases",
+            "special parameter triples",
+            "reusable covering lemmas",
+            "antichain and divisibility extraction lemmas",
+            "obstruction patterns and counterexamples",
+            "bridge lemmas from solved motifs",
+            "transfer-worthy motifs"
+          ],
+          "campaign_priority": 1.55,
+          "preferred_for_campaign": true,
+          "deprioritized_for_campaign": false,
+          "novelty_score": 1.5725,
+          "reuse_potential": 1.2175,
+          "obstruction_targeting": 1.715,
+          "diversity_group": "boundary",
+          "duplicate_penalty": 0.0,
+          "no_signal_penalty": 0.0,
+          "transfer_score": 0.2625
+        },
+        "discovery_question_id": "erdos-123-dq-boundary",
+        "discovery_question": "Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "discovery_priority": 0,
+        "active_count_for_conjecture": 0,
+        "duplicate_active_signature": false,
+        "targets_recurring_structure": false,
+        "signal_priority": 0,
+        "no_signal_penalty": 0.0,
+        "semantic_novelty": 1.5725,
+        "reuse_potential": 1.2175,
+        "obstruction_targeting": 1.715,
+        "transfer_opportunity": 0.2625,
+        "campaign_priority": 1.55
+      }
+    },
+    {
+      "experiment_id": "d96552d3-2c7f-45a8-8e63-981aa2c9724b",
+      "conjecture_id": "erdos-123",
+      "rank_position": 15,
+      "selected": false,
+      "selection_reason": "",
+      "policy_score": 0.8747,
+      "score_breakdown": {
+        "policy_version": "2026.03.phase6",
+        "bonuses": {
+          "discovery_priority": 0.0,
+          "campaign_priority": -1.275,
+          "signal_priority": 0.0,
+          "transfer_opportunity": 0.0,
+          "reuse_potential": 0.20750000000000002,
+          "obstruction_targeting": 1.135,
+          "semantic_novelty": 0.13724999999999993,
+          "targets_recurring_structure": 0.0,
+          "move_family_priority": 1.0
+        },
+        "penalties": {
+          "active_load": 0.0,
+          "existing_coverage": 0.0,
+          "no_signal_penalty": 0.33,
+          "duplicate_active_signature": 0.0
+        },
+        "heuristic_key": [
+          0,
+          0,
+          0,
+          4,
+          0.85,
+          -0.0,
+          -0.20750000000000002,
+          -1.135,
+          -0.1524999999999999,
+          1,
+          0.15,
+          0,
+          0,
+          "legacy.counterexample_mode",
+          "erdos-123"
+        ],
+        "score": 0.8747
+      },
+      "candidate": {
+        "experiment_id": "d96552d3-2c7f-45a8-8e63-981aa2c9724b",
+        "project_id": "erdos-combo-001",
+        "conjecture_id": "erdos-123",
+        "existing_experiments": 0,
+        "phase": "mapping",
+        "move": "counterexample_mode",
+        "move_family": "legacy.counterexample_mode",
+        "theorem_family_id": "erdos_problem",
+        "move_title": "legacy.counterexample mode",
+        "objective": "Fill in all sorries. Search for a counterexample or independence witness for the most fragile variant. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "expected_signal": "Disambiguate falsehood from search failure. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "modification": {
+          "target": "most_fragile_variant",
+          "attempt": 1
+        },
+        "workspace_dir": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/d96552d3-2c7f-45a8-8e63-981aa2c9724b",
+        "lean_file": "/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/d96552d3-2c7f-45a8-8e63-981aa2c9724b/Main.lean",
+        "rationale": "A targeted counterexample pass helps separate true obstruction from solver drift.",
+        "candidate_metadata": {
+          "evaluation_average": 0.0,
+          "campaign_focus": [
+            "d-completeness boundary cases",
+            "special parameter triples",
+            "reusable covering lemmas",
+            "antichain and divisibility extraction lemmas",
+            "obstruction patterns and counterexamples",
+            "bridge lemmas from solved motifs",
+            "transfer-worthy motifs"
+          ],
+          "campaign_priority": -0.85,
+          "preferred_for_campaign": false,
+          "deprioritized_for_campaign": true,
+          "novelty_score": 0.1524999999999999,
+          "reuse_potential": 0.20750000000000002,
+          "obstruction_targeting": 1.135,
+          "diversity_group": "boundary",
+          "duplicate_penalty": 0.25,
+          "no_signal_penalty": 0.15,
+          "transfer_score": 0.0
+        },
+        "discovery_question_id": "erdos-123-dq-boundary",
+        "discovery_question": "Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?",
+        "discovery_priority": 0,
+        "active_count_for_conjecture": 0,
+        "duplicate_active_signature": false,
+        "targets_recurring_structure": false,
+        "signal_priority": 0,
+        "no_signal_penalty": 0.15,
+        "semantic_novelty": 0.1524999999999999,
+        "reuse_potential": 0.20750000000000002,
+        "obstruction_targeting": 1.135,
+        "transfer_opportunity": 0.0,
+        "campaign_priority": -0.85
+      }
+    }
+  ],
+  "operational_status": {
+    "stuck_runs": [],
+    "retry_budget_exhausted": [],
+    "repeated_failure_types": {
+      "malformed": 0,
+      "parser_validation": 0,
+      "provider_failure": 0
+    },
+    "repeated_no_signal_branches": []
+  },
+  "campaign_health": {
+    "project_id": "erdos-combo-001",
+    "counts": {
+      "active": 1,
+      "pending": 1,
+      "running": 0,
+      "completed": 0,
+      "failed": 0,
+      "succeeded": 0,
+      "stalled": 0
+    },
+    "incidents": {
+      "open_total": 0,
+      "by_type": {},
+      "by_severity": {}
+    },
+    "signals": {
+      "repeated_no_signal_streak": 0,
+      "duplicate_frontier_pressure": 0,
+      "structured_ingestion_success_rate": 0.0,
+      "semantic_reuse_rate": 0.0,
+      "transfer_usage_rate": 0.0,
+      "reusable_structure_rate": 0.0,
+      "obstruction_discovery_rate": 0.0,
+      "high_priority_frontier_share": 0.533,
+      "candidate_move_family_diversity": 10,
+      "completed_move_family_diversity": 0
+    },
+    "runtime_controls": {
+      "stuck_runs": [],
+      "retry_exhausted": []
+    },
+    "no_signal_branches": [],
+    "version_drift": {
+      "current": {
+        "manifest_version": "2026.03.phase6",
+        "prompt_version": "2026.03.phase6",
+        "parser_version": "2026.03.phase1",
+        "evaluator_version": "2026.03.phase2",
+        "semantic_memory_version": "2026.03.phase2",
+        "verification_schema_version": "1.0",
+        "policy_version": "2026.03.phase6",
+        "move_registry_version": "2026.03.phase4",
+        "theorem_family_version": "2026.03.phase4",
+        "runtime_policy_version": "2026.03.phase6"
+      },
+      "mismatches": {}
+    }
+  },
+  "recurring_structures": {
+    "lemmas": [],
+    "subgoals": [],
+    "proof_traces": [],
+    "no_signal_branches": []
+  },
+  "capacity_summary": {
+    "max_active": 3,
+    "max_submit_per_tick": 2,
+    "active_before": 0,
+    "active_after_sync": 0,
+    "active_after_submit": 1,
+    "requested_submissions": 2
+  },
+  "policy_path": "fallback",
+  "policy_rationale": "Fallback policy ranked candidates by diversity, existing coverage, and move priority.",
+  "manager_prompt": "You are the Research Manager for project erdos-combo-001.\n\nMission:\nMap the hidden dependency structures shared by open Erdos problems in graph Ramsey theory and additive combinatorics, with emphasis on which assumptions trigger recurring lemmas, which perturbations shift the apparent provability boundary, and which formalizations expose reusable infrastructure across the family.\n\nPrompt template version:\n2026.03.phase6\n\nSuccess criteria:\n- Surface recurring lemmas that reappear across more than one conjecture or more than one experimental move\n- Map which explicit assumptions appear structurally critical versus merely search-sensitive\n- Identify boundary points where weakening or reformulating a statement changes the blocker classification\n- Produce reusable hidden-dependency sketches that transfer between graph-theoretic and additive-combinatorial variants\n- Identify at least one previously unknown intermediate lemma backed by Lean artifacts\n- Produce a counterexample witness or independence argument for at least one weakened variant\n\nNon-goals:\n- Do not optimize for proving the original conjecture outright\n- Do not treat failed or stalled runs as evidence of falsity\n- Do not drift outside combinatorics, graph theory, and additive combinatorics\n\nAllowed moves:\n- underspecify\n- perturb_assumption\n- reformulate\n- promote_lemma\n- counterexample_mode\n- invariant_mining\n- extremal_case\n- decompose_subclaim\n- equivalent_view\n- witness_minimization\n- adversarial_counterexample\n- transfer_reformulation\n\nPhase order:\n- mapping\n- excavation\n- stress_testing\n- consolidation\n\nHard rules:\n- Do not optimize only for proving the original theorem.\n- Do not treat one failed proof attempt as evidence of falsity.\n- Stay within the target theorem family unless the move explicitly allows transfer.\n- Prefer information gain over raw proof probability when choosing the next run.\n\nCampaign state summary:\n{\n  \"project_id\": \"erdos-combo-001\",\n  \"campaign_title\": \"Hidden-dependency mapping across Erdos combinatorics conjectures\",\n  \"campaign_version\": \"\",\n  \"num_experiments\": 0,\n  \"solved\": 0,\n  \"stalled\": 0,\n  \"failed\": 0,\n  \"pending\": 0,\n  \"active_by_external_status\": [],\n  \"recurring_lemmas\": [],\n  \"recurring_subgoals\": [],\n  \"recurring_proof_traces\": [],\n  \"blocker_summary\": [],\n  \"blockers_by_move\": [],\n  \"counterexample_summary\": [],\n  \"no_signal_branches\": [],\n  \"assumption_sensitivity\": [],\n  \"open_discovery_questions\": [],\n  \"discovery_graph_counts\": {\n    \"nodes\": 0,\n    \"edges\": 0,\n    \"verified_like_nodes\": 0\n  },\n  \"open_incidents\": []\n}\n\nActive experiments:\n[]\n\nRecently completed experiments:\n[]\n\nRecurring lemmas:\n[]\n\nRecurring subgoals:\n[]\n\nAssumption sensitivity:\n[]\n\nFrontier candidates:\n[\n  {\n    \"experiment_id\": \"bff4c05f-d103-47ac-83f8-1164972a1bca\",\n    \"project_id\": \"erdos-combo-001\",\n    \"conjecture_id\": \"erdos-123\",\n    \"existing_experiments\": 0,\n    \"phase\": \"mapping\",\n    \"move\": \"underspecify\",\n    \"move_family\": \"legacy.underspecify\",\n    \"theorem_family_id\": \"erdos_problem\",\n    \"move_title\": \"legacy.underspecify\",\n    \"objective\": \"Fill in all sorries. Strip imports to expose hidden dependencies. Report intermediate lemmas or unresolved goals. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"expected_signal\": \"Surface hidden assumptions and early lemma needs. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"modification\": {\n      \"mode\": \"minimal_context\"\n    },\n    \"workspace_dir\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca\",\n    \"lean_file\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/Main.lean\",\n    \"rationale\": \"Minimal context is the safest first pass for exposing missing structure.\",\n    \"candidate_metadata\": {\n      \"legacy_move\": true,\n      \"campaign_focus\": [\n        \"d-completeness boundary cases\",\n        \"special parameter triples\",\n        \"reusable covering lemmas\",\n        \"antichain and divisibility extraction lemmas\",\n        \"obstruction patterns and counterexamples\",\n        \"bridge lemmas from solved motifs\",\n        \"transfer-worthy motifs\"\n      ],\n      \"campaign_priority\": 0.0,\n      \"preferred_for_campaign\": false,\n      \"deprioritized_for_campaign\": false,\n      \"novelty_score\": 1.1,\n      \"reuse_potential\": 0.8,\n      \"obstruction_targeting\": 0.0,\n      \"diversity_group\": \"mapping\",\n      \"duplicate_penalty\": 0.0,\n      \"no_signal_penalty\": 0.0,\n      \"transfer_score\": 0.0\n    },\n    \"discovery_question_id\": \"erdos-123-dq-boundary\",\n    \"discovery_question\": \"Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"discovery_priority\": 0,\n    \"active_count_for_conjecture\": 0,\n    \"duplicate_active_signature\": false,\n    \"targets_recurring_structure\": false,\n    \"signal_priority\": 0,\n    \"no_signal_penalty\": 0.0,\n    \"semantic_novelty\": 1.1,\n    \"reuse_potential\": 0.8,\n    \"obstruction_targeting\": 0.0,\n    \"transfer_opportunity\": 0.0,\n    \"campaign_priority\": 0.0\n  },\n  {\n    \"experiment_id\": \"64f09d80-dd48-4a75-aaff-1439367f38da\",\n    \"project_id\": \"erdos-combo-001\",\n    \"conjecture_id\": \"erdos-123\",\n    \"existing_experiments\": 0,\n    \"phase\": \"mapping\",\n    \"move\": \"perturb_assumption\",\n    \"move_family\": \"legacy.perturb_assumption\",\n    \"theorem_family_id\": \"erdos_problem\",\n    \"move_title\": \"legacy.perturb assumption\",\n    \"objective\": \"Fill in all sorries. The assumption 'a, b, c are pairwise coprime' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"expected_signal\": \"Measure assumption sensitivity and classify the blocker. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"modification\": {\n      \"assumption\": \"a, b, c are pairwise coprime\",\n      \"operation\": \"remove\"\n    },\n    \"workspace_dir\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/64f09d80-dd48-4a75-aaff-1439367f38da\",\n    \"lean_file\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/64f09d80-dd48-4a75-aaff-1439367f38da/Main.lean\",\n    \"rationale\": \"Assumption 'a, b, c are pairwise coprime' has not yet been stress-tested under verification pressure.\",\n    \"candidate_metadata\": {\n      \"campaign_focus\": [\n        \"d-completeness boundary cases\",\n        \"special parameter triples\",\n        \"reusable covering lemmas\",\n        \"antichain and divisibility extraction lemmas\",\n        \"obstruction patterns and counterexamples\",\n        \"bridge lemmas from solved motifs\",\n        \"transfer-worthy motifs\"\n      ],\n      \"campaign_priority\": 0.0,\n      \"preferred_for_campaign\": false,\n      \"deprioritized_for_campaign\": false,\n      \"novelty_score\": 0.9,\n      \"reuse_potential\": 0.8,\n      \"obstruction_targeting\": 1.2,\n      \"diversity_group\": \"assumption_boundary\",\n      \"duplicate_penalty\": 0.0,\n      \"no_signal_penalty\": 0.0,\n      \"transfer_score\": 0.0\n    },\n    \"discovery_question_id\": \"erdos-123-dq-boundary\",\n    \"discovery_question\": \"Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"discovery_priority\": 0,\n    \"active_count_for_conjecture\": 0,\n    \"duplicate_active_signature\": false,\n    \"targets_recurring_structure\": false,\n    \"signal_priority\": 0,\n    \"no_signal_penalty\": 0.0,\n    \"semantic_novelty\": 0.9,\n    \"reuse_potential\": 0.8,\n    \"obstruction_targeting\": 1.2,\n    \"transfer_opportunity\": 0.0,\n    \"campaign_priority\": 0.0\n  },\n  {\n    \"experiment_id\": \"8dee98ae-3ce1-48fc-ad80-6542462ad3e3\",\n    \"project_id\": \"erdos-combo-001\",\n    \"conjecture_id\": \"erdos-123\",\n    \"existing_experiments\": 0,\n    \"phase\": \"mapping\",\n    \"move\": \"perturb_assumption\",\n    \"move_family\": \"legacy.perturb_assumption\",\n    \"theorem_family_id\": \"erdos_problem\",\n    \"move_title\": \"legacy.perturb assumption\",\n    \"objective\": \"Fill in all sorries. The assumption 'no chosen summand divides another' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"expected_signal\": \"Measure assumption sensitivity and classify the blocker. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"modification\": {\n      \"assumption\": \"no chosen summand divides another\",\n      \"operation\": \"remove\"\n    },\n    \"workspace_dir\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/8dee98ae-3ce1-48fc-ad80-6542462ad3e3\",\n    \"lean_file\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/8dee98ae-3ce1-48fc-ad80-6542462ad3e3/Main.lean\",\n    \"rationale\": \"Assumption 'no chosen summand divides another' has not yet been stress-tested under verification pressure.\",\n    \"candidate_metadata\": {\n      \"campaign_focus\": [\n        \"d-completeness boundary cases\",\n        \"special parameter triples\",\n        \"reusable covering lemmas\",\n        \"antichain and divisibility extraction lemmas\",\n        \"obstruction patterns and counterexamples\",\n        \"bridge lemmas from solved motifs\",\n        \"transfer-worthy motifs\"\n      ],\n      \"campaign_priority\": 0.0,\n      \"preferred_for_campaign\": false,\n      \"deprioritized_for_campaign\": false,\n      \"novelty_score\": 0.9,\n      \"reuse_potential\": 0.8,\n      \"obstruction_targeting\": 1.2,\n      \"diversity_group\": \"assumption_boundary\",\n      \"duplicate_penalty\": 0.0,\n      \"no_signal_penalty\": 0.0,\n      \"transfer_score\": 0.0\n    },\n    \"discovery_question_id\": \"erdos-123-dq-boundary\",\n    \"discovery_question\": \"Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"discovery_priority\": 0,\n    \"active_count_for_conjecture\": 0,\n    \"duplicate_active_signature\": false,\n    \"targets_recurring_structure\": false,\n    \"signal_priority\": 0,\n    \"no_signal_penalty\": 0.0,\n    \"semantic_novelty\": 0.9,\n    \"reuse_potential\": 0.8,\n    \"obstruction_targeting\": 1.2,\n    \"transfer_opportunity\": 0.0,\n    \"campaign_priority\": 0.0\n  },\n  {\n    \"experiment_id\": \"d60ecec3-bd00-43c3-9e95-a74e54e037a9\",\n    \"project_id\": \"erdos-combo-001\",\n    \"conjecture_id\": \"erdos-123\",\n    \"existing_experiments\": 0,\n    \"phase\": \"mapping\",\n    \"move\": \"perturb_assumption\",\n    \"move_family\": \"legacy.perturb_assumption\",\n    \"theorem_family_id\": \"erdos_problem\",\n    \"move_title\": \"legacy.perturb assumption\",\n    \"objective\": \"Fill in all sorries. The assumption 'the representation is required only for sufficiently large integers' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"expected_signal\": \"Measure assumption sensitivity and classify the blocker. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"modification\": {\n      \"assumption\": \"the representation is required only for sufficiently large integers\",\n      \"operation\": \"remove\"\n    },\n    \"workspace_dir\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/d60ecec3-bd00-43c3-9e95-a74e54e037a9\",\n    \"lean_file\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/d60ecec3-bd00-43c3-9e95-a74e54e037a9/Main.lean\",\n    \"rationale\": \"Assumption 'the representation is required only for sufficiently large integers' has not yet been stress-tested under verification pressure.\",\n    \"candidate_metadata\": {\n      \"campaign_focus\": [\n        \"d-completeness boundary cases\",\n        \"special parameter triples\",\n        \"reusable covering lemmas\",\n        \"antichain and divisibility extraction lemmas\",\n        \"obstruction patterns and counterexamples\",\n        \"bridge lemmas from solved motifs\",\n        \"transfer-worthy motifs\"\n      ],\n      \"campaign_priority\": 0.0,\n      \"preferred_for_campaign\": false,\n      \"deprioritized_for_campaign\": false,\n      \"novelty_score\": 0.9,\n      \"reuse_potential\": 0.8,\n      \"obstruction_targeting\": 1.2,\n      \"diversity_group\": \"assumption_boundary\",\n      \"duplicate_penalty\": 0.0,\n      \"no_signal_penalty\": 0.0,\n      \"transfer_score\": 0.0\n    },\n    \"discovery_question_id\": \"erdos-123-dq-boundary\",\n    \"discovery_question\": \"Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"discovery_priority\": 0,\n    \"active_count_for_conjecture\": 0,\n    \"duplicate_active_signature\": false,\n    \"targets_recurring_structure\": false,\n    \"signal_priority\": 0,\n    \"no_signal_penalty\": 0.0,\n    \"semantic_novelty\": 0.9,\n    \"reuse_potential\": 0.8,\n    \"obstruction_targeting\": 1.2,\n    \"transfer_opportunity\": 0.0,\n    \"campaign_priority\": 0.0\n  },\n  {\n    \"experiment_id\": \"ce470af6-b94b-47f7-8474-fd0eb880aea0\",\n    \"project_id\": \"erdos-combo-001\",\n    \"conjecture_id\": \"erdos-123\",\n    \"existing_experiments\": 0,\n    \"phase\": \"mapping\",\n    \"move\": \"perturb_assumption\",\n    \"move_family\": \"legacy.perturb_assumption\",\n    \"theorem_family_id\": \"erdos_problem\",\n    \"move_title\": \"legacy.perturb assumption\",\n    \"objective\": \"Fill in all sorries. The assumption 'a, b, c are integers greater than 1' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"expected_signal\": \"Measure assumption sensitivity and classify the blocker. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"modification\": {\n      \"assumption\": \"a, b, c are integers greater than 1\",\n      \"operation\": \"remove\"\n    },\n    \"workspace_dir\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ce470af6-b94b-47f7-8474-fd0eb880aea0\",\n    \"lean_file\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ce470af6-b94b-47f7-8474-fd0eb880aea0/Main.lean\",\n    \"rationale\": \"Assumption 'a, b, c are integers greater than 1' has not yet been stress-tested under verification pressure.\",\n    \"candidate_metadata\": {\n      \"campaign_focus\": [\n        \"d-completeness boundary cases\",\n        \"special parameter triples\",\n        \"reusable covering lemmas\",\n        \"antichain and divisibility extraction lemmas\",\n        \"obstruction patterns and counterexamples\",\n        \"bridge lemmas from solved motifs\",\n        \"transfer-worthy motifs\"\n      ],\n      \"campaign_priority\": 0.0,\n      \"preferred_for_campaign\": false,\n      \"deprioritized_for_campaign\": false,\n      \"novelty_score\": 0.9,\n      \"reuse_potential\": 0.8,\n      \"obstruction_targeting\": 0.7,\n      \"diversity_group\": \"assumption_boundary\",\n      \"duplicate_penalty\": 0.0,\n      \"no_signal_penalty\": 0.0,\n      \"transfer_score\": 0.0\n    },\n    \"discovery_question_id\": \"erdos-123-dq-boundary\",\n    \"discovery_question\": \"Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"discovery_priority\": 0,\n    \"active_count_for_conjecture\": 0,\n    \"duplicate_active_signature\": false,\n    \"targets_recurring_structure\": false,\n    \"signal_priority\": 0,\n    \"no_signal_penalty\": 0.0,\n    \"semantic_novelty\": 0.9,\n    \"reuse_potential\": 0.8,\n    \"obstruction_targeting\": 0.7,\n    \"transfer_opportunity\": 0.0,\n    \"campaign_priority\": 0.0\n  },\n  {\n    \"experiment_id\": \"bf67ff6b-246b-442c-a9d2-96e69076a9a5\",\n    \"project_id\": \"erdos-combo-001\",\n    \"conjecture_id\": \"erdos-123\",\n    \"existing_experiments\": 0,\n    \"phase\": \"mapping\",\n    \"move\": \"perturb_assumption\",\n    \"move_family\": \"legacy.perturb_assumption\",\n    \"theorem_family_id\": \"erdos_problem\",\n    \"move_title\": \"legacy.perturb assumption\",\n    \"objective\": \"Fill in all sorries. The assumption 'summands are distinct' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"expected_signal\": \"Measure assumption sensitivity and classify the blocker. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"modification\": {\n      \"assumption\": \"summands are distinct\",\n      \"operation\": \"remove\"\n    },\n    \"workspace_dir\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bf67ff6b-246b-442c-a9d2-96e69076a9a5\",\n    \"lean_file\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bf67ff6b-246b-442c-a9d2-96e69076a9a5/Main.lean\",\n    \"rationale\": \"Assumption 'summands are distinct' has not yet been stress-tested under verification pressure.\",\n    \"candidate_metadata\": {\n      \"campaign_focus\": [\n        \"d-completeness boundary cases\",\n        \"special parameter triples\",\n        \"reusable covering lemmas\",\n        \"antichain and divisibility extraction lemmas\",\n        \"obstruction patterns and counterexamples\",\n        \"bridge lemmas from solved motifs\",\n        \"transfer-worthy motifs\"\n      ],\n      \"campaign_priority\": 0.0,\n      \"preferred_for_campaign\": false,\n      \"deprioritized_for_campaign\": false,\n      \"novelty_score\": 0.9,\n      \"reuse_potential\": 0.8,\n      \"obstruction_targeting\": 0.7,\n      \"diversity_group\": \"assumption_boundary\",\n      \"duplicate_penalty\": 0.0,\n      \"no_signal_penalty\": 0.0,\n      \"transfer_score\": 0.0\n    },\n    \"discovery_question_id\": \"erdos-123-dq-boundary\",\n    \"discovery_question\": \"Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"discovery_priority\": 0,\n    \"active_count_for_conjecture\": 0,\n    \"duplicate_active_signature\": false,\n    \"targets_recurring_structure\": false,\n    \"signal_priority\": 0,\n    \"no_signal_penalty\": 0.0,\n    \"semantic_novelty\": 0.9,\n    \"reuse_potential\": 0.8,\n    \"obstruction_targeting\": 0.7,\n    \"transfer_opportunity\": 0.0,\n    \"campaign_priority\": 0.0\n  },\n  {\n    \"experiment_id\": \"d903c0a9-1428-40f0-883a-dad788a8c9bb\",\n    \"project_id\": \"erdos-combo-001\",\n    \"conjecture_id\": \"erdos-123\",\n    \"existing_experiments\": 0,\n    \"phase\": \"mapping\",\n    \"move\": \"promote_lemma\",\n    \"move_family\": \"invariant_mining\",\n    \"theorem_family_id\": \"erdos_problem\",\n    \"move_title\": \"invariant mining\",\n    \"objective\": \"Fill in all sorries. Mine a reusable invariant or monotonicity principle that explains the recurring signal 'when interval coverage can be upgraded to exact divisibility-antichain coverage'. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"expected_signal\": \"Extract a reusable invariant from repeated blockers or proof motifs. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"modification\": {\n      \"invariant_hint\": \"when interval coverage can be upgraded to exact divisibility-antichain coverage\"\n    },\n    \"workspace_dir\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/d903c0a9-1428-40f0-883a-dad788a8c9bb\",\n    \"lean_file\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/d903c0a9-1428-40f0-883a-dad788a8c9bb/Main.lean\",\n    \"rationale\": \"Campaign seed 'when interval coverage can be upgraded to exact divisibility-antichain coverage' targets the kind of invariant Erdos #123 needs before broader search.\",\n    \"candidate_metadata\": {\n      \"evaluation_average\": 0.0,\n      \"seeded_by_campaign\": true,\n      \"campaign_focus\": [\n        \"d-completeness boundary cases\",\n        \"special parameter triples\",\n        \"reusable covering lemmas\",\n        \"antichain and divisibility extraction lemmas\",\n        \"obstruction patterns and counterexamples\",\n        \"bridge lemmas from solved motifs\",\n        \"transfer-worthy motifs\"\n      ],\n      \"campaign_priority\": 1.75,\n      \"preferred_for_campaign\": true,\n      \"deprioritized_for_campaign\": false,\n      \"novelty_score\": 2.0625,\n      \"reuse_potential\": 2.0875,\n      \"obstruction_targeting\": 1.375,\n      \"diversity_group\": \"reuse\",\n      \"duplicate_penalty\": 0.0,\n      \"no_signal_penalty\": 0.0,\n      \"transfer_score\": 0.3125\n    },\n    \"discovery_question_id\": \"erdos-123-dq-boundary\",\n    \"discovery_question\": \"Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"discovery_priority\": 0,\n    \"active_count_for_conjecture\": 0,\n    \"duplicate_active_signature\": false,\n    \"targets_recurring_structure\": true,\n    \"signal_priority\": 2,\n    \"no_signal_penalty\": 0.0,\n    \"semantic_novelty\": 2.0625,\n    \"reuse_potential\": 2.0875,\n    \"obstruction_targeting\": 1.375,\n    \"transfer_opportunity\": 0.3125,\n    \"campaign_priority\": 1.75\n  },\n  {\n    \"experiment_id\": \"4d918c5b-da4e-4a4c-8333-05df14e15963\",\n    \"project_id\": \"erdos-combo-001\",\n    \"conjecture_id\": \"erdos-123\",\n    \"existing_experiments\": 0,\n    \"phase\": \"mapping\",\n    \"move\": \"promote_lemma\",\n    \"move_family\": \"decompose_subclaim\",\n    \"theorem_family_id\": \"erdos_problem\",\n    \"move_title\": \"decompose subclaim\",\n    \"objective\": \"Fill in all sorries. Split the current theorem into a bridge lemma and a remaining reduction built around the recurring subgoal. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"expected_signal\": \"Convert repeated subgoal pressure into a reusable bridge lemma candidate. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"modification\": {\n      \"subclaim\": \"derive a covering lemma that upgrades interval coverage to eventual d-completeness\"\n    },\n    \"workspace_dir\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/4d918c5b-da4e-4a4c-8333-05df14e15963\",\n    \"lean_file\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/4d918c5b-da4e-4a4c-8333-05df14e15963/Main.lean\",\n    \"rationale\": \"Campaign seed 'derive a covering lemma that upgrades interval coverage to eventual d-completeness' is an explicitly requested bridge lemma target.\",\n    \"candidate_metadata\": {\n      \"seeded_by_campaign\": true,\n      \"campaign_focus\": [\n        \"d-completeness boundary cases\",\n        \"special parameter triples\",\n        \"reusable covering lemmas\",\n        \"antichain and divisibility extraction lemmas\",\n        \"obstruction patterns and counterexamples\",\n        \"bridge lemmas from solved motifs\",\n        \"transfer-worthy motifs\"\n      ],\n      \"campaign_priority\": 1.7,\n      \"preferred_for_campaign\": true,\n      \"deprioritized_for_campaign\": false,\n      \"novelty_score\": 1.5899999999999999,\n      \"reuse_potential\": 2.2199999999999998,\n      \"obstruction_targeting\": 1.46,\n      \"diversity_group\": \"reuse\",\n      \"duplicate_penalty\": 0.0,\n      \"no_signal_penalty\": 0.0,\n      \"transfer_score\": 0.3\n    },\n    \"discovery_question_id\": \"erdos-123-dq-boundary\",\n    \"discovery_question\": \"Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"discovery_priority\": 0,\n    \"active_count_for_conjecture\": 0,\n    \"duplicate_active_signature\": false,\n    \"targets_recurring_structure\": true,\n    \"signal_priority\": 2,\n    \"no_signal_penalty\": 0.0,\n    \"semantic_novelty\": 1.5899999999999999,\n    \"reuse_potential\": 2.2199999999999998,\n    \"obstruction_targeting\": 1.46,\n    \"transfer_opportunity\": 0.3,\n    \"campaign_priority\": 1.7\n  },\n  {\n    \"experiment_id\": \"5ae24c44-4347-4543-87ca-8f35126b3cdc\",\n    \"project_id\": \"erdos-combo-001\",\n    \"conjecture_id\": \"erdos-123\",\n    \"existing_experiments\": 0,\n    \"phase\": \"mapping\",\n    \"move\": \"reformulate\",\n    \"move_family\": \"extremal_case\",\n    \"theorem_family_id\": \"erdos_problem\",\n    \"move_title\": \"extremal case\",\n    \"objective\": \"Fill in all sorries. Reformulate the conjecture around the extremal or boundary case suggested by 'parameter triples with one base much larger than the other two'. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"expected_signal\": \"Expose whether the hard regime is genuinely extremal or an artifact of presentation. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"modification\": {\n      \"extremal_target\": \"parameter triples with one base much larger than the other two\"\n    },\n    \"workspace_dir\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5ae24c44-4347-4543-87ca-8f35126b3cdc\",\n    \"lean_file\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5ae24c44-4347-4543-87ca-8f35126b3cdc/Main.lean\",\n    \"rationale\": \"Campaign seed 'parameter triples with one base much larger than the other two' is a high-value boundary regime for this theorem family.\",\n    \"candidate_metadata\": {\n      \"seeded_by_campaign\": true,\n      \"campaign_focus\": [\n        \"d-completeness boundary cases\",\n        \"special parameter triples\",\n        \"reusable covering lemmas\",\n        \"antichain and divisibility extraction lemmas\",\n        \"obstruction patterns and counterexamples\",\n        \"bridge lemmas from solved motifs\",\n        \"transfer-worthy motifs\"\n      ],\n      \"campaign_priority\": 1.6,\n      \"preferred_for_campaign\": true,\n      \"deprioritized_for_campaign\": false,\n      \"novelty_score\": 1.845,\n      \"reuse_potential\": 1.335,\n      \"obstruction_targeting\": 1.5300000000000002,\n      \"diversity_group\": \"boundary\",\n      \"duplicate_penalty\": 0.0,\n      \"no_signal_penalty\": 0.0,\n      \"transfer_score\": 0.275\n    },\n    \"discovery_question_id\": \"erdos-123-dq-boundary\",\n    \"discovery_question\": \"Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"discovery_priority\": 0,\n    \"active_count_for_conjecture\": 0,\n    \"duplicate_active_signature\": false,\n    \"targets_recurring_structure\": false,\n    \"signal_priority\": 1,\n    \"no_signal_penalty\": 0.0,\n    \"semantic_novelty\": 1.845,\n    \"reuse_potential\": 1.335,\n    \"obstruction_targeting\": 1.5300000000000002,\n    \"transfer_opportunity\": 0.275,\n    \"campaign_priority\": 1.6\n  },\n  {\n    \"experiment_id\": \"92380cc4-3961-449c-8ab2-9238ad953edb\",\n    \"project_id\": \"erdos-combo-001\",\n    \"conjecture_id\": \"erdos-123\",\n    \"existing_experiments\": 0,\n    \"phase\": \"mapping\",\n    \"move\": \"reformulate\",\n    \"move_family\": \"transfer_reformulation\",\n    \"theorem_family_id\": \"erdos_problem\",\n    \"move_title\": \"transfer reformulation\",\n    \"objective\": \"Fill in all sorries. Reformulate the current conjecture using the transferable artifact 'special-case covering lemmas can often be transferred by isolating the divisibility obstruction' from additive number theory. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"expected_signal\": \"Test whether reusable structure transfers across theorem families or adjacent domains. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"modification\": {\n      \"source_conjecture_id\": \"erdos-44\",\n      \"source_domain\": \"additive number theory\",\n      \"artifact\": \"special-case covering lemmas can often be transferred by isolating the divisibility obstruction\"\n    },\n    \"workspace_dir\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/92380cc4-3961-449c-8ab2-9238ad953edb\",\n    \"lean_file\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/92380cc4-3961-449c-8ab2-9238ad953edb/Main.lean\",\n    \"rationale\": \"Reusable signal from erdos-44 suggests a cross-family transfer opportunity.\",\n    \"candidate_metadata\": {\n      \"transfer_hint\": {\n        \"source_conjecture_id\": \"erdos-44\",\n        \"source_domain\": \"additive number theory\",\n        \"artifact\": \"special-case covering lemmas can often be transferred by isolating the divisibility obstruction\",\n        \"reuse_count\": 1\n      },\n      \"seeded_by_campaign\": true,\n      \"campaign_focus\": [\n        \"d-completeness boundary cases\",\n        \"special parameter triples\",\n        \"reusable covering lemmas\",\n        \"antichain and divisibility extraction lemmas\",\n        \"obstruction patterns and counterexamples\",\n        \"bridge lemmas from solved motifs\",\n        \"transfer-worthy motifs\"\n      ],\n      \"campaign_priority\": 1.5,\n      \"preferred_for_campaign\": true,\n      \"deprioritized_for_campaign\": false,\n      \"novelty_score\": 1.5999999999999999,\n      \"reuse_potential\": 1.7000000000000002,\n      \"obstruction_targeting\": 1.1,\n      \"diversity_group\": \"transfer\",\n      \"duplicate_penalty\": 0.0,\n      \"no_signal_penalty\": 0.0,\n      \"transfer_score\": 1.75\n    },\n    \"discovery_question_id\": \"erdos-123-dq-boundary\",\n    \"discovery_question\": \"Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"discovery_priority\": 0,\n    \"active_count_for_conjecture\": 0,\n    \"duplicate_active_signature\": false,\n    \"targets_recurring_structure\": false,\n    \"signal_priority\": 1,\n    \"no_signal_penalty\": 0.0,\n    \"semantic_novelty\": 1.5999999999999999,\n    \"reuse_potential\": 1.7000000000000002,\n    \"obstruction_targeting\": 1.1,\n    \"transfer_opportunity\": 1.75,\n    \"campaign_priority\": 1.5\n  },\n  {\n    \"experiment_id\": \"ee0d4c30-2142-4cf8-8a52-d1489a1721bd\",\n    \"project_id\": \"erdos-combo-001\",\n    \"conjecture_id\": \"erdos-123\",\n    \"existing_experiments\": 0,\n    \"phase\": \"mapping\",\n    \"move\": \"reformulate\",\n    \"move_family\": \"equivalent_view\",\n    \"theorem_family_id\": \"erdos_problem\",\n    \"move_title\": \"equivalent view\",\n    \"objective\": \"Fill in all sorries. This is a reformulation as every sufficiently large integer has an antichain sum representation drawn from the triple-power semigroup. Determine whether this form is easier or harder to prove and report intermediate progress. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"expected_signal\": \"Separate structural difficulty from representation-specific difficulty. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"modification\": {\n      \"form\": \"every sufficiently large integer has an antichain sum representation drawn from the triple-power semigroup\"\n    },\n    \"workspace_dir\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ee0d4c30-2142-4cf8-8a52-d1489a1721bd\",\n    \"lean_file\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ee0d4c30-2142-4cf8-8a52-d1489a1721bd/Main.lean\",\n    \"rationale\": \"Equivalent form 'every sufficiently large integer has an antichain sum representation drawn from the triple-power semigroup' may expose different proof obligations.\",\n    \"candidate_metadata\": {\n      \"campaign_focus\": [\n        \"d-completeness boundary cases\",\n        \"special parameter triples\",\n        \"reusable covering lemmas\",\n        \"antichain and divisibility extraction lemmas\",\n        \"obstruction patterns and counterexamples\",\n        \"bridge lemmas from solved motifs\",\n        \"transfer-worthy motifs\"\n      ],\n      \"campaign_priority\": 1.45,\n      \"preferred_for_campaign\": true,\n      \"deprioritized_for_campaign\": false,\n      \"novelty_score\": 1.3775,\n      \"reuse_potential\": 1.4825,\n      \"obstruction_targeting\": 0.385,\n      \"diversity_group\": \"reformulation\",\n      \"duplicate_penalty\": 0.0,\n      \"no_signal_penalty\": 0.0,\n      \"transfer_score\": 0.2375\n    },\n    \"discovery_question_id\": \"erdos-123-dq-boundary\",\n    \"discovery_question\": \"Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"discovery_priority\": 0,\n    \"active_count_for_conjecture\": 0,\n    \"duplicate_active_signature\": false,\n    \"targets_recurring_structure\": false,\n    \"signal_priority\": 1,\n    \"no_signal_penalty\": 0.0,\n    \"semantic_novelty\": 1.3775,\n    \"reuse_potential\": 1.4825,\n    \"obstruction_targeting\": 0.385,\n    \"transfer_opportunity\": 0.2375,\n    \"campaign_priority\": 1.45\n  },\n  {\n    \"experiment_id\": \"5a575d0c-241a-47dc-ab83-24945ca984f8\",\n    \"project_id\": \"erdos-combo-001\",\n    \"conjecture_id\": \"erdos-123\",\n    \"existing_experiments\": 0,\n    \"phase\": \"mapping\",\n    \"move\": \"reformulate\",\n    \"move_family\": \"equivalent_view\",\n    \"theorem_family_id\": \"erdos_problem\",\n    \"move_title\": \"equivalent view\",\n    \"objective\": \"Fill in all sorries. This is a reformulation as the set {a^k b^l c^m : k, l, m >= 0} is d-complete. Determine whether this form is easier or harder to prove and report intermediate progress. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"expected_signal\": \"Separate structural difficulty from representation-specific difficulty. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"modification\": {\n      \"form\": \"the set {a^k b^l c^m : k, l, m >= 0} is d-complete\"\n    },\n    \"workspace_dir\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5a575d0c-241a-47dc-ab83-24945ca984f8\",\n    \"lean_file\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5a575d0c-241a-47dc-ab83-24945ca984f8/Main.lean\",\n    \"rationale\": \"Equivalent form 'the set {a^k b^l c^m : k, l, m >= 0} is d-complete' may expose different proof obligations.\",\n    \"candidate_metadata\": {\n      \"campaign_focus\": [\n        \"d-completeness boundary cases\",\n        \"special parameter triples\",\n        \"reusable covering lemmas\",\n        \"antichain and divisibility extraction lemmas\",\n        \"obstruction patterns and counterexamples\",\n        \"bridge lemmas from solved motifs\",\n        \"transfer-worthy motifs\"\n      ],\n      \"campaign_priority\": 1.45,\n      \"preferred_for_campaign\": true,\n      \"deprioritized_for_campaign\": false,\n      \"novelty_score\": 1.3775,\n      \"reuse_potential\": 1.4825,\n      \"obstruction_targeting\": 0.385,\n      \"diversity_group\": \"reformulation\",\n      \"duplicate_penalty\": 0.0,\n      \"no_signal_penalty\": 0.0,\n      \"transfer_score\": 0.2375\n    },\n    \"discovery_question_id\": \"erdos-123-dq-boundary\",\n    \"discovery_question\": \"Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"discovery_priority\": 0,\n    \"active_count_for_conjecture\": 0,\n    \"duplicate_active_signature\": false,\n    \"targets_recurring_structure\": false,\n    \"signal_priority\": 1,\n    \"no_signal_penalty\": 0.0,\n    \"semantic_novelty\": 1.3775,\n    \"reuse_potential\": 1.4825,\n    \"obstruction_targeting\": 0.385,\n    \"transfer_opportunity\": 0.2375,\n    \"campaign_priority\": 1.45\n  },\n  {\n    \"experiment_id\": \"11261da4-5daa-40e0-b9d6-0f60e6b1d49b\",\n    \"project_id\": \"erdos-combo-001\",\n    \"conjecture_id\": \"erdos-123\",\n    \"existing_experiments\": 0,\n    \"phase\": \"mapping\",\n    \"move\": \"counterexample_mode\",\n    \"move_family\": \"adversarial_counterexample\",\n    \"theorem_family_id\": \"erdos_problem\",\n    \"move_title\": \"adversarial counterexample\",\n    \"objective\": \"Fill in all sorries. Construct an adversarial witness that sharpens or refutes the blocker pattern 'minimal obstruction built from a divisibility chain inside a candidate representation'. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"expected_signal\": \"Stress-test the current obstruction with a deliberately adversarial witness search. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"modification\": {\n      \"target\": \"minimal obstruction built from a divisibility chain inside a candidate representation\",\n      \"mode\": \"adversarial\"\n    },\n    \"workspace_dir\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/11261da4-5daa-40e0-b9d6-0f60e6b1d49b\",\n    \"lean_file\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/11261da4-5daa-40e0-b9d6-0f60e6b1d49b/Main.lean\",\n    \"rationale\": \"Campaign seed 'minimal obstruction built from a divisibility chain inside a candidate representation' is a plausible obstruction pattern worth attacking immediately.\",\n    \"candidate_metadata\": {\n      \"seeded_by_campaign\": true,\n      \"campaign_focus\": [\n        \"d-completeness boundary cases\",\n        \"special parameter triples\",\n        \"reusable covering lemmas\",\n        \"antichain and divisibility extraction lemmas\",\n        \"obstruction patterns and counterexamples\",\n        \"bridge lemmas from solved motifs\",\n        \"transfer-worthy motifs\"\n      ],\n      \"campaign_priority\": 1.65,\n      \"preferred_for_campaign\": true,\n      \"deprioritized_for_campaign\": false,\n      \"novelty_score\": 1.7174999999999998,\n      \"reuse_potential\": 1.1524999999999999,\n      \"obstruction_targeting\": 1.945,\n      \"diversity_group\": \"boundary\",\n      \"duplicate_penalty\": 0.0,\n      \"no_signal_penalty\": 0.0,\n      \"transfer_score\": 0.2875\n    },\n    \"discovery_question_id\": \"erdos-123-dq-boundary\",\n    \"discovery_question\": \"Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"discovery_priority\": 0,\n    \"active_count_for_conjecture\": 0,\n    \"duplicate_active_signature\": false,\n    \"targets_recurring_structure\": false,\n    \"signal_priority\": 0,\n    \"no_signal_penalty\": 0.0,\n    \"semantic_novelty\": 1.7174999999999998,\n    \"reuse_potential\": 1.1524999999999999,\n    \"obstruction_targeting\": 1.945,\n    \"transfer_opportunity\": 0.2875,\n    \"campaign_priority\": 1.65\n  },\n  {\n    \"experiment_id\": \"625b4652-3e5f-44dc-beaf-b72c84eb6d38\",\n    \"project_id\": \"erdos-combo-001\",\n    \"conjecture_id\": \"erdos-123\",\n    \"existing_experiments\": 0,\n    \"phase\": \"mapping\",\n    \"move\": \"counterexample_mode\",\n    \"move_family\": \"witness_minimization\",\n    \"theorem_family_id\": \"erdos_problem\",\n    \"move_title\": \"witness minimization\",\n    \"objective\": \"Fill in all sorries. Minimize the witness or blocker around 'least uncovered large integer for a special parameter triple' to identify the sharp boundary case. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"expected_signal\": \"Turn a coarse witness into a sharp obstruction description. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"modification\": {\n      \"witness_target\": \"least uncovered large integer for a special parameter triple\",\n      \"mode\": \"minimize\"\n    },\n    \"workspace_dir\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/625b4652-3e5f-44dc-beaf-b72c84eb6d38\",\n    \"lean_file\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/625b4652-3e5f-44dc-beaf-b72c84eb6d38/Main.lean\",\n    \"rationale\": \"Campaign seed 'least uncovered large integer for a special parameter triple' should be sharpened into the smallest meaningful obstruction.\",\n    \"candidate_metadata\": {\n      \"seeded_by_campaign\": true,\n      \"campaign_focus\": [\n        \"d-completeness boundary cases\",\n        \"special parameter triples\",\n        \"reusable covering lemmas\",\n        \"antichain and divisibility extraction lemmas\",\n        \"obstruction patterns and counterexamples\",\n        \"bridge lemmas from solved motifs\",\n        \"transfer-worthy motifs\"\n      ],\n      \"campaign_priority\": 1.55,\n      \"preferred_for_campaign\": true,\n      \"deprioritized_for_campaign\": false,\n      \"novelty_score\": 1.5725,\n      \"reuse_potential\": 1.2175,\n      \"obstruction_targeting\": 1.715,\n      \"diversity_group\": \"boundary\",\n      \"duplicate_penalty\": 0.0,\n      \"no_signal_penalty\": 0.0,\n      \"transfer_score\": 0.2625\n    },\n    \"discovery_question_id\": \"erdos-123-dq-boundary\",\n    \"discovery_question\": \"Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"discovery_priority\": 0,\n    \"active_count_for_conjecture\": 0,\n    \"duplicate_active_signature\": false,\n    \"targets_recurring_structure\": false,\n    \"signal_priority\": 0,\n    \"no_signal_penalty\": 0.0,\n    \"semantic_novelty\": 1.5725,\n    \"reuse_potential\": 1.2175,\n    \"obstruction_targeting\": 1.715,\n    \"transfer_opportunity\": 0.2625,\n    \"campaign_priority\": 1.55\n  },\n  {\n    \"experiment_id\": \"d96552d3-2c7f-45a8-8e63-981aa2c9724b\",\n    \"project_id\": \"erdos-combo-001\",\n    \"conjecture_id\": \"erdos-123\",\n    \"existing_experiments\": 0,\n    \"phase\": \"mapping\",\n    \"move\": \"counterexample_mode\",\n    \"move_family\": \"legacy.counterexample_mode\",\n    \"theorem_family_id\": \"erdos_problem\",\n    \"move_title\": \"legacy.counterexample mode\",\n    \"objective\": \"Fill in all sorries. Search for a counterexample or independence witness for the most fragile variant. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"expected_signal\": \"Disambiguate falsehood from search failure. This run should help answer: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"modification\": {\n      \"target\": \"most_fragile_variant\",\n      \"attempt\": 1\n    },\n    \"workspace_dir\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/d96552d3-2c7f-45a8-8e63-981aa2c9724b\",\n    \"lean_file\": \"/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/d96552d3-2c7f-45a8-8e63-981aa2c9724b/Main.lean\",\n    \"rationale\": \"A targeted counterexample pass helps separate true obstruction from solver drift.\",\n    \"candidate_metadata\": {\n      \"evaluation_average\": 0.0,\n      \"campaign_focus\": [\n        \"d-completeness boundary cases\",\n        \"special parameter triples\",\n        \"reusable covering lemmas\",\n        \"antichain and divisibility extraction lemmas\",\n        \"obstruction patterns and counterexamples\",\n        \"bridge lemmas from solved motifs\",\n        \"transfer-worthy motifs\"\n      ],\n      \"campaign_priority\": -0.85,\n      \"preferred_for_campaign\": false,\n      \"deprioritized_for_campaign\": true,\n      \"novelty_score\": 0.1524999999999999,\n      \"reuse_potential\": 0.20750000000000002,\n      \"obstruction_targeting\": 1.135,\n      \"diversity_group\": \"boundary\",\n      \"duplicate_penalty\": 0.25,\n      \"no_signal_penalty\": 0.15,\n      \"transfer_score\": 0.0\n    },\n    \"discovery_question_id\": \"erdos-123-dq-boundary\",\n    \"discovery_question\": \"Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?\",\n    \"discovery_priority\": 0,\n    \"active_count_for_conjecture\": 0,\n    \"duplicate_active_signature\": false,\n    \"targets_recurring_structure\": false,\n    \"signal_priority\": 0,\n    \"no_signal_penalty\": 0.15,\n    \"semantic_novelty\": 0.1524999999999999,\n    \"reuse_potential\": 0.20750000000000002,\n    \"obstruction_targeting\": 1.135,\n    \"transfer_opportunity\": 0.0,\n    \"campaign_priority\": -0.85\n  }\n]\n\nCapacity:\n{\n  \"requested_submissions\": 2,\n  \"current_active\": 0\n}\n\nReturn valid JSON with this exact shape:\n{\n  \"ranked_experiment_ids\": [\"candidate-id-1\", \"candidate-id-2\"],\n  \"rationale\": \"one short paragraph\"\n}\n\nHard constraints:\n- rank only experiment ids that appear in the frontier candidates\n- prefer candidates with explicit high-priority discovery questions\n- prefer cross-problem diversity before deepening one branch\n- avoid duplicate active runs for the same conjecture, move, and modification\n- favor information gain and reusability\n- prefer candidates that attack recurring lemmas or recurring subgoals\n- de-prioritize branches with repeated no-signal outcomes\n- prefer unexplored move types when otherwise similar",
+  "raw_response": "",
+  "signal_progress": {
+    "latest_completed": []
+  },
+  "expired_stale_active_experiments": 0,
+  "manager_run_id": "569af6d1-0962-4ff2-a983-82fd2c065f4c"
+}
