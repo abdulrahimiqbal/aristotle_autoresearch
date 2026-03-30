@@ -36,8 +36,8 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `IN_PROGRESS`: 3
-- `QUEUED`: 2
+- `IN_PROGRESS`: 4
+- `QUEUED`: 1
 
 ## Recently completed
 
@@ -2670,22 +2670,22 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 - move: `counterexample_mode`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `55d5d8b4-f94f-4427-8287-c842809162de`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. Search for a counterexample or independence witness for the most fragile variant.
-- learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; proof_outcome=unknown; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/7cd87e61-0434-4b8d-bcdb-0a6052a0ba45/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/7cd87e61-0434-4b8d-bcdb-0a6052a0ba45/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/7cd87e61-0434-4b8d-bcdb-0a6052a0ba45/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/7cd87e61-0434-4b8d-bcdb-0a6052a0ba45/aristotle_list_stdout.txt` (8761 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/7cd87e61-0434-4b8d-bcdb-0a6052a0ba45/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/7cd87e61-0434-4b8d-bcdb-0a6052a0ba45/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/7cd87e61-0434-4b8d-bcdb-0a6052a0ba45/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/7cd87e61-0434-4b8d-bcdb-0a6052a0ba45/aristotle_list_stderr.txt`
+- notes: Aristotle job 55d5d8b4-f94f-4427-8287-c842809162de is still in progress.
 
 ## Incidents
 
@@ -2707,9 +2707,9 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 ## Latest manager decision
 
 - policy path: `fallback`
-- jobs synced: 4
-- jobs submitted: 1
-- active before: 4
+- jobs synced: 5
+- jobs submitted: 0
+- active before: 5
 - active after: 5
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.manager_snapshot.json`
@@ -2718,8 +2718,8 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - synced `d555cdf1-eb3b-49de-86c8-aa5a7730aa98` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `2f01e299-842e-443f-b056-e965f5f690b8` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `36e76630-ee38-4415-9c0d-14e2e414c4a5` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- queued `7cd87e61-0434-4b8d-bcdb-0a6052a0ba45` for `erdos-123` via `counterexample_mode` (chosen by deterministic fallback policy)
+- synced `7cd87e61-0434-4b8d-bcdb-0a6052a0ba45` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 
 ## Suggested next move
 
-- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
+- Promote the top recurring lemma into a standalone theorem if not already tested.
