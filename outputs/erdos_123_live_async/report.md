@@ -26,7 +26,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - repeated no-signal streak: 0
 - duplicate frontier pressure: 2
 - move-family diversity: frontier=9 completed=1
-- open incidents: 1
+- open incidents: 2
 
 ## Version Drift
 
@@ -214,7 +214,8 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Incidents
 
-- `warning` `retry_budget_exhausted`: Experiment bff4c05f-d103-47ac-83f8-1164972a1bca reached retry budget (6 attempts).
+- `warning` `retry_budget_exhausted`: Experiment b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21 reached retry budget (6 attempts).
+- `warning` `retry_budget_exhausted`: Experiment bff4c05f-d103-47ac-83f8-1164972a1bca reached retry budget (7 attempts).
 
 ## Audit Trail
 
@@ -235,16 +236,16 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - synced `bff4c05f-d103-47ac-83f8-1164972a1bca` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `ddb1aae2-1b93-438c-9165-39a34b6f05c6` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- considered `fda721ea-faaa-417b-836a-b5ab029b1f6a` rank=1 score=-5.3675
-- considered `56740e52-cdca-4dd4-b69b-c1aade23f837` rank=2 score=-10.68
-- selected `7d469df7-6ddb-4404-9d11-f0618d43931e` rank=3 score=-7.79
-- considered `d0680468-0405-45a0-ae91-9806a711d412` rank=4 score=-7.79
-- considered `cb21199b-e7f5-474a-99ef-552f6e997ddc` rank=5 score=-7.79
-- skipped `cb21199b-e7f5-474a-99ef-552f6e997ddc` for `erdos-123` (frontier throttled for duplicate move-family pressure)
-- skipped `f4deb0df-6982-4a5d-9676-7305941111e9` for `erdos-123` (frontier throttled for duplicate move-family pressure)
-- skipped `2cb85d05-49d3-4801-94fa-d2ed2cc59f6e` for `erdos-123` (frontier throttled for duplicate move-family pressure)
-- skipped `fda721ea-faaa-417b-836a-b5ab029b1f6a` for `erdos-123` (duplicate active experiment signature)
-- skipped `56740e52-cdca-4dd4-b69b-c1aade23f837` for `erdos-123` (duplicate active experiment signature)
+- considered `887ee62e-f161-4c6e-a8e8-b8ae77d0c278` rank=1 score=-5.3675
+- considered `5b660483-4338-45f4-bdd1-73a5d674f41e` rank=2 score=-10.68
+- selected `3077f32d-6d45-467a-9afa-5b157c90f5eb` rank=3 score=-7.79
+- considered `57308eb2-7f04-42fe-af83-b89c01872820` rank=4 score=-7.79
+- considered `e81fe292-2fea-4a3a-ac14-af9f6e8fb95f` rank=5 score=-7.79
+- skipped `e81fe292-2fea-4a3a-ac14-af9f6e8fb95f` for `erdos-123` (frontier throttled for duplicate move-family pressure)
+- skipped `09f4957d-9768-44ce-abf7-c2d595930b89` for `erdos-123` (frontier throttled for duplicate move-family pressure)
+- skipped `6bda8702-8499-4be3-929e-4ff87144acd4` for `erdos-123` (frontier throttled for duplicate move-family pressure)
+- skipped `887ee62e-f161-4c6e-a8e8-b8ae77d0c278` for `erdos-123` (duplicate active experiment signature)
+- skipped `5b660483-4338-45f4-bdd1-73a5d674f41e` for `erdos-123` (duplicate active experiment signature)
 
 ## Suggested next move
 
