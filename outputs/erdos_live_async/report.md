@@ -36,8 +36,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `IN_PROGRESS`: 2
-- `QUEUED`: 1
+- `IN_PROGRESS`: 3
 
 ## Recently completed
 
@@ -2260,22 +2259,22 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 - move: `counterexample_mode`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `8791bd2b-5262-49e9-a8bb-4086726fe6c6`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. Search for a counterexample or independence witness for this weakened variant.
-- learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; proof_outcome=unknown; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_list_stdout.txt` (8746 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f0aa6cb5-754c-4486-8918-e2f88c0f62ae/aristotle_list_stderr.txt`
+- notes: Aristotle job 8791bd2b-5262-49e9-a8bb-4086726fe6c6 is still in progress.
 
 ## Incidents
 
@@ -2298,7 +2297,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 - policy path: `fallback`
 - jobs synced: 3
-- jobs submitted: 1
+- jobs submitted: 0
 - active before: 3
 - active after: 3
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.md`
@@ -2306,11 +2305,11 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - recurring structures considered: lemmas=10, subgoals=0, traces=0
 - synced `f0b86e3e-5678-4840-9222-6adb06ce079e` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `df0acc2c-7f2f-4daa-86a2-18443a84811b` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- synced `68985892-c8a9-481f-94e3-586949d9b3df` with proof_outcome=`disproved` new_signal=1 reused_signal=0
-- queued `f0aa6cb5-754c-4486-8918-e2f88c0f62ae` for `erdos-181` via `counterexample_mode` (chosen by deterministic fallback policy)
-- skipped `cbaaba21-cee9-4bbe-bed7-6e93abaee85a` for `erdos-123` (duplicate active experiment signature)
-- skipped `c4c1f0a9-ccc2-4be5-8ce8-cdd43fe6410f` for `erdos-44` (duplicate active experiment signature)
+- synced `f0aa6cb5-754c-4486-8918-e2f88c0f62ae` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- skipped `5c4d26a7-a52a-4681-a99c-a647ca6eb126` for `erdos-123` (duplicate active experiment signature)
+- skipped `4d20ce5a-4142-4817-9e5f-dbe9ab5a8b44` for `erdos-181` (duplicate active experiment signature)
+- skipped `91d50c86-55fe-416f-a636-73f87ba59542` for `erdos-44` (duplicate active experiment signature)
 
 ## Suggested next move
 
-- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
+- Promote the top recurring lemma into a standalone theorem if not already tested.
