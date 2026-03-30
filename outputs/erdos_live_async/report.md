@@ -1914,20 +1914,19 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 ## Latest manager decision
 
 - policy path: `fallback`
-- jobs synced: 4
+- jobs synced: 3
 - jobs submitted: 0
-- active before: 4
+- active before: 3
 - active after: 3
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=10, subgoals=0, traces=0
-- synced `22efd1f1-e0d8-4731-8552-9d87ef807b40` with proof_outcome=`partial` new_signal=1 reused_signal=0
 - synced `233580d4-c454-41ec-a83d-04187d52e451` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `182dd7b7-e92d-42a0-aa48-59be7c9b98a2` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `e217b2a9-78b3-47d8-a9a9-3afe0966c9f9` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- skipped `95b33971-f703-4cbd-8f78-806600570731` for `erdos-123` (duplicate active experiment signature)
-- skipped `b1916465-ab4f-4b4f-98ee-5cd197e89bb4` for `erdos-181` (duplicate active experiment signature)
-- skipped `018530bd-5dcc-4a3a-9cf5-e7e9b02ab405` for `erdos-44` (duplicate active experiment signature)
+- skipped `e525799c-e009-4c06-8165-4d26132d27d6` for `erdos-123` (duplicate active experiment signature)
+- skipped `fae44fe7-f2b0-4ab3-9140-5c91b49dbbde` for `erdos-181` (duplicate active experiment signature)
+- skipped `6ac98680-3286-46c1-b851-ac6e04b4318c` for `erdos-44` (duplicate active experiment signature)
 
 ## Suggested next move
 
