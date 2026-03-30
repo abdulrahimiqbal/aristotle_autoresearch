@@ -123,6 +123,7 @@ def _heuristic_key(candidate: Dict[str, Any]) -> Tuple[int, int, int, int, str]:
         -candidate.get("discovery_priority", 0),
         candidate["existing_experiments"],
         stage_priority,
+        -candidate.get("campaign_priority", 0),
         -candidate.get("transfer_opportunity", 0),
         -candidate.get("reuse_potential", 0),
         -candidate.get("obstruction_targeting", 0),
@@ -145,6 +146,7 @@ def candidate_score_breakdown(candidate: Dict[str, Any]) -> Dict[str, Any]:
     }
     bonuses = {
         "discovery_priority": float(candidate.get("discovery_priority", 0) * 1.8),
+        "campaign_priority": float(candidate.get("campaign_priority", 0) * 1.5),
         "signal_priority": float(candidate.get("signal_priority", 0) * 1.2),
         "transfer_opportunity": float(candidate.get("transfer_opportunity", 0) * 1.1),
         "reuse_potential": float(candidate.get("reuse_potential", 0) * 1.0),

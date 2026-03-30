@@ -65,6 +65,16 @@ def _semantic_kinds(experiments: Sequence[Dict[str, Any]], kind: str) -> Counter
     return counts
 
 
+def _family_metadata_list(conjecture: Conjecture, key: str) -> List[Any]:
+    value = conjecture.family_metadata.get(key, [])
+    return list(value) if isinstance(value, list) else []
+
+
+def _family_metadata_dict(conjecture: Conjecture, key: str) -> Dict[str, Any]:
+    value = conjecture.family_metadata.get(key, {})
+    return dict(value) if isinstance(value, dict) else {}
+
+
 @dataclass
 class MoveCandidate:
     move_family: str
@@ -185,6 +195,26 @@ class MoveGenerationContext:
             return 0.0
         return sum(totals) / len(totals)
 
+    def campaign_focus(self) -> List[str]:
+        return [str(item) for item in _family_metadata_list(self.conjecture, "campaign_focus")]
+
+    def preferred_move_families(self) -> set[str]:
+        return {str(item) for item in _family_metadata_list(self.conjecture, "preferred_move_families")}
+
+    def deprioritized_move_families(self) -> set[str]:
+        return {str(item) for item in _family_metadata_list(self.conjecture, "deprioritized_move_families")}
+
+    def move_score_boosts(self) -> Dict[str, float]:
+        boosts = _family_metadata_dict(self.conjecture, "move_score_boosts")
+        normalized: Dict[str, float] = {}
+        for key, value in boosts.items():
+            if isinstance(value, (int, float)):
+                normalized[str(key)] = float(value)
+        return normalized
+
+    def seed_items(self, key: str) -> List[Any]:
+        return _family_metadata_list(self.conjecture, key)
+
 
 Generator = Callable[[MoveGenerationContext], List[MoveCandidate]]
 
@@ -219,7 +249,7 @@ class MoveRegistry:
             if allowed and spec.legacy_move not in allowed and spec.move_family not in allowed:
                 continue
             for candidate in spec.generator(context):
-                raw.append(candidate)
+                raw.append(_apply_campaign_tuning(context, candidate))
         return _dedupe_candidates(raw)
 
 
@@ -243,6 +273,37 @@ def _dedupe_candidates(candidates: Sequence[MoveCandidate]) -> List[MoveCandidat
             item.signature,
         ),
     )
+
+
+def _apply_campaign_tuning(context: MoveGenerationContext, candidate: MoveCandidate) -> MoveCandidate:
+    boost = context.move_score_boosts().get(candidate.move_family, 0.0)
+    if boost == 0.0 and candidate.legacy_move != candidate.move_family:
+        boost = context.move_score_boosts().get(candidate.legacy_move, 0.0)
+    preferred = candidate.move_family in context.preferred_move_families()
+    deprioritized = candidate.move_family in context.deprioritized_move_families()
+    tuned = MoveCandidate(
+        move_family=candidate.move_family,
+        legacy_move=candidate.legacy_move,
+        parameters=dict(candidate.parameters),
+        objective=candidate.objective,
+        expected_signal=candidate.expected_signal,
+        rationale=candidate.rationale,
+        novelty_score=max(0.0, candidate.novelty_score + boost * 0.45 + (0.15 if preferred else 0.0) - (0.2 if deprioritized else 0.0)),
+        reuse_potential=max(0.0, candidate.reuse_potential + boost * 0.35 + (0.25 if preferred else 0.0)),
+        obstruction_targeting=max(0.0, candidate.obstruction_targeting + boost * 0.3 + (0.1 if preferred else 0.0)),
+        diversity_group=candidate.diversity_group,
+        duplicate_penalty=max(0.0, candidate.duplicate_penalty + (0.25 if deprioritized else 0.0)),
+        no_signal_penalty=max(0.0, candidate.no_signal_penalty + (0.15 if deprioritized else 0.0)),
+        transfer_score=max(0.0, candidate.transfer_score + boost * 0.25),
+        generation_metadata={
+            **candidate.generation_metadata,
+            "campaign_focus": context.campaign_focus(),
+            "campaign_priority": round(boost + (0.5 if preferred else 0.0) - (0.3 if deprioritized else 0.0), 3),
+            "preferred_for_campaign": preferred,
+            "deprioritized_for_campaign": deprioritized,
+        },
+    )
+    return tuned
 
 
 def _legacy_underspecify(context: MoveGenerationContext) -> List[MoveCandidate]:
@@ -366,9 +427,15 @@ def _counterexample_search(context: MoveGenerationContext) -> List[MoveCandidate
 def _invariant_mining(context: MoveGenerationContext) -> List[MoveCandidate]:
     blockers = context.semantic_counter("blocker")
     traces = context.semantic_counter("proof_trace")
-    if not blockers and not traces:
+    seed_invariants = [str(item) for item in context.seed_items("seed_invariants") if item]
+    if blockers or traces:
+        signal = sorted((blockers + traces).items(), key=lambda pair: (-pair[1], pair[0]))[0][0]
+        seeded = False
+    elif seed_invariants:
+        signal = seed_invariants[0]
+        seeded = True
+    else:
         return []
-    signal = sorted((blockers + traces).items(), key=lambda pair: (-pair[1], pair[0]))[0][0]
     evaluation_average = context.recent_evaluation_average()
     return [
         MoveCandidate(
@@ -377,21 +444,34 @@ def _invariant_mining(context: MoveGenerationContext) -> List[MoveCandidate]:
             parameters={"invariant_hint": signal},
             objective=f"Fill in all sorries. Mine a reusable invariant or monotonicity principle that explains the recurring signal '{signal}'.",
             expected_signal="Extract a reusable invariant from repeated blockers or proof motifs.",
-            rationale=f"Recurring semantic signal '{signal}' suggests a hidden invariant worth isolating.",
-            novelty_score=1.2 + (0.2 if evaluation_average >= 2.5 else 0.0),
+            rationale=(
+                f"Recurring semantic signal '{signal}' suggests a hidden invariant worth isolating."
+                if not seeded
+                else f"Campaign seed '{signal}' targets the kind of invariant Erdos #123 needs before broader search."
+            ),
+            novelty_score=1.2 + (0.2 if evaluation_average >= 2.5 else 0.0) + (0.15 if seeded else 0.0),
             reuse_potential=1.4,
             obstruction_targeting=0.9,
             diversity_group="reuse",
-            generation_metadata={"evaluation_average": evaluation_average},
+            generation_metadata={"evaluation_average": evaluation_average, "seeded_by_campaign": seeded},
         )
     ]
 
 
 def _extremal_case(context: MoveGenerationContext) -> List[MoveCandidate]:
     goals = context.semantic_counter("goal")
-    if not goals and not context.conjecture.equivalent_forms:
+    seed_targets = [str(item) for item in context.seed_items("seed_extremal_targets") if item]
+    if goals:
+        target = sorted(goals.items(), key=lambda pair: (-pair[1], pair[0]))[0][0]
+        seeded = False
+    elif seed_targets:
+        target = seed_targets[0]
+        seeded = True
+    elif context.conjecture.equivalent_forms:
+        target = "extremal parameter boundary"
+        seeded = False
+    else:
         return []
-    target = sorted(goals.items(), key=lambda pair: (-pair[1], pair[0]))[0][0] if goals else "extremal parameter boundary"
     return [
         MoveCandidate(
             move_family="extremal_case",
@@ -399,19 +479,30 @@ def _extremal_case(context: MoveGenerationContext) -> List[MoveCandidate]:
             parameters={"extremal_target": target},
             objective=f"Fill in all sorries. Reformulate the conjecture around the extremal or boundary case suggested by '{target}'.",
             expected_signal="Expose whether the hard regime is genuinely extremal or an artifact of presentation.",
-            rationale="Recurring unresolved goals often hide the true extremal regime.",
-            novelty_score=1.0,
+            rationale=(
+                "Recurring unresolved goals often hide the true extremal regime."
+                if not seeded
+                else f"Campaign seed '{target}' is a high-value boundary regime for this theorem family."
+            ),
+            novelty_score=1.0 + (0.2 if seeded else 0.0),
             reuse_potential=0.7,
             obstruction_targeting=1.1,
             diversity_group="boundary",
+            generation_metadata={"seeded_by_campaign": seeded},
         )
     ]
 
 
 def _decompose_subclaim(context: MoveGenerationContext) -> List[MoveCandidate]:
-    if not context.recurring_subgoals:
-        return []
-    statement = context.recurring_subgoals[0]["statement"]
+    if context.recurring_subgoals:
+        statement = context.recurring_subgoals[0]["statement"]
+        seeded = False
+    else:
+        seed_subclaims = [str(item) for item in context.seed_items("seed_subclaims") if item]
+        if not seed_subclaims:
+            return []
+        statement = seed_subclaims[0]
+        seeded = True
     return [
         MoveCandidate(
             move_family="decompose_subclaim",
@@ -419,11 +510,16 @@ def _decompose_subclaim(context: MoveGenerationContext) -> List[MoveCandidate]:
             parameters={"subclaim": statement},
             objective="Fill in all sorries. Split the current theorem into a bridge lemma and a remaining reduction built around the recurring subgoal.",
             expected_signal="Convert repeated subgoal pressure into a reusable bridge lemma candidate.",
-            rationale=f"Recurring subgoal '{statement}' is ready to be isolated as its own bridge claim.",
+            rationale=(
+                f"Recurring subgoal '{statement}' is ready to be isolated as its own bridge claim."
+                if not seeded
+                else f"Campaign seed '{statement}' is an explicitly requested bridge lemma target."
+            ),
             novelty_score=0.9,
-            reuse_potential=1.4,
+            reuse_potential=1.4 + (0.15 if seeded else 0.0),
             obstruction_targeting=1.0,
             diversity_group="reuse",
+            generation_metadata={"seeded_by_campaign": seeded},
         )
     ]
 
@@ -436,8 +532,13 @@ def _adversarial_counterexample(context: MoveGenerationContext) -> List[MoveCand
         target = sorted(witnesses.items(), key=lambda pair: (-pair[1], pair[0]))[0][0]
     elif blockers:
         target = sorted(blockers.items(), key=lambda pair: (-pair[1], pair[0]))[0][0]
+    seeded = False
     if not target:
-        return []
+        seed_targets = [str(item) for item in context.seed_items("seed_adversarial_targets") if item]
+        if not seed_targets:
+            return []
+        target = seed_targets[0]
+        seeded = True
     return [
         MoveCandidate(
             move_family="adversarial_counterexample",
@@ -445,20 +546,31 @@ def _adversarial_counterexample(context: MoveGenerationContext) -> List[MoveCand
             parameters={"target": target, "mode": "adversarial"},
             objective=f"Fill in all sorries. Construct an adversarial witness that sharpens or refutes the blocker pattern '{target}'.",
             expected_signal="Stress-test the current obstruction with a deliberately adversarial witness search.",
-            rationale=f"Observed witness/blocker '{target}' can be sharpened with a targeted adversarial run.",
-            novelty_score=0.9,
+            rationale=(
+                f"Observed witness/blocker '{target}' can be sharpened with a targeted adversarial run."
+                if not seeded
+                else f"Campaign seed '{target}' is a plausible obstruction pattern worth attacking immediately."
+            ),
+            novelty_score=0.9 + (0.15 if seeded else 0.0),
             reuse_potential=0.5,
             obstruction_targeting=1.5,
             diversity_group="boundary",
+            generation_metadata={"seeded_by_campaign": seeded},
         )
     ]
 
 
 def _witness_minimization(context: MoveGenerationContext) -> List[MoveCandidate]:
     witnesses = context.semantic_counter("counterexample")
-    if not witnesses:
-        return []
-    witness = sorted(witnesses.items(), key=lambda pair: (-pair[1], pair[0]))[0][0]
+    if witnesses:
+        witness = sorted(witnesses.items(), key=lambda pair: (-pair[1], pair[0]))[0][0]
+        seeded = False
+    else:
+        seed_targets = [str(item) for item in context.seed_items("seed_witness_targets") if item]
+        if not seed_targets:
+            return []
+        witness = seed_targets[0]
+        seeded = True
     return [
         MoveCandidate(
             move_family="witness_minimization",
@@ -466,17 +578,25 @@ def _witness_minimization(context: MoveGenerationContext) -> List[MoveCandidate]
             parameters={"witness_target": witness, "mode": "minimize"},
             objective=f"Fill in all sorries. Minimize the witness or blocker around '{witness}' to identify the sharp boundary case.",
             expected_signal="Turn a coarse witness into a sharp obstruction description.",
-            rationale=f"Witness '{witness}' should be minimized before treating it as a decisive obstruction.",
-            novelty_score=0.8,
+            rationale=(
+                f"Witness '{witness}' should be minimized before treating it as a decisive obstruction."
+                if not seeded
+                else f"Campaign seed '{witness}' should be sharpened into the smallest meaningful obstruction."
+            ),
+            novelty_score=0.8 + (0.15 if seeded else 0.0),
             reuse_potential=0.6,
             obstruction_targeting=1.3,
             diversity_group="boundary",
+            generation_metadata={"seeded_by_campaign": seeded},
         )
     ]
 
 
 def _transfer_reformulation(context: MoveGenerationContext) -> List[MoveCandidate]:
     hints = context.transfer_hints()
+    if not hints:
+        raw_hints = context.seed_items("seed_transfer_hints")
+        hints = [item for item in raw_hints if isinstance(item, dict) and item.get("artifact") and item.get("source_domain")]
     if not hints:
         return []
     hint = hints[0]
@@ -497,7 +617,7 @@ def _transfer_reformulation(context: MoveGenerationContext) -> List[MoveCandidat
             obstruction_targeting=0.7,
             transfer_score=1.5,
             diversity_group="transfer",
-            generation_metadata={"transfer_hint": hint},
+            generation_metadata={"transfer_hint": hint, "seeded_by_campaign": hint in context.seed_items("seed_transfer_hints")},
         )
     ]
 

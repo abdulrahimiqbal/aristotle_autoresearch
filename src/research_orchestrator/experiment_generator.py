@@ -54,6 +54,15 @@ def _next_phase(charter: ProjectCharter, num_experiments: int) -> str:
     return "consolidation"
 
 
+def _seed_discovery_questions(conjecture: Conjecture) -> List[dict]:
+    raw = conjecture.family_metadata.get("seed_discovery_questions", [])
+    questions = [item for item in raw if isinstance(item, dict) and item.get("question")]
+    return sorted(
+        questions,
+        key=lambda item: (-int(item.get("priority", 0)), str(item.get("question_id", "")), str(item.get("question", ""))),
+    )
+
+
 def build_move_generation_context(
     *,
     charter: ProjectCharter,
@@ -286,7 +295,11 @@ def materialize_candidate(
 ) -> ExperimentBrief:
     phase = _next_phase(charter, len(experiments))
     discovery_questions = discovery_questions or []
-    chosen_question = discovery_questions[0] if discovery_questions else None
+    chosen_question = (
+        sorted(discovery_questions, key=lambda item: (-item.get("priority", 0), item.get("question_id", "")))[0]
+        if discovery_questions
+        else (_seed_discovery_questions(conjecture)[0] if _seed_discovery_questions(conjecture) else None)
+    )
     experiment_id = str(uuid4())
     workspace_dir = Path(workspace_root) / experiment_id
     workspace_dir.mkdir(parents=True, exist_ok=True)

@@ -56,6 +56,7 @@ def _frontier_sort_key(item: Dict[str, object]):
         item.get("existing_experiments", 0),
         -item.get("discovery_priority", 0),
         MOVE_PRIORITY.get(item.get("move", ""), 99),
+        -metadata.get("campaign_priority", 0),
         -metadata.get("transfer_score", 0),
         -metadata.get("reuse_potential", 0),
         -metadata.get("obstruction_targeting", 0),
@@ -208,6 +209,7 @@ def generate_frontier(db: Database, project_id: str, workspace_root: str) -> Lis
                     "reuse_potential": brief.candidate_metadata.get("reuse_potential", 0),
                     "obstruction_targeting": brief.candidate_metadata.get("obstruction_targeting", 0),
                     "transfer_opportunity": brief.candidate_metadata.get("transfer_score", 0),
+                    "campaign_priority": brief.candidate_metadata.get("campaign_priority", 0),
                 }
             )
             frontier.append(payload)

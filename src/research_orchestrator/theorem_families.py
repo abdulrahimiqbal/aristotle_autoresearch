@@ -99,10 +99,20 @@ class ErdosFamilyAdapter(BaseFamilyAdapter):
             "-- erdos family workspace",
             "-- focus: extremal constructions, additive structure, and parameter boundary behavior",
         ]
+        if conjecture.conjecture_id == "erdos-123":
+            prefix.append("-- erdos-123 focus: d-completeness, divisibility antichains, and reusable covering lemmas")
         if move_family == "extremal_case":
             prefix.append(f"-- extremal sweep: {modification.get('extremal_target', 'maximal density boundary')}")
+        elif move_family == "invariant_mining":
+            prefix.append(f"-- invariant target: {modification.get('invariant_hint', 'covering-to-antichain upgrade')}")
+        elif move_family == "decompose_subclaim":
+            prefix.append(f"-- bridge lemma target: {modification.get('subclaim', 'covering or antichain extraction lemma')}")
+        elif move_family == "equivalent_view":
+            prefix.append(f"-- equivalent view: {modification.get('form', 'antichain-friendly reformulation')}")
         elif move_family == "adversarial_counterexample":
             prefix.append(f"-- adversarial target: {modification.get('target', 'small counterexample')}")
+        elif move_family == "witness_minimization":
+            prefix.append(f"-- witness minimization target: {modification.get('witness_target', 'sharp boundary witness')}")
         elif move_family == "transfer_reformulation":
             prefix.append(f"-- transfer source: {modification.get('source_domain', 'related Erdos motif')}")
         return "\n".join(header + prefix + [body])
@@ -145,4 +155,3 @@ def resolve_theorem_family_adapter(conjecture: Conjecture) -> TheoremFamilyAdapt
 def encode_family_metadata(conjecture: Conjecture) -> Dict[str, object]:
     adapter = resolve_theorem_family_adapter(conjecture)
     return adapter.family_metadata(conjecture)
-

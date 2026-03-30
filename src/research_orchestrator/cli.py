@@ -96,6 +96,9 @@ def cmd_campaign_health(args):
         f" | ingestion_success={signals['structured_ingestion_success_rate']}"
         f" | semantic_reuse={signals['semantic_reuse_rate']}"
         f" | transfer_usage={signals['transfer_usage_rate']}"
+        f" | reusable_structure={signals.get('reusable_structure_rate', 0.0)}"
+        f" | obstruction_discovery={signals.get('obstruction_discovery_rate', 0.0)}"
+        f" | high_priority_frontier={signals.get('high_priority_frontier_share', 0.0)}"
         f" | no_signal_streak={signals['repeated_no_signal_streak']}"
         f" | duplicate_pressure={signals['duplicate_frontier_pressure']}"
     )

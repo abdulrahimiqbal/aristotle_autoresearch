@@ -23,6 +23,7 @@ class MockProvider(Provider):
         critical = set(conjecture.critical_assumptions)
         assumption = brief.modification.get("assumption")
         seed = self._seed(brief.experiment_id + brief.move)
+        move_family = brief.move_family or brief.move
 
         if brief.move == "underspecify":
             generated = hidden[:2] or ["minimal_context_bridge_lemma"]
@@ -67,6 +68,11 @@ class MockProvider(Provider):
                 or brief.modification.get("invariant_hint")
                 or "promoted structure"
             )
+            notes = "The recurring helper lemma can stand as its own theorem candidate."
+            if move_family == "invariant_mining":
+                notes = "A reusable invariant emerged cleanly enough to promote as a standalone lemma."
+            elif move_family == "decompose_subclaim":
+                notes = "The campaign isolated a bridge lemma that cleanly separates coverage from extraction."
             return ProviderResult(
                 status="succeeded",
                 blocker_type="unknown",
@@ -74,14 +80,26 @@ class MockProvider(Provider):
                 proved_lemmas=[lemma],
                 unresolved_goals=[],
                 suspected_missing_assumptions=[],
-                notes="The recurring helper lemma can stand as its own theorem candidate.",
+                proof_trace_fragments=[f"promoted via {move_family}"],
+                notes=notes,
                 confidence=0.88,
             )
 
         if brief.move == "reformulate":
             form = brief.modification.get("form", "equivalent reformulation")
-            proved = hidden[:1] or ["reformulation_bridge_lemma"]
-            generated = hidden[1:3] if len(hidden) > 1 else ["packing_to_chain_equivalence"]
+            if move_family == "extremal_case":
+                proved = [f"boundary reduction around {brief.modification.get('extremal_target', 'extremal parameter boundary')}"]
+                generated = ["special-triple extremal bridge", "least uncovered large integer witness"]
+                notes = f"The extremal focus around {brief.modification.get('extremal_target', form)} exposed a cleaner boundary lemma."
+            elif move_family == "transfer_reformulation":
+                artifact = brief.modification.get("artifact", "transfer bridge")
+                proved = [artifact]
+                generated = ["transfer-compatible antichain reformulation"]
+                notes = f"The transfer reformulation reused '{artifact}' as a viable bridge into the current conjecture."
+            else:
+                proved = hidden[:1] or ["reformulation_bridge_lemma"]
+                generated = hidden[1:3] if len(hidden) > 1 else ["packing_to_chain_equivalence"]
+                notes = f"The {form} made one dependency easier to prove directly."
             return ProviderResult(
                 status="succeeded",
                 blocker_type="unknown",
@@ -89,22 +107,35 @@ class MockProvider(Provider):
                 proved_lemmas=proved,
                 unresolved_goals=[],
                 suspected_missing_assumptions=[],
-                notes=f"The {form} made one dependency easier to prove directly.",
+                proof_trace_fragments=[f"reformulated via {move_family}"],
+                notes=notes,
                 confidence=0.79,
             )
 
         if brief.move == "counterexample_mode":
             outcome = "failed" if seed % 2 == 0 else "stalled"
+            target = brief.modification.get("target") or brief.modification.get("witness_target") or "boundary witness"
+            witnesses = []
+            unresolved_goals = ["Need a concrete witness or model."] if outcome == "stalled" else []
+            notes = "Counterexample mode could not yet separate falsehood from under-specification."
+            if move_family == "adversarial_counterexample":
+                witnesses = [f"adversarial obstruction around {target}"]
+                unresolved_goals = [f"Sharpen the obstruction around {target}."]
+                notes = "The adversarial pass surfaced a plausible obstruction pattern but did not yet close the refutation."
+            elif move_family == "witness_minimization":
+                witnesses = [f"minimalized witness near {target}"]
+                unresolved_goals = [f"Prove that the witness near {target} is sharp."]
+                notes = "Witness minimization compressed the obstruction into a sharper boundary candidate."
             return ProviderResult(
                 status=outcome,
                 blocker_type="unknown" if outcome == "stalled" else "malformed",
                 generated_lemmas=[],
                 proved_lemmas=[],
-                unresolved_goals=["Need a concrete witness or model."] if outcome == "stalled" else [],
+                unresolved_goals=unresolved_goals if outcome == "stalled" else [],
                 suspected_missing_assumptions=[],
-                notes="Counterexample mode could not yet separate falsehood from under-specification."
-                if outcome == "stalled"
-                else "The variant appears malformed under the current assumptions.",
+                counterexample_witnesses=witnesses,
+                proof_trace_fragments=[f"counterexample search via {move_family}"],
+                notes=notes if outcome == "stalled" else "The variant appears malformed under the current assumptions.",
                 confidence=0.55,
             )
 

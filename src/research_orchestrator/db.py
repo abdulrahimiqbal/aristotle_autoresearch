@@ -2305,8 +2305,21 @@ class Database:
             if item.get("move_family") == "transfer_reformulation"
             or (item.get("candidate_metadata", {}).get("transfer_score") or 0) > 0
         )
-        move_families = {item.get("move_family", item["move"]) for item in completed}
         frontier = frontier or []
+        reusable_structure_runs = sum(
+            1
+            for item in completed
+            if (item.get("candidate_metadata", {}).get("reuse_potential") or 0) >= 1.0
+            or item.get("move_family") in {"legacy.promote_lemma", "decompose_subclaim", "invariant_mining"}
+        )
+        obstruction_runs = sum(
+            1
+            for item in completed
+            if (item.get("candidate_metadata", {}).get("obstruction_targeting") or 0) >= 1.0
+            or item.get("move_family") in {"extremal_case", "adversarial_counterexample", "witness_minimization"}
+        )
+        high_priority_frontier = sum(1 for item in frontier if (item.get("campaign_priority") or 0) > 0)
+        move_families = {item.get("move_family", item["move"]) for item in completed}
         duplicate_pressure = sum(1 for item in frontier if item.get("duplicate_active_signature"))
         frontier_move_families = {item.get("move_family", item["move"]) for item in frontier}
         incident_by_type: Dict[str, int] = {}
@@ -2348,6 +2361,9 @@ class Database:
                 "structured_ingestion_success_rate": round(structured_successes / total_completed, 3) if total_completed else 0.0,
                 "semantic_reuse_rate": round(total_reused / max(1, total_reused + total_new), 3),
                 "transfer_usage_rate": round(transfer_runs / total_completed, 3) if total_completed else 0.0,
+                "reusable_structure_rate": round(reusable_structure_runs / total_completed, 3) if total_completed else 0.0,
+                "obstruction_discovery_rate": round(obstruction_runs / total_completed, 3) if total_completed else 0.0,
+                "high_priority_frontier_share": round(high_priority_frontier / max(1, len(frontier)), 3) if frontier else 0.0,
                 "candidate_move_family_diversity": len(frontier_move_families),
                 "completed_move_family_diversity": len(move_families),
             },

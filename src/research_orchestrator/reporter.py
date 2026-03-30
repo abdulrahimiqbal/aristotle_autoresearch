@@ -67,6 +67,9 @@ def build_report(db: Database, project_id: str) -> str:
     lines.append(f"- structured ingestion success rate: {signals.get('structured_ingestion_success_rate', 0.0)}")
     lines.append(f"- semantic reuse rate: {signals.get('semantic_reuse_rate', 0.0)}")
     lines.append(f"- transfer usage rate: {signals.get('transfer_usage_rate', 0.0)}")
+    lines.append(f"- reusable structure rate: {signals.get('reusable_structure_rate', 0.0)}")
+    lines.append(f"- obstruction discovery rate: {signals.get('obstruction_discovery_rate', 0.0)}")
+    lines.append(f"- high-priority frontier share: {signals.get('high_priority_frontier_share', 0.0)}")
     lines.append(f"- repeated no-signal streak: {signals.get('repeated_no_signal_streak', 0)}")
     lines.append(f"- duplicate frontier pressure: {signals.get('duplicate_frontier_pressure', 0)}")
     lines.append(f"- move-family diversity: frontier={signals.get('candidate_move_family_diversity', 0)} completed={signals.get('completed_move_family_diversity', 0)}")
@@ -111,6 +114,29 @@ def build_report(db: Database, project_id: str) -> str:
     else:
         lines.append("- No open discovery questions.")
     lines.append("")
+    conjectures = db.list_conjectures(project_id)
+    tuned = [
+        item for item in conjectures
+        if item.family_metadata.get("campaign_focus") or item.family_metadata.get("preferred_move_families")
+    ]
+    lines.append("## Conjecture Tuning")
+    lines.append("")
+    if tuned:
+        for conjecture in tuned:
+            lines.append(f"### {conjecture.name}")
+            lines.append("")
+            focus = conjecture.family_metadata.get("campaign_focus") or []
+            preferred = conjecture.family_metadata.get("preferred_move_families") or []
+            for question in conjecture.family_metadata.get("seed_discovery_questions", [])[:3]:
+                lines.append(f"- seed question [{question.get('category', 'focus')}]: {question.get('question', '')}")
+            if focus:
+                lines.append(f"- focus areas: {', '.join(focus)}")
+            if preferred:
+                lines.append(f"- preferred move families: {', '.join(preferred)}")
+            lines.append("")
+    else:
+        lines.append("- No conjecture-specific tuning metadata.")
+        lines.append("")
     lines.append("## Active jobs")
     lines.append("")
     if active:
@@ -223,6 +249,8 @@ def build_report(db: Database, project_id: str) -> str:
         lines.append(f"- objective: {experiment['objective']}")
         if experiment.get("rationale"):
             lines.append(f"- rationale: {experiment['rationale']}")
+        if experiment.get("candidate_metadata", {}).get("campaign_priority"):
+            lines.append(f"- campaign priority: {experiment['candidate_metadata']['campaign_priority']}")
         if experiment.get("candidate_metadata", {}).get("transfer_score"):
             lines.append(f"- transfer score: {experiment['candidate_metadata']['transfer_score']}")
         if experiment.get("outcome"):
