@@ -79,6 +79,55 @@ Open:
 ./demo_run/report.md
 ```
 
+## Single-prompt campaign workflow
+
+The repo now supports a production-foundation workflow where you start from one natural-language prompt and let the manager build a verification-driven campaign around it.
+
+### 1) Start a campaign from one prompt
+```bash
+research-orchestrator start-campaign \
+  --db ./state.sqlite \
+  --prompt "Study the hidden structure behind weighted monotone subsequence thresholds and discover which assumptions are truly necessary through formal verification."
+```
+
+This will:
+- synthesize a campaign spec
+- create an initial conjecture
+- seed discovery questions
+- persist campaign state for autonomous runs
+
+### 2) Inspect campaign status
+```bash
+research-orchestrator campaign-status \
+  --db ./state.sqlite \
+  --project <project-id>
+```
+
+### 3) Run autonomous cycles
+```bash
+research-orchestrator run-cycle \
+  --db ./state.sqlite \
+  --project <project-id> \
+  --provider mock \
+  --workspace ./work \
+  --max-cycles 4
+```
+
+### 4) Generate the discovery-centric report
+```bash
+research-orchestrator report \
+  --db ./state.sqlite \
+  --project <project-id> \
+  --output ./report.md
+```
+
+The report now includes:
+- the campaign contract
+- discovery questions
+- discovery graph nodes and edges
+- incidents and audit trail
+- experiment-level discovery context
+
 ## Core commands
 
 ### Initialize a project
@@ -183,6 +232,62 @@ research-orchestrator run-cycle   --db ./state.sqlite   --project mono-001   --p
 - The adapter currently shells out to `aristotle submit ... --project-dir ... --wait`.
 - It stores stdout/stderr as artifacts and classifies the run conservatively.
 - You should customize the parser if your Aristotle workflow returns structured result archives or generated Lean outputs.
+
+## GitHub Actions deployment
+
+The repo includes a scheduled/manual GitHub Actions workflow at `.github/workflows/erdos-manager.yml` for the Erdős campaign manager.
+
+### Required repository secret
+Set this secret in GitHub:
+```bash
+ARISTOTLE_API_KEY
+```
+
+### What the workflow does
+- restores prior campaign state from the `campaign-state` branch
+- creates a fresh virtualenv
+- installs this repo and `aristotlelib`
+- runs `./run_erdos_live_research.sh`, which executes one `manager-tick`
+- commits the updated SQLite/report/snapshot artifacts back to `campaign-state`
+- uploads the latest report, snapshot, and database as workflow artifacts
+
+### Trigger modes
+- scheduled every 5 minutes
+- within each GitHub Actions run, the manager performs 4 one-minute-spaced `manager-tick` iterations and persists `campaign-state` after each tick
+- manual `workflow_dispatch` with optional overrides for:
+  - `max_active`
+  - `max_submit_per_tick`
+  - `llm_manager`
+
+### Deployment model
+This is the intended production shape for the stateless manager:
+- a GitHub-hosted runner executes one tick
+- SQLite/report state lives on the `campaign-state` branch
+- no laptop or always-on local daemon is required
+
+### Canonical live-state workflow
+For live Aristotle campaigns, treat GitHub as the source of truth:
+- GitHub Actions owns submission and polling
+- the `campaign-state` branch is the canonical live state
+- local inspection should begin by syncing those artifacts down before reading reports or the DB
+
+Sync the canonical state locally with:
+```bash
+research-orchestrator sync-github-state \
+  --repo abdulrahimiqbal/aristotle_autoresearch \
+  --ref campaign-state \
+  --state-dir outputs/erdos_live_async
+```
+
+That downloads only the canonical live-state artifacts:
+- `outputs/erdos_live_async/state.sqlite`
+- `outputs/erdos_live_async/report.md`
+- `outputs/erdos_live_async/report.manager_snapshot.json`
+
+Recommended practice:
+- do not run local `manager-tick` against a live campaign unless you intentionally want a separate campaign
+- run `sync-github-state` before inspecting live status locally
+- use the local DB for mock runs or for read-only inspection of the GitHub-managed live campaign
 
 ## Suggested development path
 

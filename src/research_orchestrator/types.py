@@ -102,11 +102,13 @@ class Conjecture:
     domain: str
     natural_language: str
     lean_statement: str
+    theorem_family_id: str = ""
     assumptions: List[str] = field(default_factory=list)
     critical_assumptions: List[str] = field(default_factory=list)
     hidden_dependencies: List[str] = field(default_factory=list)
     equivalent_forms: List[str] = field(default_factory=list)
     candidate_transfer_domains: List[str] = field(default_factory=list)
+    family_metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -121,6 +123,12 @@ class ExperimentBrief:
     modification: Dict[str, Any]
     workspace_dir: str
     lean_file: str
+    move_family: str = ""
+    move_family_version: str = "v1"
+    theorem_family_id: str = ""
+    move_title: str = ""
+    rationale: str = ""
+    candidate_metadata: Dict[str, Any] = field(default_factory=dict)
     discovery_question_id: str = ""
     discovery_question: str = ""
 

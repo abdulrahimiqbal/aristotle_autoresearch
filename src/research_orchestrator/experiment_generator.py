@@ -2,20 +2,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, Iterable, List, Sequence
 from uuid import uuid4
 
+from research_orchestrator.move_registry import DEFAULT_MOVE_REGISTRY, MoveCandidate, MoveGenerationContext
+from research_orchestrator.theorem_families import resolve_theorem_family_adapter
 from research_orchestrator.types import Conjecture, ExperimentBrief, ProjectCharter
 
 DEFAULT_LEAN_TOOLCHAIN = "leanprover/lean4:v4.28.0"
-NON_SIGNAL_PROOF_OUTCOMES = {"unknown", "auth_failure", "infra_failure", "malformed"}
-COUNTEREXAMPLE_TARGETS = [
-    "most_fragile_variant",
-    "boundary_variant",
-    "minimal_variant",
-    "negated_weakening",
-    "parameter_extreme",
-]
 
 
 def _strip_imports(lean_source: str) -> str:
@@ -60,10 +54,100 @@ def _next_phase(charter: ProjectCharter, num_experiments: int) -> str:
     return "consolidation"
 
 
-def _is_effective_experiment(experiment: dict) -> bool:
-    proof_outcome = experiment.get("proof_outcome")
-    new_signal_count = experiment.get("new_signal_count") or 0
-    return proof_outcome not in NON_SIGNAL_PROOF_OUTCOMES or new_signal_count > 0
+def build_move_generation_context(
+    *,
+    charter: ProjectCharter,
+    conjecture: Conjecture,
+    experiments: List[dict],
+    recurring_lemmas: List[dict],
+    recurring_subgoals: List[dict] | None = None,
+    recurring_proof_traces: List[dict] | None = None,
+    no_signal_branches: List[dict] | None = None,
+    discovery_questions: List[dict] | None = None,
+    all_conjectures: List[Conjecture] | None = None,
+) -> MoveGenerationContext:
+    return MoveGenerationContext(
+        charter=charter,
+        conjecture=conjecture,
+        experiments=experiments,
+        recurring_lemmas=recurring_lemmas,
+        recurring_subgoals=recurring_subgoals or [],
+        recurring_proof_traces=recurring_proof_traces or [],
+        no_signal_branches=no_signal_branches or [],
+        open_questions=discovery_questions or [],
+        all_conjectures=all_conjectures or [],
+    )
+
+
+def generate_move_candidates(
+    *,
+    charter: ProjectCharter,
+    conjecture: Conjecture,
+    experiments: List[dict],
+    recurring_lemmas: List[dict],
+    recurring_subgoals: List[dict] | None = None,
+    recurring_proof_traces: List[dict] | None = None,
+    no_signal_branches: List[dict] | None = None,
+    discovery_questions: List[dict] | None = None,
+    all_conjectures: List[Conjecture] | None = None,
+) -> List[MoveCandidate]:
+    context = build_move_generation_context(
+        charter=charter,
+        conjecture=conjecture,
+        experiments=experiments,
+        recurring_lemmas=recurring_lemmas,
+        recurring_subgoals=recurring_subgoals,
+        recurring_proof_traces=recurring_proof_traces,
+        no_signal_branches=no_signal_branches,
+        discovery_questions=discovery_questions,
+        all_conjectures=all_conjectures,
+    )
+    candidates = DEFAULT_MOVE_REGISTRY.generate_candidates(context)
+    seen_signatures = {
+        json.dumps(
+            {
+                "legacy_move": item["move"],
+                "parameters": item["modification"],
+            },
+            sort_keys=True,
+        )
+        for item in context.effective_conjecture_experiments
+    }
+    filtered: List[MoveCandidate] = []
+    for candidate in candidates:
+        signature = json.dumps(
+            {
+                "legacy_move": candidate.legacy_move,
+                "parameters": candidate.parameters,
+            },
+            sort_keys=True,
+        )
+        if signature in seen_signatures and context.active_no_signal_count < 5:
+            continue
+        filtered.append(candidate)
+    if not filtered and candidates:
+        filtered = candidates[:1]
+    return filtered
+
+
+def rank_move_candidates(
+    candidates: Sequence[MoveCandidate],
+    *,
+    existing_experiments: int,
+    active_count: int,
+    no_signal_penalty: int = 0,
+) -> List[MoveCandidate]:
+    return sorted(
+        candidates,
+        key=lambda candidate: (
+            active_count,
+            existing_experiments,
+            candidate.no_signal_penalty + no_signal_penalty + candidate.duplicate_penalty,
+            -(candidate.transfer_score + candidate.reuse_potential + candidate.obstruction_targeting + candidate.novelty_score),
+            candidate.move_family,
+            candidate.signature,
+        ),
+    )
 
 
 def choose_move(
@@ -73,8 +157,14 @@ def choose_move(
     recurring_lemmas: List[dict],
     recurring_subgoals: List[dict] | None = None,
 ) -> tuple[str, Dict[str, object], str, str]:
+    recurring_subgoals = recurring_subgoals or []
     conjecture_experiments = [item for item in experiments if item["conjecture_id"] == conjecture.conjecture_id]
-    effective_experiments = [item for item in conjecture_experiments if _is_effective_experiment(item)]
+    effective_experiments = [
+        item
+        for item in conjecture_experiments
+        if item.get("proof_outcome") not in {"unknown", "auth_failure", "infra_failure", "malformed"}
+        or (item.get("new_signal_count") or 0) > 0
+    ]
     seen_moves = [item["move"] for item in effective_experiments]
     tested_assumptions = {
         item["modification"].get("assumption")
@@ -89,7 +179,6 @@ def choose_move(
     recurring_for_conjecture = [
         item for item in recurring_lemmas if conjecture.conjecture_id in item.get("conjecture_ids", [conjecture.conjecture_id])
     ]
-    recurring_subgoals = recurring_subgoals or []
     repeated_unknown = sum(
         1
         for item in effective_experiments
@@ -98,7 +187,9 @@ def choose_move(
         and not (item.get("new_signal_count") or 0)
     )
     counter_count = sum(1 for item in conjecture_experiments if item["move"] == "counterexample_mode")
-    counter_target = COUNTEREXAMPLE_TARGETS[counter_count % len(COUNTEREXAMPLE_TARGETS)]
+    counter_target = ["most_fragile_variant", "boundary_variant", "minimal_variant", "negated_weakening", "parameter_extreme"][
+        counter_count % 5
+    ]
     counter_modification = {"target": counter_target, "attempt": counter_count + 1}
     counter_objective = (
         f"Fill in all sorries. Search for a counterexample or independence witness for the "
@@ -165,19 +256,35 @@ def choose_move(
     )
 
 
-def materialize_experiment(
+def _materialized_body(conjecture: Conjecture, candidate: MoveCandidate, header: List[str]) -> str:
+    adapter = resolve_theorem_family_adapter(conjecture)
+    if candidate.legacy_move == "underspecify":
+        body = _strip_imports(conjecture.lean_statement)
+        return "\n".join(header + [body])
+    if candidate.legacy_move == "promote_lemma" and candidate.move_family in {"legacy.promote_lemma", "decompose_subclaim"}:
+        statement = candidate.parameters.get("lemma_statement") or candidate.parameters.get("subclaim") or "True"
+        return "\n".join(
+            header
+            + [
+                f"-- promoted target: {statement}",
+                "theorem promoted_lemma : True := by",
+                "  sorry",
+                "",
+            ]
+        )
+    return adapter.materialize_source(conjecture, candidate.move_family, candidate.parameters, header)
+
+
+def materialize_candidate(
+    *,
     charter: ProjectCharter,
     conjecture: Conjecture,
     workspace_root: str,
     experiments: List[dict],
-    recurring_lemmas: List[dict],
-    recurring_subgoals: List[dict] | None = None,
+    candidate: MoveCandidate,
     discovery_questions: List[dict] | None = None,
 ) -> ExperimentBrief:
     phase = _next_phase(charter, len(experiments))
-    move, modification, objective, expected_signal = choose_move(
-        charter, conjecture, experiments, recurring_lemmas, recurring_subgoals
-    )
     discovery_questions = discovery_questions or []
     chosen_question = discovery_questions[0] if discovery_questions else None
     experiment_id = str(uuid4())
@@ -187,53 +294,93 @@ def materialize_experiment(
     toolchain_file = workspace_dir / "lean-toolchain"
     lakefile = workspace_dir / "lakefile.toml"
 
+    theorem_family_id = resolve_theorem_family_adapter(conjecture).family_id
     header = [
         "/-",
         f"Experiment ID: {experiment_id}",
-        f"Move: {move}",
+        f"Move: {candidate.legacy_move}",
+        f"Move family: {candidate.move_family}",
+        f"Theorem family: {theorem_family_id}",
         f"Phase: {phase}",
-        f"Modification: {json.dumps(modification)}",
+        f"Modification: {json.dumps(candidate.parameters, sort_keys=True)}",
         "-/",
         "",
     ]
-    body = conjecture.lean_statement
-    if move == "underspecify":
-        body = _strip_imports(body)
-    elif move == "reformulate":
-        body = "\n".join(header) + "\n-- reformulation: " + modification["form"] + "\n" + body
-    elif move == "perturb_assumption":
-        body = "\n".join(header) + "\n-- assumption removed: " + modification["assumption"] + "\n" + body
-    elif move == "promote_lemma":
-        body = "\n".join(header) + "\n" + f"theorem promoted_lemma : True := by\n  sorry\n"
-    elif move == "counterexample_mode":
-        body = "\n".join(header) + "\n-- counterexample mode target\n" + body
-    else:
-        body = "\n".join(header) + "\n" + body
+    body = _materialized_body(conjecture, candidate, header)
 
     with open(lean_file, "w", encoding="utf-8") as handle:
-        handle.write("\n".join(header) + body if not body.startswith("/-") else body)
+        handle.write(body if body.endswith("\n") else body + "\n")
     toolchain_file.write_text(DEFAULT_LEAN_TOOLCHAIN + "\n", encoding="utf-8")
     lakefile.write_text(_lakefile_contents(conjecture), encoding="utf-8")
 
+    metadata = dict(candidate.generation_metadata)
+    metadata.update(
+        {
+            "novelty_score": candidate.novelty_score,
+            "reuse_potential": candidate.reuse_potential,
+            "obstruction_targeting": candidate.obstruction_targeting,
+            "diversity_group": candidate.diversity_group,
+            "duplicate_penalty": candidate.duplicate_penalty,
+            "no_signal_penalty": candidate.no_signal_penalty,
+            "transfer_score": candidate.transfer_score,
+        }
+    )
     return ExperimentBrief(
         experiment_id=experiment_id,
         project_id=charter.project_id,
         conjecture_id=conjecture.conjecture_id,
         phase=phase,
-        move=move,
+        move=candidate.legacy_move,
         objective=(
-            f"{objective} Discovery question: {chosen_question['question']}"
+            f"{candidate.objective} Discovery question: {chosen_question['question']}"
             if chosen_question
-            else objective
+            else candidate.objective
         ),
         expected_signal=(
-            f"{expected_signal} This run should help answer: {chosen_question['question']}"
+            f"{candidate.expected_signal} This run should help answer: {chosen_question['question']}"
             if chosen_question
-            else expected_signal
+            else candidate.expected_signal
         ),
-        modification=modification,
+        modification=candidate.parameters,
         workspace_dir=str(workspace_dir),
         lean_file=str(lean_file),
+        move_family=candidate.move_family,
+        theorem_family_id=theorem_family_id,
+        move_title=candidate.move_family.replace("_", " "),
+        rationale=candidate.rationale,
+        candidate_metadata=metadata,
         discovery_question_id=chosen_question["question_id"] if chosen_question else "",
         discovery_question=chosen_question["question"] if chosen_question else "",
+    )
+
+
+def materialize_experiment(
+    charter: ProjectCharter,
+    conjecture: Conjecture,
+    workspace_root: str,
+    experiments: List[dict],
+    recurring_lemmas: List[dict],
+    recurring_subgoals: List[dict] | None = None,
+    discovery_questions: List[dict] | None = None,
+) -> ExperimentBrief:
+    candidates = generate_move_candidates(
+        charter=charter,
+        conjecture=conjecture,
+        experiments=experiments,
+        recurring_lemmas=recurring_lemmas,
+        recurring_subgoals=recurring_subgoals,
+        discovery_questions=discovery_questions,
+    )
+    ranked = rank_move_candidates(
+        candidates,
+        existing_experiments=len([item for item in experiments if item["conjecture_id"] == conjecture.conjecture_id]),
+        active_count=0,
+    )
+    return materialize_candidate(
+        charter=charter,
+        conjecture=conjecture,
+        workspace_root=workspace_root,
+        experiments=experiments,
+        candidate=ranked[0],
+        discovery_questions=discovery_questions,
     )

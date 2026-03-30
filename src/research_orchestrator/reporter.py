@@ -165,6 +165,10 @@ def build_report(db: Database, project_id: str) -> str:
         lines.append(f"### {experiment['experiment_id']}")
         lines.append("")
         lines.append(f"- move: `{experiment['move']}`")
+        if experiment.get("move_family"):
+            lines.append(f"- move family: `{experiment['move_family']}`")
+        if experiment.get("theorem_family_id"):
+            lines.append(f"- theorem family: `{experiment['theorem_family_id']}`")
         lines.append(f"- phase: `{experiment['phase']}`")
         lines.append(f"- status: `{experiment['status']}`")
         if experiment.get("proof_outcome"):
@@ -182,6 +186,10 @@ def build_report(db: Database, project_id: str) -> str:
         if experiment.get("external_status"):
             lines.append(f"- external status: `{experiment['external_status']}`")
         lines.append(f"- objective: {experiment['objective']}")
+        if experiment.get("rationale"):
+            lines.append(f"- rationale: {experiment['rationale']}")
+        if experiment.get("candidate_metadata", {}).get("transfer_score"):
+            lines.append(f"- transfer score: {experiment['candidate_metadata']['transfer_score']}")
         if experiment.get("outcome"):
             provider_result = experiment["outcome"]["provider_result"]
             evaluation = experiment["outcome"].get("evaluation")
@@ -278,7 +286,7 @@ def build_report(db: Database, project_id: str) -> str:
                 )
         for item in latest_manager_run["summary"].get("submitted_experiments", []):
             lines.append(
-                f"- queued `{item['experiment_id']}` for `{item['conjecture_id']}` via `{item['move']}` ({item['reason']})"
+                f"- queued `{item['experiment_id']}` for `{item['conjecture_id']}` via `{item['move']}` / `{item.get('move_family', item['move'])}` ({item['reason']})"
             )
         for item in latest_manager_run["summary"].get("skipped_candidates", []):
             if item.get("experiment_id"):

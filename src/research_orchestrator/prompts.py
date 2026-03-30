@@ -101,9 +101,12 @@ Current experiment:
 - experiment_id: {brief.experiment_id}
 - phase: {brief.phase}
 - move: {brief.move}
+- move family: {brief.move_family or brief.move}
+- theorem family: {brief.theorem_family_id or conjecture.theorem_family_id or conjecture.domain}
 - objective: {brief.objective}
 - expected signal: {brief.expected_signal}
 - modification: {json.dumps(brief.modification)}
+- rationale: {brief.rationale or 'n/a'}
 - discovery question id: {brief.discovery_question_id or 'n/a'}
 - discovery question: {brief.discovery_question or 'derive the highest-value verification-shaped discovery question for this move'}
 

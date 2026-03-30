@@ -107,21 +107,46 @@ Hard constraints:
 
 
 def _heuristic_key(candidate: Dict[str, Any]) -> Tuple[int, int, int, int, str]:
+    move_priority = MOVE_PRIORITY.get(candidate["move"], 99)
+    if candidate["existing_experiments"] == 0:
+        stage_priority = move_priority
+    elif candidate.get("targets_recurring_structure"):
+        stage_priority = -1
+    else:
+        stage_priority = move_priority
     return (
         candidate["active_count_for_conjecture"],
         -candidate.get("discovery_priority", 0),
+        candidate["existing_experiments"],
+        stage_priority,
+        -candidate.get("transfer_opportunity", 0),
+        -candidate.get("reuse_potential", 0),
+        -candidate.get("obstruction_targeting", 0),
+        -candidate.get("semantic_novelty", 0),
         0 if candidate.get("targets_recurring_structure") else 1,
         candidate.get("no_signal_penalty", 0),
         -candidate.get("signal_priority", 0),
-        candidate["existing_experiments"],
         0 if not candidate["duplicate_active_signature"] else 1,
-        MOVE_PRIORITY.get(candidate["move"], 99),
+        candidate.get("move_family", candidate["move"]),
         candidate["conjecture_id"],
     )
 
 
 def _heuristic_rank(frontier: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return sorted(frontier, key=_heuristic_key)
+
+
+def _diversify_candidates(ranked: List[Dict[str, Any]], max_count: int) -> List[Dict[str, Any]]:
+    chosen: List[Dict[str, Any]] = []
+    seen_conjectures: set[str] = set()
+    for candidate in ranked:
+        if candidate["conjecture_id"] in seen_conjectures:
+            continue
+        chosen.append(candidate)
+        seen_conjectures.add(candidate["conjecture_id"])
+        if len(chosen) >= max_count:
+            return chosen
+    return chosen
 
 
 def _llm_command() -> List[str]:
@@ -185,7 +210,7 @@ def _candidate_decision(candidate: Dict[str, Any], reason: str) -> CandidateDeci
         experiment_id=candidate["experiment_id"],
         conjecture_id=candidate["conjecture_id"],
         move=candidate["move"],
-        reason=reason,
+        reason=f"{reason}; move_family={candidate.get('move_family', candidate['move'])}; rationale={candidate.get('rationale', '')}".strip(),
         expected_signal=candidate["expected_signal"],
         modification=candidate["modification"],
         workspace_dir=candidate["workspace_dir"],
@@ -258,7 +283,7 @@ def choose_candidates_for_submission(
 
     chosen = [
         _candidate_decision(candidate, "chosen by deterministic fallback policy")
-        for candidate in heuristic_ranked[:max_count]
+        for candidate in _diversify_candidates(heuristic_ranked, max_count)
     ]
     return PolicyDecision(
         chosen=chosen,

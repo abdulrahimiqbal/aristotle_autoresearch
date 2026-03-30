@@ -3,6 +3,7 @@
   "project_id": "erdos-combo-001",
   "name": "Erdos Problem 44: Sidon set extension to near-optimal density",
   "domain": "additive combinatorics",
+  "theorem_family_id": "erdos_problem",
   "natural_language": "Given a Sidon set A contained in {1, ..., N}, can one always adjoin a tail B above N so that A union B remains Sidon and has size at least (1 - epsilon) * M^(1/2) inside {1, ..., M} for some sufficiently large M depending on A and epsilon?",
   "lean_statement": "import Mathlib\n\nnoncomputable section\n\nnamespace Erdos44\n\nopen scoped BigOperators\n\n/-- A finite set of natural numbers is Sidon if equal pair sums are trivial up to\nreordering of the summands. -/\ndef IsSidonFinset (A : Finset ℕ) : Prop :=\n  ∀ ⦃a b c d : ℕ⦄,\n    a ∈ A → b ∈ A → c ∈ A → d ∈ A →\n    a + b = c + d →\n      (a = c ∧ b = d) ∨ (a = d ∧ b = c)\n\n/-- A workspace-local Lean 4 stub for Erdos Problem 44. The formal-conjectures repo\ncontains a current version of this problem; this variant avoids repository-specific\nimports while preserving the same mathematical shape. -/\ntheorem erdos_44_sidon_extension :\n    ∀ ε : ℝ, ε > 0 →\n      ∃ Mε : ℕ, ∀ N : ℕ, 1 ≤ N →\n        ∀ A : Finset ℕ, A ⊆ Finset.Icc 1 N → IsSidonFinset A →\n          ∃ M : ℕ, M ≥ max N Mε ∧\n            ∃ B : Finset ℕ, B ⊆ Finset.Icc (N + 1) M ∧\n              IsSidonFinset (A ∪ B) ∧\n              (1 - ε) * Real.sqrt (M : ℝ) ≤ ((A ∪ B).card : ℝ) := by\n  sorry\n\nend Erdos44\n",
   "assumptions": [

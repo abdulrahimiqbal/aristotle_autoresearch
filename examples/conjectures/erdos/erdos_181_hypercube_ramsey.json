@@ -3,6 +3,7 @@
   "project_id": "erdos-combo-001",
   "name": "Erdos Problem 181: Hypercube Ramsey growth",
   "domain": "graph theory",
+  "theorem_family_id": "erdos_problem",
   "natural_language": "Let Q_n be the n-dimensional hypercube graph. Determine whether there is a universal constant C such that the Ramsey number R(Q_n) is at most C * 2^n for every n.",
   "lean_statement": "import Mathlib\n\nnoncomputable section\n\nnamespace Erdos181\n\nopen scoped BigOperators\n\n/-- Placeholder predicate for a graph on `2^n` vertices being isomorphic to the\n`n`-dimensional hypercube. This keeps the statement self-contained inside a plain\nMathlib workspace while leaving room for a later graph-isomorphism formalization. -/\ndef IsHypercubeGraph (n : ℕ) (G : SimpleGraph (Fin (2 ^ n))) : Prop :=\n  True\n\n/-- Placeholder for the ordinary two-colour Ramsey number of a finite graph. -/\ndef GraphRamseyNumber {α : Type*} [Fintype α] (G : SimpleGraph α) : ℕ :=\n  0\n\n/-- A self-contained Lean 4 stub for Erdos Problem 181, modeled on the informal\nstatement used on erdosproblems.com. -/\ntheorem erdos_181_hypercube_ramsey :\n    ∃ C : ℕ, 1 ≤ C ∧ ∀ n : ℕ, ∃ G : SimpleGraph (Fin (2 ^ n)),\n      IsHypercubeGraph n G ∧ GraphRamseyNumber G ≤ C * 2 ^ n := by\n  sorry\n\nend Erdos181\n",
   "assumptions": [

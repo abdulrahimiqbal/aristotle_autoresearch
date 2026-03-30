@@ -61,7 +61,12 @@ class MockProvider(Provider):
             )
 
         if brief.move == "promote_lemma":
-            lemma = brief.modification["lemma_statement"]
+            lemma = (
+                brief.modification.get("lemma_statement")
+                or brief.modification.get("subclaim")
+                or brief.modification.get("invariant_hint")
+                or "promoted structure"
+            )
             return ProviderResult(
                 status="succeeded",
                 blocker_type="unknown",

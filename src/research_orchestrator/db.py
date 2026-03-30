@@ -388,6 +388,12 @@ class Database:
             ("parser_version", "TEXT"),
             ("semantic_memory_version", "TEXT"),
             ("evaluator_version", "TEXT"),
+            ("move_family", "TEXT"),
+            ("move_family_version", "TEXT"),
+            ("theorem_family_id", "TEXT"),
+            ("move_title", "TEXT"),
+            ("rationale", "TEXT"),
+            ("candidate_metadata_json", "TEXT"),
         ):
             if column_name not in existing:
                 self.conn.execute(
@@ -458,11 +464,13 @@ class Database:
 
     def save_conjecture(self, conjecture: Conjecture) -> None:
         metadata = {
+            "theorem_family_id": conjecture.theorem_family_id,
             "assumptions": conjecture.assumptions,
             "critical_assumptions": conjecture.critical_assumptions,
             "hidden_dependencies": conjecture.hidden_dependencies,
             "equivalent_forms": conjecture.equivalent_forms,
             "candidate_transfer_domains": conjecture.candidate_transfer_domains,
+            "family_metadata": conjecture.family_metadata,
         }
         self.conn.execute(
             """
@@ -506,11 +514,13 @@ class Database:
             domain=row["domain"],
             natural_language=row["natural_language"],
             lean_statement=row["lean_statement"],
+            theorem_family_id=metadata.get("theorem_family_id", ""),
             assumptions=metadata.get("assumptions", []),
             critical_assumptions=metadata.get("critical_assumptions", []),
             hidden_dependencies=metadata.get("hidden_dependencies", []),
             equivalent_forms=metadata.get("equivalent_forms", []),
             candidate_transfer_domains=metadata.get("candidate_transfer_domains", []),
+            family_metadata=metadata.get("family_metadata", {}),
         )
 
     def list_conjectures(self, project_id: str) -> List[Conjecture]:
@@ -578,8 +588,9 @@ class Database:
             INSERT OR REPLACE INTO experiments(
                 experiment_id, project_id, conjecture_id, phase, move, objective, expected_signal,
                 modification_json, workspace_dir, lean_file, external_id, external_status,
-                submitted_at, last_synced_at, discovery_question_id, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT created_at FROM experiments WHERE experiment_id = ?), ?))
+                submitted_at, last_synced_at, discovery_question_id, move_family, move_family_version,
+                theorem_family_id, move_title, rationale, candidate_metadata_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT created_at FROM experiments WHERE experiment_id = ?), ?))
             """,
             (
                 brief["experiment_id"],
@@ -597,6 +608,12 @@ class Database:
                 brief.get("submitted_at"),
                 brief.get("last_synced_at"),
                 brief.get("discovery_question_id"),
+                brief.get("move_family", brief["move"]),
+                brief.get("move_family_version", "v1"),
+                brief.get("theorem_family_id", ""),
+                brief.get("move_title", ""),
+                brief.get("rationale", ""),
+                json.dumps(brief.get("candidate_metadata", {})),
                 brief["experiment_id"],
                 utcnow(),
             ),
@@ -700,6 +717,7 @@ class Database:
             return None
         data = dict(row)
         data["modification"] = json.loads(data["modification_json"])
+        data["candidate_metadata"] = json.loads(data["candidate_metadata_json"]) if data.get("candidate_metadata_json") else {}
         if data.get("outcome_json"):
             data["outcome"] = json.loads(data["outcome_json"])
         else:
@@ -716,6 +734,7 @@ class Database:
         for row in rows:
             item = dict(row)
             item["modification"] = json.loads(item["modification_json"])
+            item["candidate_metadata"] = json.loads(item["candidate_metadata_json"]) if item.get("candidate_metadata_json") else {}
             item["outcome"] = json.loads(item["outcome_json"]) if item["outcome_json"] else None
             item["ingestion"] = json.loads(item["ingestion_json"]) if item.get("ingestion_json") else None
             results.append(item)
@@ -1048,6 +1067,7 @@ class Database:
         for row in rows:
             item = dict(row)
             item["modification"] = json.loads(item["modification_json"])
+            item["candidate_metadata"] = json.loads(item["candidate_metadata_json"]) if item.get("candidate_metadata_json") else {}
             item["outcome"] = json.loads(item["outcome_json"]) if item["outcome_json"] else None
             item["ingestion"] = json.loads(item["ingestion_json"]) if item.get("ingestion_json") else None
             results.append(item)
@@ -1072,6 +1092,7 @@ class Database:
         for row in rows:
             item = dict(row)
             item["modification"] = json.loads(item["modification_json"])
+            item["candidate_metadata"] = json.loads(item["candidate_metadata_json"]) if item.get("candidate_metadata_json") else {}
             item["outcome"] = json.loads(item["outcome_json"]) if item["outcome_json"] else None
             item["ingestion"] = json.loads(item["ingestion_json"]) if item.get("ingestion_json") else None
             results.append(item)
@@ -1108,6 +1129,7 @@ class Database:
         for row in rows:
             item = dict(row)
             item["modification"] = json.loads(item["modification_json"])
+            item["candidate_metadata"] = json.loads(item["candidate_metadata_json"]) if item.get("candidate_metadata_json") else {}
             item["outcome"] = json.loads(item["outcome_json"]) if item["outcome_json"] else None
             item["ingestion"] = json.loads(item["ingestion_json"]) if item.get("ingestion_json") else None
             results.append(item)

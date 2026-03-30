@@ -178,9 +178,12 @@ def cmd_preview_next(args):
         "experiment_id": brief.experiment_id,
         "phase": brief.phase,
         "move": brief.move,
+        "move_family": brief.move_family or brief.move,
+        "theorem_family_id": brief.theorem_family_id,
         "objective": brief.objective,
         "expected_signal": brief.expected_signal,
         "modification": brief.modification,
+        "rationale": brief.rationale,
     }, indent=2))
     print("\n=== MANAGER PROMPT ===")
     print(manager_prompt)

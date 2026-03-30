@@ -3,6 +3,7 @@
   "project_id": "mono-001",
   "name": "Weighted monotone subsequence boundary theorem",
   "domain": "combinatorics",
+  "theorem_family_id": "weighted_monotone",
   "natural_language": "For weighted monotone subsequence instances with positive weights on a finite ordered structure, there exists a threshold bound controlled by a monotone chain decomposition.",
   "lean_statement": "theorem weighted_monotone_boundary (\u03b1 : Type) [Preorder \u03b1] (s : Finset \u03b1) (w : \u03b1 -> Nat) : True := by\n  sorry\n",
   "assumptions": [
