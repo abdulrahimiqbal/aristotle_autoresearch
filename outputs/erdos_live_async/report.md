@@ -8,24 +8,23 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Summary
 
-- Experiments: 41
+- Experiments: 44
 - Succeeded: 0
-- Stalled: 20
+- Stalled: 23
 - Failed: 18
 - Pending: 3
 
 ## Active jobs
 
-- `IN_PROGRESS`: 1
-- `QUEUED`: 2
+- `QUEUED`: 3
 
 ## Recently completed
 
+- `e17d490a-aa35-4d33-9bf0-7f20e0e74f1b` on `erdos-181` -> `stalled`
+- `279f0a62-ab07-4d9a-b3ba-ad1fc1922f01` on `erdos-123` -> `stalled`
+- `4f57d954-b91b-41d4-b3de-e49cb7e8ce2f` on `erdos-44` -> `stalled`
 - `029cc790-c5c4-46cf-a97f-fcb65882a950` on `erdos-181` -> `stalled`
 - `c1f09e88-a2ac-4f02-9f08-9704513ac277` on `erdos-123` -> `stalled`
-- `7bd0ed52-c623-4d46-87e3-0253c2b0a22f` on `erdos-44` -> `stalled`
-- `2d583909-5498-4b4e-8504-10dc3e0f5939` on `erdos-181` -> `stalled`
-- `3b38548b-a72d-4034-8345-164f53363a7b` on `erdos-123` -> `stalled`
 
 ## Recurring lemmas
 
@@ -36,16 +35,16 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - recurring lemmas: none stabilized yet
 - recurring subgoals: none stabilized yet
 - recurring proof traces: none stabilized yet
-- no-signal branch `erdos-181` / `counterexample_mode` repeated 7 times
-- no-signal branch `erdos-123` / `counterexample_mode` repeated 6 times
-- no-signal branch `erdos-44` / `counterexample_mode` repeated 5 times
+- no-signal branch `erdos-181` / `counterexample_mode` repeated 8 times
+- no-signal branch `erdos-123` / `counterexample_mode` repeated 7 times
+- no-signal branch `erdos-44` / `counterexample_mode` repeated 6 times
 
 ## What we learned
 
 - no recurring lemmas have stabilized yet
 - no repeated subgoals captured yet
-- blocker pattern `unknown` / `unknown` appeared 20 times
-- move `counterexample_mode` repeatedly yields blocker `unknown` / `unknown` (18 runs)
+- blocker pattern `unknown` / `unknown` appeared 23 times
+- move `counterexample_mode` repeatedly yields blocker `unknown` / `unknown` (21 runs)
 - move `reformulate` repeatedly yields blocker `unknown` / `unknown` (2 runs)
 
 ## Assumption sensitivity
@@ -800,70 +799,157 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 - move: `counterexample_mode`
 - phase: `consolidation`
-- status: `submitted`
+- status: `stalled`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `807ead77-9265-43e4-a964-b4b1dffa79ad`
-- external status: `QUEUED`
+- external status: `COMPLETE`
 - objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
-- learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
+- learned summary: remote_status=COMPLETE; proof_outcome=unknown; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
+  - `py` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/.venv_erdos/lib/python3.11/site-packages/aristotlelib/cli/result.py` (1092 bytes)
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/4f57d954-b91b-41d4-b3de-e49cb7e8ce2f/aristotle_list_stderr.txt` (58 bytes)
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/4f57d954-b91b-41d4-b3de-e49cb7e8ce2f/aristotle_list_stdout.txt` (8736 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/4f57d954-b91b-41d4-b3de-e49cb7e8ce2f/aristotle_result_stderr.txt` (2586 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/4f57d954-b91b-41d4-b3de-e49cb7e8ce2f/aristotle_result_stdout.txt` (0 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/4f57d954-b91b-41d4-b3de-e49cb7e8ce2f/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/4f57d954-b91b-41d4-b3de-e49cb7e8ce2f/aristotle_list_stderr.txt`
-- notes: Aristotle job 807ead77-9265-43e4-a964-b4b1dffa79ad is still queued.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/4f57d954-b91b-41d4-b3de-e49cb7e8ce2f/aristotle_result_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/4f57d954-b91b-41d4-b3de-e49cb7e8ce2f/aristotle_result_stderr.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/.venv_erdos/lib/python3.11/site-packages/aristotlelib/cli/result.py`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/4f57d954-b91b-41d4-b3de-e49cb7e8ce2f/aristotle_result_807ead77-9265-43e4-a964-b4b1dffa79ad`
+- evaluation total: 0.42
+- notes: Aristotle returned a Python traceback without a recognizable higher-level classification.
 
 ### 279f0a62-ab07-4d9a-b3ba-ad1fc1922f01
 
 - move: `counterexample_mode`
 - phase: `consolidation`
-- status: `in_progress`
+- status: `stalled`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `abbbfe12-012b-478c-9073-ede213990c03`
-- external status: `IN_PROGRESS`
+- external status: `COMPLETE`
 - objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
-- learned summary: remote_status=IN_PROGRESS; proof_outcome=unknown; blocker=unknown
+- learned summary: remote_status=COMPLETE; proof_outcome=unknown; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
+  - `py` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/.venv_erdos/lib/python3.11/site-packages/aristotlelib/cli/result.py` (1092 bytes)
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/279f0a62-ab07-4d9a-b3ba-ad1fc1922f01/aristotle_list_stderr.txt` (58 bytes)
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/279f0a62-ab07-4d9a-b3ba-ad1fc1922f01/aristotle_list_stdout.txt` (8736 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/279f0a62-ab07-4d9a-b3ba-ad1fc1922f01/aristotle_result_stderr.txt` (2586 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/279f0a62-ab07-4d9a-b3ba-ad1fc1922f01/aristotle_result_stdout.txt` (0 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/279f0a62-ab07-4d9a-b3ba-ad1fc1922f01/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/279f0a62-ab07-4d9a-b3ba-ad1fc1922f01/aristotle_list_stderr.txt`
-- notes: Aristotle job abbbfe12-012b-478c-9073-ede213990c03 is still in progress.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/279f0a62-ab07-4d9a-b3ba-ad1fc1922f01/aristotle_result_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/279f0a62-ab07-4d9a-b3ba-ad1fc1922f01/aristotle_result_stderr.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/.venv_erdos/lib/python3.11/site-packages/aristotlelib/cli/result.py`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/279f0a62-ab07-4d9a-b3ba-ad1fc1922f01/aristotle_result_abbbfe12-012b-478c-9073-ede213990c03`
+- evaluation total: 0.42
+- notes: Aristotle returned a Python traceback without a recognizable higher-level classification.
 
 ### e17d490a-aa35-4d33-9bf0-7f20e0e74f1b
+
+- move: `counterexample_mode`
+- phase: `consolidation`
+- status: `stalled`
+- proof outcome: `unknown`
+- blocker: `unknown`
+- external job id: `151c5765-cf55-4237-8cca-f769520b38a7`
+- external status: `COMPLETE`
+- objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
+- learned summary: remote_status=COMPLETE; proof_outcome=unknown; blocker=unknown
+- new signal count: 0
+- reused signal count: 0
+- artifact inventory:
+  - `py` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/.venv_erdos/lib/python3.11/site-packages/aristotlelib/cli/result.py` (1092 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e17d490a-aa35-4d33-9bf0-7f20e0e74f1b/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e17d490a-aa35-4d33-9bf0-7f20e0e74f1b/aristotle_list_stdout.txt` (8736 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e17d490a-aa35-4d33-9bf0-7f20e0e74f1b/aristotle_result_stderr.txt` (2586 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e17d490a-aa35-4d33-9bf0-7f20e0e74f1b/aristotle_result_stdout.txt` (0 bytes)
+- artifacts:
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e17d490a-aa35-4d33-9bf0-7f20e0e74f1b/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e17d490a-aa35-4d33-9bf0-7f20e0e74f1b/aristotle_list_stderr.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e17d490a-aa35-4d33-9bf0-7f20e0e74f1b/aristotle_result_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e17d490a-aa35-4d33-9bf0-7f20e0e74f1b/aristotle_result_stderr.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/.venv_erdos/lib/python3.11/site-packages/aristotlelib/cli/result.py`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e17d490a-aa35-4d33-9bf0-7f20e0e74f1b/aristotle_result_151c5765-cf55-4237-8cca-f769520b38a7`
+- evaluation total: 0.42
+- notes: Aristotle returned a Python traceback without a recognizable higher-level classification.
+
+### 2420915d-24e0-4763-b923-0e61d412e232
 
 - move: `counterexample_mode`
 - phase: `consolidation`
 - status: `submitted`
 - proof outcome: `unknown`
 - blocker: `unknown`
-- external job id: `151c5765-cf55-4237-8cca-f769520b38a7`
+- external job id: `26967507-c883-4a5d-8bd0-8d2ee651c941`
 - external status: `QUEUED`
 - objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
 - learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e17d490a-aa35-4d33-9bf0-7f20e0e74f1b/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e17d490a-aa35-4d33-9bf0-7f20e0e74f1b/aristotle_list_stdout.txt` (8736 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/2420915d-24e0-4763-b923-0e61d412e232/aristotle_submit_stderr.txt` (54 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/2420915d-24e0-4763-b923-0e61d412e232/aristotle_submit_stdout.txt` (0 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e17d490a-aa35-4d33-9bf0-7f20e0e74f1b/aristotle_list_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/e17d490a-aa35-4d33-9bf0-7f20e0e74f1b/aristotle_list_stderr.txt`
-- notes: Aristotle job 151c5765-cf55-4237-8cca-f769520b38a7 is still queued.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/2420915d-24e0-4763-b923-0e61d412e232/aristotle_submit_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/2420915d-24e0-4763-b923-0e61d412e232/aristotle_submit_stderr.txt`
+- notes: Submitted Aristotle job without waiting for completion.
+
+### 6ce8a58a-3298-4d2d-9008-99712a5e46d3
+
+- move: `counterexample_mode`
+- phase: `consolidation`
+- status: `submitted`
+- proof outcome: `unknown`
+- blocker: `unknown`
+- external job id: `853b495c-626b-4829-9e70-a8b13a849280`
+- external status: `QUEUED`
+- objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
+- learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
+- new signal count: 0
+- reused signal count: 0
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ce8a58a-3298-4d2d-9008-99712a5e46d3/aristotle_submit_stderr.txt` (54 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ce8a58a-3298-4d2d-9008-99712a5e46d3/aristotle_submit_stdout.txt` (0 bytes)
+- artifacts:
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ce8a58a-3298-4d2d-9008-99712a5e46d3/aristotle_submit_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/6ce8a58a-3298-4d2d-9008-99712a5e46d3/aristotle_submit_stderr.txt`
+- notes: Submitted Aristotle job without waiting for completion.
+
+### d94cc062-d56a-450a-aad0-e6ec7d2dca38
+
+- move: `counterexample_mode`
+- phase: `consolidation`
+- status: `submitted`
+- proof outcome: `unknown`
+- blocker: `unknown`
+- external job id: `f3f1d9f0-f837-4145-9a8a-76b1a6172cc2`
+- external status: `QUEUED`
+- objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
+- learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
+- new signal count: 0
+- reused signal count: 0
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/d94cc062-d56a-450a-aad0-e6ec7d2dca38/aristotle_submit_stderr.txt` (54 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/d94cc062-d56a-450a-aad0-e6ec7d2dca38/aristotle_submit_stdout.txt` (0 bytes)
+- artifacts:
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/d94cc062-d56a-450a-aad0-e6ec7d2dca38/aristotle_submit_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/d94cc062-d56a-450a-aad0-e6ec7d2dca38/aristotle_submit_stderr.txt`
+- notes: Submitted Aristotle job without waiting for completion.
 
 ## Latest manager decision
 
 - policy path: `fallback`
 - jobs synced: 3
-- jobs submitted: 0
+- jobs submitted: 3
 - active before: 3
 - active after: 3
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.md`
@@ -872,10 +958,10 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - synced `4f57d954-b91b-41d4-b3de-e49cb7e8ce2f` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `279f0a62-ab07-4d9a-b3ba-ad1fc1922f01` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `e17d490a-aa35-4d33-9bf0-7f20e0e74f1b` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- skipped `9188a99b-27de-4fed-bf7e-6d344fb2994c` for `erdos-123` (duplicate active experiment signature)
-- skipped `11e4958a-19bf-43c3-a718-0567d263e34c` for `erdos-181` (duplicate active experiment signature)
-- skipped `a835aebe-5e73-4f50-b1e8-f4a921d34e4a` for `erdos-44` (duplicate active experiment signature)
+- queued `2420915d-24e0-4763-b923-0e61d412e232` for `erdos-44` via `counterexample_mode` (chosen by deterministic fallback policy)
+- queued `6ce8a58a-3298-4d2d-9008-99712a5e46d3` for `erdos-123` via `counterexample_mode` (chosen by deterministic fallback policy)
+- queued `d94cc062-d56a-450a-aad0-e6ec7d2dca38` for `erdos-181` via `counterexample_mode` (chosen by deterministic fallback policy)
 
 ## Suggested next move
 
-- Continue assumption perturbation and equivalent reformulations to sharpen the boundary map.
+- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
