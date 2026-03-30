@@ -105,7 +105,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - reused signal count: 0
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_list_stdout.txt` (8771 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_list_stdout.txt` (8756 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_list_stderr.txt`
@@ -131,7 +131,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - reused signal count: 0
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21/aristotle_list_stdout.txt` (8771 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21/aristotle_list_stdout.txt` (8756 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21/aristotle_list_stderr.txt`
@@ -206,7 +206,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - reused signal count: 0
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_list_stdout.txt` (8771 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_list_stdout.txt` (8756 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_list_stderr.txt`
@@ -214,8 +214,8 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Incidents
 
-- `warning` `retry_budget_exhausted`: Experiment b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21 reached retry budget (6 attempts).
-- `warning` `retry_budget_exhausted`: Experiment bff4c05f-d103-47ac-83f8-1164972a1bca reached retry budget (7 attempts).
+- `warning` `retry_budget_exhausted`: Experiment b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21 reached retry budget (7 attempts).
+- `warning` `retry_budget_exhausted`: Experiment bff4c05f-d103-47ac-83f8-1164972a1bca reached retry budget (8 attempts).
 
 ## Audit Trail
 
@@ -236,16 +236,16 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - synced `bff4c05f-d103-47ac-83f8-1164972a1bca` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `ddb1aae2-1b93-438c-9165-39a34b6f05c6` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- considered `887ee62e-f161-4c6e-a8e8-b8ae77d0c278` rank=1 score=-5.3675
-- considered `5b660483-4338-45f4-bdd1-73a5d674f41e` rank=2 score=-10.68
-- selected `3077f32d-6d45-467a-9afa-5b157c90f5eb` rank=3 score=-7.79
-- considered `57308eb2-7f04-42fe-af83-b89c01872820` rank=4 score=-7.79
-- considered `e81fe292-2fea-4a3a-ac14-af9f6e8fb95f` rank=5 score=-7.79
-- skipped `e81fe292-2fea-4a3a-ac14-af9f6e8fb95f` for `erdos-123` (frontier throttled for duplicate move-family pressure)
-- skipped `09f4957d-9768-44ce-abf7-c2d595930b89` for `erdos-123` (frontier throttled for duplicate move-family pressure)
-- skipped `6bda8702-8499-4be3-929e-4ff87144acd4` for `erdos-123` (frontier throttled for duplicate move-family pressure)
-- skipped `887ee62e-f161-4c6e-a8e8-b8ae77d0c278` for `erdos-123` (duplicate active experiment signature)
-- skipped `5b660483-4338-45f4-bdd1-73a5d674f41e` for `erdos-123` (duplicate active experiment signature)
+- considered `7ef8eb27-b4ed-4fa9-948a-597e3972f46d` rank=1 score=-5.3675
+- considered `d0b8b453-544c-4328-9f2a-c80713b91d67` rank=2 score=-10.68
+- selected `0538346a-8f8c-4565-b8b1-7ed47ff63d0e` rank=3 score=-7.79
+- considered `c85dcfab-b6b4-4146-8335-8ba20f3090c9` rank=4 score=-7.79
+- considered `45da5d2d-4c1e-47cc-8f44-24c2572d4eed` rank=5 score=-7.79
+- skipped `45da5d2d-4c1e-47cc-8f44-24c2572d4eed` for `erdos-123` (frontier throttled for duplicate move-family pressure)
+- skipped `7a3b0382-f929-4c5d-8f2c-b14f3b917eba` for `erdos-123` (frontier throttled for duplicate move-family pressure)
+- skipped `218ac445-c783-41fd-901e-c22eb32e2802` for `erdos-123` (frontier throttled for duplicate move-family pressure)
+- skipped `7ef8eb27-b4ed-4fa9-948a-597e3972f46d` for `erdos-123` (duplicate active experiment signature)
+- skipped `d0b8b453-544c-4328-9f2a-c80713b91d67` for `erdos-123` (duplicate active experiment signature)
 
 ## Suggested next move
 
