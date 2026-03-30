@@ -16,8 +16,8 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `IN_PROGRESS`: 1
-- `QUEUED`: 2
+- `IN_PROGRESS`: 2
+- `QUEUED`: 1
 
 ## Recently completed
 
@@ -470,20 +470,20 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 - move: `counterexample_mode`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `a6c25ca5-f1f5-4667-bad7-75fcdbf54862`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
-- learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; proof_outcome=unknown; blocker=unknown
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/9675da26-7a6b-4737-af92-893f8270ff9e/aristotle_list_stderr.txt` (58 bytes)
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/9675da26-7a6b-4737-af92-893f8270ff9e/aristotle_list_stdout.txt` (8771 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/9675da26-7a6b-4737-af92-893f8270ff9e/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/9675da26-7a6b-4737-af92-893f8270ff9e/aristotle_list_stderr.txt`
-- notes: Aristotle job a6c25ca5-f1f5-4667-bad7-75fcdbf54862 is still queued.
+- notes: Aristotle job a6c25ca5-f1f5-4667-bad7-75fcdbf54862 is still in progress.
 
 ### f2362d70-3a41-437a-9ce2-0ca135ee4284
 
