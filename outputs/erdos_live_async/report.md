@@ -16,7 +16,8 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `QUEUED`: 3
+- `IN_PROGRESS`: 1
+- `QUEUED`: 2
 
 ## Recently completed
 
@@ -475,10 +476,14 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - external job id: `a6c25ca5-f1f5-4667-bad7-75fcdbf54862`
 - external status: `QUEUED`
 - objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
+- learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/9675da26-7a6b-4737-af92-893f8270ff9e/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/9675da26-7a6b-4737-af92-893f8270ff9e/aristotle_list_stdout.txt` (8771 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/9675da26-7a6b-4737-af92-893f8270ff9e/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/9675da26-7a6b-4737-af92-893f8270ff9e/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/9675da26-7a6b-4737-af92-893f8270ff9e/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/9675da26-7a6b-4737-af92-893f8270ff9e/aristotle_list_stderr.txt`
+- notes: Aristotle job a6c25ca5-f1f5-4667-bad7-75fcdbf54862 is still queued.
 
 ### f2362d70-3a41-437a-9ce2-0ca135ee4284
 
@@ -490,39 +495,44 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - external job id: `7a5ec6d6-586f-4b84-b0b8-01f756415b99`
 - external status: `QUEUED`
 - objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
+- learned summary: remote_status=QUEUED; proof_outcome=unknown; blocker=unknown
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f2362d70-3a41-437a-9ce2-0ca135ee4284/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f2362d70-3a41-437a-9ce2-0ca135ee4284/aristotle_list_stdout.txt` (8771 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f2362d70-3a41-437a-9ce2-0ca135ee4284/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f2362d70-3a41-437a-9ce2-0ca135ee4284/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f2362d70-3a41-437a-9ce2-0ca135ee4284/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/f2362d70-3a41-437a-9ce2-0ca135ee4284/aristotle_list_stderr.txt`
+- notes: Aristotle job 7a5ec6d6-586f-4b84-b0b8-01f756415b99 is still queued.
 
 ### 18ac6c2e-2c9a-47a6-8600-299528213f2f
 
 - move: `counterexample_mode`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `a7a37178-f189-445b-9635-4f8a9f5d92b5`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Seek a falsifying or independence-style witness for the most fragile observed variant.
+- learned summary: remote_status=IN_PROGRESS; proof_outcome=unknown; blocker=unknown
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/18ac6c2e-2c9a-47a6-8600-299528213f2f/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/18ac6c2e-2c9a-47a6-8600-299528213f2f/aristotle_list_stdout.txt` (8771 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/18ac6c2e-2c9a-47a6-8600-299528213f2f/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/18ac6c2e-2c9a-47a6-8600-299528213f2f/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/18ac6c2e-2c9a-47a6-8600-299528213f2f/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/work/18ac6c2e-2c9a-47a6-8600-299528213f2f/aristotle_list_stderr.txt`
+- notes: Aristotle job a7a37178-f189-445b-9635-4f8a9f5d92b5 is still in progress.
 
 ## Latest manager decision
 
 - policy path: `fallback`
 - jobs synced: 3
-- jobs submitted: 3
+- jobs submitted: 0
 - active before: 3
 - active after: 3
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_live_async/report.manager_snapshot.json`
-- queued `9675da26-7a6b-4737-af92-893f8270ff9e` for `erdos-123` via `counterexample_mode` (chosen by deterministic fallback policy)
-- queued `f2362d70-3a41-437a-9ce2-0ca135ee4284` for `erdos-181` via `counterexample_mode` (chosen by deterministic fallback policy)
-- queued `18ac6c2e-2c9a-47a6-8600-299528213f2f` for `erdos-44` via `counterexample_mode` (chosen by deterministic fallback policy)
 
 ## Suggested next move
 
-- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
+- Continue assumption perturbation and equivalent reformulations to sharpen the boundary map.
