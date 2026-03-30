@@ -3,7 +3,7 @@ name: Erdos Campaign Manager
 on:
   workflow_dispatch: {}
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/5 * * * *"
   push:
     branches:
       - main
@@ -26,6 +26,8 @@ jobs:
       STATE_DIR: outputs/erdos_live_async
       MAX_ACTIVE: "5"
       MAX_SUBMIT_PER_TICK: "5"
+      TICKS_PER_RUN: "4"
+      TICK_SLEEP_SECONDS: "60"
       LLM_MANAGER: "auto"
       ARISTOTLE_BIN_DIR: ${{ github.workspace }}/.venv_erdos/bin
     steps:
@@ -79,13 +81,40 @@ jobs:
       - name: Run manager tick
         env:
           ARISTOTLE_API_KEY: ${{ secrets.ARISTOTLE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           if [ -z "${ARISTOTLE_API_KEY:-}" ]; then
             echo "ARISTOTLE_API_KEY secret is not configured." >&2
             exit 1
           fi
-          ./run_erdos_live_research.sh
+
+          persist_state() {
+            STATE_CLONE="${STATE_CLONE:?missing state clone}"
+            mkdir -p "${STATE_CLONE}/${STATE_DIR}"
+            rsync -a --delete "${STATE_DIR}/" "${STATE_CLONE}/${STATE_DIR}/"
+            (
+              cd "${STATE_CLONE}"
+              git add "${STATE_DIR}" README.md
+              if git diff --cached --quiet; then
+                echo "No campaign-state changes to commit."
+              else
+                git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Update campaign state"
+                git push origin "${STATE_BRANCH}"
+              fi
+            )
+          }
+
+          for tick in $(seq 1 "${TICKS_PER_RUN}"); do
+            echo "=== manager tick ${tick}/${TICKS_PER_RUN} ==="
+            ./run_erdos_live_research.sh
+            persist_state
+
+            if [ "${tick}" -lt "${TICKS_PER_RUN}" ]; then
+              echo "Sleeping ${TICK_SLEEP_SECONDS}s before next tick..."
+              sleep "${TICK_SLEEP_SECONDS}"
+            fi
+          done
 
       - name: Persist updated campaign state
         if: always()

@@ -195,7 +195,8 @@ ARISTOTLE_API_KEY
 - uploads the latest report, snapshot, and database as workflow artifacts
 
 ### Trigger modes
-- scheduled every 30 minutes
+- scheduled every 5 minutes
+- within each GitHub Actions run, the manager performs 4 one-minute-spaced `manager-tick` iterations and persists `campaign-state` after each tick
 - manual `workflow_dispatch` with optional overrides for:
   - `max_active`
   - `max_submit_per_tick`
