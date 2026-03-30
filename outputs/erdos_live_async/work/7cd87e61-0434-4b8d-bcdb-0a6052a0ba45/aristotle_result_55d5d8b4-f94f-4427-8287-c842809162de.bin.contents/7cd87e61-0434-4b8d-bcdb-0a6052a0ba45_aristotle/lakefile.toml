@@ -1,0 +1,14 @@
+name = "AristotleWorkspace"
+version = "0.1.0"
+lean = "leanprover/lean4:v4.28.0"
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+version = "main"
+
+[[lean_lib]]
+name = "AristotleWorkspace"
+
+[[lean_lib]]
+name = "Main"
