@@ -1,0 +1,10 @@
+name = "RequestProject"
+version = "0.1.0"
+defaultTargets = ["Main"]
+
+[[require]]
+name = "mathlib"
+path = ".lake/packages/mathlib"
+
+[[lean_lib]]
+name = "Main"

@@ -1,0 +1,11 @@
+name = "AristotleWorkspace"
+version = "0.1.0"
+defaultTargets = ["AristotleWorkspace"]
+
+[[lean_lib]]
+name = "AristotleWorkspace"
+roots = ["Main"]
+
+[[require]]
+name = "mathlib"
+scope = ""
