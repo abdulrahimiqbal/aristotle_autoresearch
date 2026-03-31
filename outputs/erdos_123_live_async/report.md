@@ -16,7 +16,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Campaign Health
 
-- active=2 pending=2 running=1 completed=7 failed=0
+- active=2 pending=2 running=2 completed=7 failed=0
 - structured ingestion success rate: 1.0
 - semantic reuse rate: 0.131
 - transfer usage rate: 0.286
@@ -24,7 +24,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - obstruction discovery rate: 0.714
 - high-priority frontier share: 0.636
 - repeated no-signal streak: 0
-- duplicate frontier pressure: 1
+- duplicate frontier pressure: 2
 - move-family diversity: frontier=9 completed=5
 - open incidents: 4
 
@@ -68,8 +68,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `IN_PROGRESS`: 1
-- `QUEUED`: 1
+- `IN_PROGRESS`: 2
 
 ## Recently completed
 
@@ -853,23 +852,23 @@ The sorry here represents the core open mathematical co`
 - move family: `legacy.perturb_assumption`
 - theorem family: `erdos_problem`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `33d6bd02-cbb8-4418-97f5-4b6732939093`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. The assumption 'summands are distinct' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Assumption 'summands are distinct' has not yet been stress-tested under verification pressure.
-- learned summary: remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_list_stdout.txt` (8766 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_list_stderr.txt`
+- notes: Aristotle job 33d6bd02-cbb8-4418-97f5-4b6732939093 is still in progress.
 
 ## Incidents
 
@@ -895,22 +894,32 @@ The sorry here represents the core open mathematical co`
 
 - policy path: `fallback`
 - policy candidate audits: 11
-- jobs synced: 1
-- jobs submitted: 1
-- active before: 1
+- jobs synced: 2
+- jobs submitted: 0
+- active before: 2
 - active after: 2
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=10, subgoals=1, traces=0
 - synced `e09e11d5-cf0f-4033-a866-668dd1a6cdff` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- queued `abd99d04-1751-4f5c-a802-c4d16072db93` for `erdos-123` via `perturb_assumption` / `legacy.perturb_assumption` (chosen by deterministic fallback policy; move_family=legacy.perturb_assumption; rationale=Assumption 'summands are distinct' has not yet been stress-tested under verification pressure.)
-- selected `abd99d04-1751-4f5c-a802-c4d16072db93` rank=1 score=197.45
-- considered `93fde400-eb0b-4952-ba2b-50353a8dabe6` rank=2 score=192.45
-- considered `80749a44-6708-47b3-a661-9095e629eb2d` rank=3 score=206.897
-- considered `16dd55d6-9168-4083-bc5f-6929c3438d63` rank=4 score=201.475
-- considered `b5e5c64d-3f3c-4e35-be8b-7896c9280d78` rank=5 score=201.62
-- skipped `93fde400-eb0b-4952-ba2b-50353a8dabe6` for `erdos-123` (duplicate active experiment signature)
+- synced `abd99d04-1751-4f5c-a802-c4d16072db93` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- considered `41b58695-b2b7-4898-89cf-46433660206f` rank=1 score=189.05
+- considered `15eb040b-c1ea-4236-9c49-da07f88fd208` rank=2 score=189.05
+- considered `820ffbe7-620a-407a-b80b-70b900651797` rank=3 score=203.497
+- considered `c0a083d8-9ccd-4a37-bf7d-254ea338beef` rank=4 score=198.075
+- considered `787eb3e7-43e1-4067-9578-1983b3312102` rank=5 score=198.22
+- skipped `820ffbe7-620a-407a-b80b-70b900651797` for `erdos-123` (conjecture active cap reached)
+- skipped `c0a083d8-9ccd-4a37-bf7d-254ea338beef` for `erdos-123` (conjecture active cap reached)
+- skipped `787eb3e7-43e1-4067-9578-1983b3312102` for `erdos-123` (conjecture active cap reached)
+- skipped `7d4bee19-288d-4691-b888-3dcdd46e1a8c` for `erdos-123` (conjecture active cap reached)
+- skipped `28cc3f52-5482-47f8-9556-1ca32e268add` for `erdos-123` (conjecture active cap reached)
+- skipped `54211116-2ad2-464e-86e8-c7c5e247dbff` for `erdos-123` (conjecture active cap reached)
+- skipped `a928f392-ec49-4ef6-912b-16ad6ffbb208` for `erdos-123` (conjecture active cap reached)
+- skipped `851751a6-1e39-447e-a457-2afb79b149c4` for `erdos-123` (conjecture active cap reached)
+- skipped `41b58695-b2b7-4898-89cf-46433660206f` for `erdos-123` (duplicate active experiment signature)
+- skipped `15eb040b-c1ea-4236-9c49-da07f88fd208` for `erdos-123` (duplicate active experiment signature)
+- skipped `adf9aa87-dcab-4440-b012-d184a86bea3b` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
-- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
+- Promote the top recurring lemma into a standalone theorem if not already tested.
