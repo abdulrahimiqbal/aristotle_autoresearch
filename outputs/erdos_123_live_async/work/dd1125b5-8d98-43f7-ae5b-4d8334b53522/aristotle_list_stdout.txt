@@ -1,16 +1,16 @@
 ID                                   STATUS          CREATED              PROGRESS  
 -------------------------------------------------------------------------------------
-d8764bb9-5bdc-4529-b85f-5b429602eb1f QUEUED          1 min ago            -         
+d8764bb9-5bdc-4529-b85f-5b429602eb1f QUEUED          2 mins ago           -         
 8c89b0d6-4d39-4801-8e9a-a550bc6112f8 COMPLETE        1 hour ago           100%      
 725dfc92-6a16-4aa5-a1b0-2401d11eba7f COMPLETE        1 hour ago           100%      
 a9364975-0c8a-4ee5-8804-1d58404ecb99 COMPLETE_WITH_ERRORS 1 hour ago           100%      
 450960cf-fb54-414b-bac1-d1eed4742756 COMPLETE        1 hour ago           100%      
 d25bca74-2be1-4754-901e-30674935e8d7 COMPLETE_WITH_ERRORS 1 hour ago           100%      
 c00a921a-ac52-4ac0-a87f-180577941ba3 COMPLETE        1 hour ago           100%      
-66dffa53-83a3-4240-8deb-d415ab956b31 COMPLETE        2 hours ago          100%      
-2f640893-92d9-4f72-828b-fed9cb349ebc COMPLETE        2 hours ago          100%      
+66dffa53-83a3-4240-8deb-d415ab956b31 COMPLETE        3 hours ago          100%      
+2f640893-92d9-4f72-828b-fed9cb349ebc COMPLETE        3 hours ago          100%      
 fbc0c3e4-4029-42be-94ad-693f511fe3a8 COMPLETE_WITH_ERRORS 4 hours ago          100%      
-4cca2bac-93a0-44bb-8545-1f6f61e12bb6 IN_PROGRESS     4 hours ago          35%       
+4cca2bac-93a0-44bb-8545-1f6f61e12bb6 IN_PROGRESS     4 hours ago          36%       
 14f32ff1-b320-483e-a67a-449277066168 COMPLETE        5 hours ago          100%      
 5e6a26d2-f87a-49bf-a461-3847581a26e8 COMPLETE_WITH_ERRORS 5 hours ago          100%      
 516dc484-7dcb-4208-aa9d-a41f19654867 COMPLETE_WITH_ERRORS 5 hours ago          100%      
