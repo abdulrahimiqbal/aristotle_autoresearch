@@ -1,15 +1,15 @@
 ID                                   STATUS          CREATED              PROGRESS  
 -------------------------------------------------------------------------------------
-769fbf45-c46f-4e20-9736-119e3b9cd4ff IN_PROGRESS     1 min ago            1%        
-0e58a7bb-49fb-4e7a-ad4b-95eba5384643 QUEUED          1 min ago            -         
-60a88067-7d95-4b20-9bd5-096f11244b92 COMPLETE        42 mins ago          100%      
-bd8bdf3a-6269-4370-b04b-579e97724b5e IN_PROGRESS     42 mins ago          10%       
+769fbf45-c46f-4e20-9736-119e3b9cd4ff IN_PROGRESS     2 mins ago           1%        
+0e58a7bb-49fb-4e7a-ad4b-95eba5384643 QUEUED          2 mins ago           -         
+60a88067-7d95-4b20-9bd5-096f11244b92 COMPLETE        43 mins ago          100%      
+bd8bdf3a-6269-4370-b04b-579e97724b5e IN_PROGRESS     43 mins ago          10%       
 87ed61cc-0b85-4e82-b714-06ddb6103888 IN_PROGRESS     1 hour ago           19%       
 459e4d95-9ffc-4932-8e78-e69b89d21fdb COMPLETE        1 hour ago           100%      
 ebf60aa1-e9b0-4085-8d5f-86083f4e4c58 IN_PROGRESS     1 hour ago           22%       
 904598b4-a54c-4456-8f34-f206521f7dcc COMPLETE_WITH_ERRORS 1 hour ago           100%      
 c7b558dd-f064-4a45-936c-54e9015ab34e COMPLETE        2 hours ago          100%      
-b4213129-470d-41df-86c4-ef7562d864c4 IN_PROGRESS     2 hours ago          21%       
+b4213129-470d-41df-86c4-ef7562d864c4 IN_PROGRESS     2 hours ago          23%       
 1ac4dc85-b946-493a-97b7-a6d8127cdc6f COMPLETE_WITH_ERRORS 2 hours ago          100%      
 06c3fbef-db57-4499-a70c-a769df042a02 COMPLETE_WITH_ERRORS 2 hours ago          100%      
 1c01990b-d43b-44d2-b009-11cb5cb186fa COMPLETE_WITH_ERRORS 2 hours ago          100%      

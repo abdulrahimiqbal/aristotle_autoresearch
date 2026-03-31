@@ -2577,12 +2577,12 @@ The sorry here represents the core open mathematical co`
 - recurring structures considered: lemmas=10, subgoals=1, traces=10
 - synced `997b8c14-54cd-44d3-b724-7b4397ebb34f` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `bb2a0ac5-79ad-4a78-b2c5-629894e0e115` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- considered `7b36c5a3-9301-4348-982d-5f6f6cbb945b` rank=1 score=28.0438
-- considered `98e97dfe-6484-4844-901f-f7dd207159b2` rank=2 score=28.464
-- considered `0152ff0f-6abe-4183-ac4e-8c6abab5cd4c` rank=3 score=25.2841
-- skipped `7b36c5a3-9301-4348-982d-5f6f6cbb945b` for `erdos-123` (duplicate active experiment signature)
-- skipped `98e97dfe-6484-4844-901f-f7dd207159b2` for `erdos-123` (duplicate active experiment signature)
-- skipped `0152ff0f-6abe-4183-ac4e-8c6abab5cd4c` for `erdos-123` (conjecture active cap reached)
+- considered `3671580b-5d98-4576-8c0c-ffe814af590e` rank=1 score=28.0438
+- considered `3e61e7e3-5ba6-4522-9dbf-db4570e6f054` rank=2 score=28.464
+- considered `3a5d90ea-1c75-4764-9033-cce7d2d4f5e8` rank=3 score=25.2841
+- skipped `3671580b-5d98-4576-8c0c-ffe814af590e` for `erdos-123` (duplicate active experiment signature)
+- skipped `3e61e7e3-5ba6-4522-9dbf-db4570e6f054` for `erdos-123` (duplicate active experiment signature)
+- skipped `3a5d90ea-1c75-4764-9033-cce7d2d4f5e8` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
