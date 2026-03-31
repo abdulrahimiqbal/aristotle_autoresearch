@@ -8,15 +8,15 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Summary
 
-- Experiments: 5
+- Experiments: 6
 - Succeeded: 0
 - Stalled: 4
 - Failed: 0
-- Pending: 1
+- Pending: 2
 
 ## Campaign Health
 
-- active=1 pending=1 running=0 completed=4 failed=0
+- active=2 pending=2 running=0 completed=4 failed=0
 - structured ingestion success rate: 1.0
 - semantic reuse rate: 0.082
 - transfer usage rate: 0.5
@@ -24,7 +24,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - obstruction discovery rate: 0.5
 - high-priority frontier share: 0.5
 - repeated no-signal streak: 0
-- duplicate frontier pressure: 0
+- duplicate frontier pressure: 1
 - move-family diversity: frontier=9 completed=4
 - open incidents: 3
 
@@ -68,7 +68,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `QUEUED`: 1
+- `QUEUED`: 2
 
 ## Recently completed
 
@@ -484,11 +484,35 @@ The sorry here represents the core open mathematical co`
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/456ae293-4a69-4679-b093-913c49b3b304/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/456ae293-4a69-4679-b093-913c49b3b304/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/456ae293-4a69-4679-b093-913c49b3b304/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/456ae293-4a69-4679-b093-913c49b3b304/aristotle_list_stdout.txt` (8751 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/456ae293-4a69-4679-b093-913c49b3b304/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/456ae293-4a69-4679-b093-913c49b3b304/aristotle_submit_stderr.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/456ae293-4a69-4679-b093-913c49b3b304/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/456ae293-4a69-4679-b093-913c49b3b304/aristotle_list_stderr.txt`
+- notes: Aristotle job 593ad586-0a26-4254-b2e9-72a6920b2438 is still queued.
+
+### e7ffb40d-1e42-444e-8ffd-4d486f55a51e
+
+- move: `perturb_assumption`
+- move family: `legacy.perturb_assumption`
+- theorem family: `erdos_problem`
+- phase: `consolidation`
+- status: `submitted`
+- proof outcome: `unknown`
+- blocker: `unknown`
+- external job id: `a554206b-b500-4e66-8e51-469b5ef6a2f1`
+- external status: `QUEUED`
+- objective: Fill in all sorries. The assumption 'no chosen summand divides another' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
+- rationale: Assumption 'no chosen summand divides another' has not yet been stress-tested under verification pressure.
+- learned summary: remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- new signal count: 0
+- reused signal count: 0
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e7ffb40d-1e42-444e-8ffd-4d486f55a51e/aristotle_submit_stderr.txt` (54 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e7ffb40d-1e42-444e-8ffd-4d486f55a51e/aristotle_submit_stdout.txt` (0 bytes)
+- artifacts:
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e7ffb40d-1e42-444e-8ffd-4d486f55a51e/aristotle_submit_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e7ffb40d-1e42-444e-8ffd-4d486f55a51e/aristotle_submit_stderr.txt`
 - notes: Submitted Aristotle job without waiting for completion.
 
 ## Incidents
@@ -512,24 +536,23 @@ The sorry here represents the core open mathematical co`
 
 - policy path: `fallback`
 - policy candidate audits: 14
-- jobs synced: 2
+- jobs synced: 1
 - jobs submitted: 1
-- active before: 2
-- active after: 1
+- active before: 1
+- active after: 2
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=10, subgoals=1, traces=0
-- synced `bff4c05f-d103-47ac-83f8-1164972a1bca` with proof_outcome=`partial` new_signal=37 reused_signal=0
-- synced `b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21` with proof_outcome=`partial` new_signal=33 reused_signal=0
-- queued `456ae293-4a69-4679-b093-913c49b3b304` for `erdos-123` via `perturb_assumption` / `legacy.perturb_assumption` (chosen by deterministic fallback policy; move_family=legacy.perturb_assumption; rationale=Assumption 'a, b, c are pairwise coprime' has not yet been stress-tested under verification pressure.)
-- selected `456ae293-4a69-4679-b093-913c49b3b304` rank=1 score=196.9075
-- considered `be5a8a67-cdd1-4586-b534-7337ee9ef767` rank=2 score=196.9075
-- considered `ff268039-98b0-4306-b3aa-afa911d7f102` rank=3 score=196.9075
-- considered `9b5d348f-a613-44d1-bbc5-2b751bf412e6` rank=4 score=196.4075
-- considered `c11fe1f9-ee70-40c9-80ff-02bf5ad529e3` rank=5 score=196.4075
-- skipped `ff268039-98b0-4306-b3aa-afa911d7f102` for `erdos-123` (frontier throttled for duplicate move-family pressure)
-- skipped `9b5d348f-a613-44d1-bbc5-2b751bf412e6` for `erdos-123` (frontier throttled for duplicate move-family pressure)
-- skipped `c11fe1f9-ee70-40c9-80ff-02bf5ad529e3` for `erdos-123` (frontier throttled for duplicate move-family pressure)
+- synced `456ae293-4a69-4679-b093-913c49b3b304` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- queued `e7ffb40d-1e42-444e-8ffd-4d486f55a51e` for `erdos-123` via `perturb_assumption` / `legacy.perturb_assumption` (chosen by deterministic fallback policy; move_family=legacy.perturb_assumption; rationale=Assumption 'no chosen summand divides another' has not yet been stress-tested under verification pressure.)
+- selected `e7ffb40d-1e42-444e-8ffd-4d486f55a51e` rank=1 score=189.016
+- considered `07459280-17da-4704-a1cd-dc87a4225e95` rank=2 score=189.016
+- considered `33cc0a74-4f0b-49dd-ab5f-5fdb2e5cb789` rank=3 score=184.016
+- considered `0b546dd6-33c9-4329-aa0f-4d6fc95f002f` rank=4 score=188.516
+- considered `177f6bc4-cbe0-4bb3-8cad-950fc0160b3f` rank=5 score=188.516
+- skipped `33cc0a74-4f0b-49dd-ab5f-5fdb2e5cb789` for `erdos-123` (duplicate active experiment signature)
+- skipped `0b546dd6-33c9-4329-aa0f-4d6fc95f002f` for `erdos-123` (frontier throttled for duplicate move-family pressure)
+- skipped `177f6bc4-cbe0-4bb3-8cad-950fc0160b3f` for `erdos-123` (frontier throttled for duplicate move-family pressure)
 
 ## Suggested next move
 
