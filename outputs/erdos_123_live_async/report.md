@@ -8,15 +8,15 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Summary
 
-- Experiments: 8
+- Experiments: 9
 - Succeeded: 0
 - Stalled: 7
 - Failed: 0
-- Pending: 1
+- Pending: 2
 
 ## Campaign Health
 
-- active=1 pending=1 running=0 completed=7 failed=0
+- active=2 pending=2 running=1 completed=7 failed=0
 - structured ingestion success rate: 1.0
 - semantic reuse rate: 0.131
 - transfer usage rate: 0.286
@@ -24,7 +24,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - obstruction discovery rate: 0.714
 - high-priority frontier share: 0.636
 - repeated no-signal streak: 0
-- duplicate frontier pressure: 0
+- duplicate frontier pressure: 1
 - move-family diversity: frontier=9 completed=5
 - open incidents: 4
 
@@ -68,6 +68,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
+- `IN_PROGRESS`: 1
 - `QUEUED`: 1
 
 ## Recently completed
@@ -828,22 +829,46 @@ The sorry here represents the core open mathematical co`
 - move family: `legacy.perturb_assumption`
 - theorem family: `erdos_problem`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `f22db0dd-8b5b-494e-9520-99baef7cdd64`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. The assumption 'a, b, c are integers greater than 1' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Assumption 'a, b, c are integers greater than 1' has not yet been stress-tested under verification pressure.
+- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- new signal count: 0
+- reused signal count: 0
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_list_stdout.txt` (8766 bytes)
+- artifacts:
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_list_stderr.txt`
+- notes: Aristotle job f22db0dd-8b5b-494e-9520-99baef7cdd64 is still in progress.
+
+### abd99d04-1751-4f5c-a802-c4d16072db93
+
+- move: `perturb_assumption`
+- move family: `legacy.perturb_assumption`
+- theorem family: `erdos_problem`
+- phase: `consolidation`
+- status: `submitted`
+- proof outcome: `unknown`
+- blocker: `unknown`
+- external job id: `33d6bd02-cbb8-4418-97f5-4b6732939093`
+- external status: `QUEUED`
+- objective: Fill in all sorries. The assumption 'summands are distinct' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
+- rationale: Assumption 'summands are distinct' has not yet been stress-tested under verification pressure.
 - learned summary: remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_submit_stderr.txt` (54 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_submit_stdout.txt` (0 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_submit_stderr.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_submit_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_submit_stderr.txt`
 - notes: Submitted Aristotle job without waiting for completion.
 
 ## Incidents
@@ -870,21 +895,21 @@ The sorry here represents the core open mathematical co`
 
 - policy path: `fallback`
 - policy candidate audits: 11
-- jobs synced: 2
+- jobs synced: 1
 - jobs submitted: 1
-- active before: 2
-- active after: 1
+- active before: 1
+- active after: 2
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=10, subgoals=1, traces=0
-- synced `e7ffb40d-1e42-444e-8ffd-4d486f55a51e` with proof_outcome=`partial` new_signal=38 reused_signal=0
-- synced `b1167253-8940-4176-b5b6-fc4968f3735f` with proof_outcome=`partial` new_signal=16 reused_signal=0
-- queued `e09e11d5-cf0f-4033-a866-668dd1a6cdff` for `erdos-123` via `perturb_assumption` / `legacy.perturb_assumption` (chosen by deterministic fallback policy; move_family=legacy.perturb_assumption; rationale=Assumption 'a, b, c are integers greater than 1' has not yet been stress-tested under verification pressure.)
-- selected `e09e11d5-cf0f-4033-a866-668dd1a6cdff` rank=1 score=200.85
-- considered `f04302d3-0757-4108-8926-4aad8aabe5f6` rank=2 score=200.85
-- considered `c73ac613-e18d-4f88-a217-6ac79d5b907c` rank=3 score=210.297
-- considered `1356af50-f665-4388-8455-88eed38eacf9` rank=4 score=204.875
-- considered `3cd065b3-14b4-4bcd-9143-685397852227` rank=5 score=205.02
+- synced `e09e11d5-cf0f-4033-a866-668dd1a6cdff` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- queued `abd99d04-1751-4f5c-a802-c4d16072db93` for `erdos-123` via `perturb_assumption` / `legacy.perturb_assumption` (chosen by deterministic fallback policy; move_family=legacy.perturb_assumption; rationale=Assumption 'summands are distinct' has not yet been stress-tested under verification pressure.)
+- selected `abd99d04-1751-4f5c-a802-c4d16072db93` rank=1 score=197.45
+- considered `93fde400-eb0b-4952-ba2b-50353a8dabe6` rank=2 score=192.45
+- considered `80749a44-6708-47b3-a661-9095e629eb2d` rank=3 score=206.897
+- considered `16dd55d6-9168-4083-bc5f-6929c3438d63` rank=4 score=201.475
+- considered `b5e5c64d-3f3c-4e35-be8b-7896c9280d78` rank=5 score=201.62
+- skipped `93fde400-eb0b-4952-ba2b-50353a8dabe6` for `erdos-123` (duplicate active experiment signature)
 
 ## Suggested next move
 
