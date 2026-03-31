@@ -1,0 +1,10 @@
+name = "AristotleWorkspace"
+version = "0.1.0"
+defaultTargets = ["AristotleWorkspace"]
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+
+[[lean_lib]]
+name = "AristotleWorkspace"
