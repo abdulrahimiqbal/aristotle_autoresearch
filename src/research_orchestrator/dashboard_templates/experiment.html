@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+  <h2>Experiment: {{ experiment_id }}</h2>
+  <table>
+    <tr><th>Conjecture</th><td><a href="/problem/{{ experiment.conjecture_id }}">{{ experiment.conjecture_id }}</a></td></tr>
+    <tr><th>Move</th><td>{{ experiment.move }}</td></tr>
+    <tr><th>Move family</th><td>{{ experiment.move_family }}</td></tr>
+    <tr><th>Status</th><td>{{ experiment.status }}</td></tr>
+    <tr><th>Proof outcome</th><td>{{ experiment.proof_outcome }}</td></tr>
+    <tr><th>Blocker</th><td>{{ experiment.blocker_type }}</td></tr>
+    <tr><th>New signals</th><td>{{ experiment.new_signal_count }}</td></tr>
+    <tr><th>Reused signals</th><td>{{ experiment.reused_signal_count }}</td></tr>
+    <tr><th>Objective</th><td>{{ experiment.objective }}</td></tr>
+    <tr><th>Expected signal</th><td>{{ experiment.expected_signal }}</td></tr>
+    <tr><th>Boundary summary</th><td>{{ experiment.boundary_summary or "n/a" }}</td></tr>
+    <tr><th>Motif</th><td>{{ experiment.motif_signature or experiment.motif_id or "n/a" }}</td></tr>
+    <tr><th>Created</th><td>{{ experiment.created_at }}</td></tr>
+    <tr><th>Completed</th><td>{{ experiment.completed_at or "n/a" }}</td></tr>
+  </table>
+</section>
+{% endblock %}
+

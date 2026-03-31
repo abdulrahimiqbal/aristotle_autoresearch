@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aristotle Research Dashboard</title>
+    <link rel="stylesheet" href="/static/dashboard.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="panel">
+        <h1>Aristotle Research Dashboard</h1>
+        <p class="muted">
+          Source mode: <strong>{{ state.source_mode }}</strong> |
+          Project: <strong>{{ state.project_id }}</strong> |
+          Last update: <strong>{{ state.campaign_snapshot.last_db_update or state.campaign_snapshot.last_export_time or "unknown" }}</strong>
+        </p>
+        {% if state.health.warnings %}
+          <div class="warning">
+            {% for warning in state.health.warnings %}
+              <div>{{ warning }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <nav class="nav">
+          <a href="/">Overview</a>
+          <a href="/health">Health</a>
+          <a href="/api/dashboard">/api/dashboard</a>
+        </nav>
+      </header>
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>
+

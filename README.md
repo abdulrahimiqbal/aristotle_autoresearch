@@ -188,6 +188,25 @@ research-orchestrator campaign-status \
   --state-dir ./state_bundle
 ```
 
+### Live dashboard (bundle, db, or mixed)
+The dashboard is a lightweight FastAPI + Jinja app that reads real campaign state. It prefers bundle files for overview sections and uses SQLite for supplemental detail when both are provided.
+
+```bash
+research-orchestrator dashboard \
+  --state-dir ./state_bundle \
+  --db ./state.sqlite \
+  --host 127.0.0.1 \
+  --port 8000 \
+  --reload
+```
+
+Use one source or both:
+- bundle-only: `--state-dir ./state_bundle`
+- db-only: `--db ./state.sqlite`
+- mixed: pass both flags
+
+If SQLite is corrupt but the bundle is readable, the dashboard still starts and shows a warning banner.
+
 ### Integrity checks and backups
 ```bash
 research-orchestrator db-check --db ./state.sqlite
@@ -223,6 +242,16 @@ research-orchestrator run-cycle   --db ./state.sqlite   --project mono-001   --p
 ### Preview prompts for the next planned experiment
 ```bash
 research-orchestrator preview-next   --db ./state.sqlite   --project mono-001
+```
+
+### Render the structured campaign brief
+```bash
+research-orchestrator campaign-brief   --db ./state.sqlite   --project mono-001
+```
+
+### Summarize LLM-assisted manager behavior
+```bash
+research-orchestrator manager-llm-report   --db ./state.sqlite   --project mono-001
 ```
 
 ### Generate a research report
@@ -278,6 +307,64 @@ This checks:
 - lemma normalization
 - manager behavior
 - demo orchestration flow
+
+## LLM-assisted manager layer
+
+The research manager now supports a feature-flagged LLM assistance layer that sits between frontier generation and deterministic candidate selection.
+
+Deterministic guardrails still remain the final authority:
+- budget and capacity caps run first
+- duplicate active signatures are rejected first
+- repeated no-signal branches are still pruned deterministically
+- move families must already exist in the registry
+- synthesized parameters must match the registered parameter schema
+- execution, Lean interaction, and result ingestion still use the existing deterministic pipeline
+
+### Progressive feature flags
+
+All new LLM-assisted behavior is off by default except local brief generation.
+
+```bash
+export RESEARCH_ORCHESTRATOR_LLM_BRIEF_GENERATION=1
+export RESEARCH_ORCHESTRATOR_LLM_INTERPRETATION=0
+export RESEARCH_ORCHESTRATOR_LLM_CANDIDATE_ANNOTATION=0
+export RESEARCH_ORCHESTRATOR_LLM_PARAMETER_SYNTHESIS=0
+export RESEARCH_ORCHESTRATOR_LLM_BRIDGE_HYPOTHESES=0
+export RESEARCH_ORCHESTRATOR_LLM_MANAGER_COMMAND="python path/to/manager_llm.py"
+export RESEARCH_ORCHESTRATOR_LLM_MANAGER_MODEL="your-model-name"
+```
+
+Recommended rollout:
+- start with `RESEARCH_ORCHESTRATOR_LLM_BRIEF_GENERATION=1`
+- then enable `RESEARCH_ORCHESTRATOR_LLM_INTERPRETATION=1`
+- then enable `RESEARCH_ORCHESTRATOR_LLM_CANDIDATE_ANNOTATION=1`
+- only after that turn on parameter synthesis and bridge hypotheses
+
+### Stored manager artifacts
+
+LLM-assisted manager artifacts are persisted in SQLite so they can be audited and replayed:
+- `campaign_interpretations`
+- `bridge_hypotheses`
+- `manager_candidate_audits` now include baseline score, LLM adjustments, and final score breakdowns
+
+Accepted parameter syntheses and candidate annotations are also embedded into candidate metadata and audit records so historical rankings can be compared without a separate execution path.
+
+### Replay and evaluation
+
+Use these commands to inspect and compare decisions:
+
+```bash
+research-orchestrator audit-run   --db ./state.sqlite   --run-id <manager-run-id>
+research-orchestrator replay-run   --db ./state.sqlite   --experiment-id <experiment-id>   --include-manifest
+research-orchestrator manager-llm-report   --db ./state.sqlite   --project mono-001
+```
+
+The aggregated LLM report summarizes:
+- divergence frequency between baseline and LLM-assisted ordering
+- average accepted LLM delta
+- interpretation validity rate
+- parameter synthesis acceptance rate
+- downstream signal by policy path when measurable
 
 ## Using the live Aristotle CLI
 

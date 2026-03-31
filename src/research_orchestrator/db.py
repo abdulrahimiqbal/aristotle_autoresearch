@@ -449,6 +449,34 @@ SCHEMA = [
         FOREIGN KEY(project_id) REFERENCES projects(project_id)
     )
     """,
+    """
+    CREATE TABLE IF NOT EXISTS campaign_interpretations (
+        interpretation_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        run_id TEXT DEFAULT '',
+        prompt_version TEXT NOT NULL,
+        model_version TEXT NOT NULL,
+        raw_response TEXT NOT NULL,
+        parsed_json TEXT NOT NULL,
+        validation_status TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS bridge_hypotheses (
+        bridge_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        run_id TEXT DEFAULT '',
+        source_conjecture_id TEXT NOT NULL,
+        target_conjecture_id TEXT NOT NULL,
+        suggested_move_family TEXT NOT NULL,
+        confidence REAL NOT NULL DEFAULT 0,
+        hypothesis_json TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id)
+    )
+    """,
 ]
 
 VIEWS = [
@@ -597,6 +625,21 @@ class Database:
         item = dict(row)
         item["score_breakdown"] = json.loads(item["score_breakdown_json"])
         item["candidate"] = json.loads(item["candidate_json"])
+        return item
+
+    def _decode_manager_run_row(self, row: sqlite3.Row | Dict[str, Any]) -> Dict[str, Any]:
+        item = dict(row)
+        item["summary"] = json.loads(item["summary_json"])
+        return item
+
+    def _decode_interpretation_row(self, row: sqlite3.Row | Dict[str, Any]) -> Dict[str, Any]:
+        item = dict(row)
+        item["parsed"] = json.loads(item["parsed_json"])
+        return item
+
+    def _decode_bridge_row(self, row: sqlite3.Row | Dict[str, Any]) -> Dict[str, Any]:
+        item = dict(row)
+        item["hypothesis"] = json.loads(item["hypothesis_json"])
         return item
 
     def _ensure_experiment_columns(self) -> None:
@@ -1827,6 +1870,18 @@ class Database:
         ).fetchall()
         return [self._decode_manager_candidate_audit(row) for row in rows]
 
+    def list_manager_runs(self, project_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT * FROM manager_runs
+            WHERE project_id = ?
+            ORDER BY completed_at DESC, created_at DESC
+            LIMIT ?
+            """,
+            (project_id, limit),
+        ).fetchall()
+        return [self._decode_manager_run_row(row) for row in rows]
+
     def save_campaign_health_snapshot(self, run_id: str, project_id: str, health: Dict[str, Any]) -> None:
         import uuid
 
@@ -1854,6 +1909,107 @@ class Database:
         item = dict(row)
         item["health"] = json.loads(item["health_json"])
         return item
+
+    def save_campaign_interpretation(
+        self,
+        project_id: str,
+        prompt_version: str,
+        model_version: str,
+        raw_response: str,
+        parsed: Dict[str, Any],
+        validation_status: str,
+        run_id: str = "",
+    ) -> str:
+        import uuid
+
+        interpretation_id = str(uuid.uuid4())
+        self.conn.execute(
+            """
+            INSERT INTO campaign_interpretations(
+                interpretation_id, project_id, run_id, prompt_version, model_version,
+                raw_response, parsed_json, validation_status, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                interpretation_id,
+                project_id,
+                run_id,
+                prompt_version,
+                model_version,
+                raw_response,
+                json.dumps(parsed),
+                validation_status,
+                utcnow(),
+            ),
+        )
+        self.conn.commit()
+        return interpretation_id
+
+    def latest_campaign_interpretation(self, project_id: str) -> Optional[Dict[str, Any]]:
+        row = self.conn.execute(
+            """
+            SELECT * FROM campaign_interpretations
+            WHERE project_id = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (project_id,),
+        ).fetchone()
+        return self._decode_interpretation_row(row) if row is not None else None
+
+    def list_campaign_interpretations(self, project_id: str, limit: int = 20) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT * FROM campaign_interpretations
+            WHERE project_id = ?
+            ORDER BY created_at DESC
+            LIMIT ?
+            """,
+            (project_id, limit),
+        ).fetchall()
+        return [self._decode_interpretation_row(row) for row in rows]
+
+    def save_bridge_hypotheses(
+        self,
+        project_id: str,
+        hypotheses: List[Dict[str, Any]],
+        run_id: str = "",
+    ) -> None:
+        import uuid
+
+        for item in hypotheses:
+            self.conn.execute(
+                """
+                INSERT INTO bridge_hypotheses(
+                    bridge_id, project_id, run_id, source_conjecture_id, target_conjecture_id,
+                    suggested_move_family, confidence, hypothesis_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(uuid.uuid4()),
+                    project_id,
+                    run_id,
+                    item.get("source_conjecture_id", ""),
+                    item.get("target_conjecture_id", ""),
+                    item.get("suggested_move_family", "transfer_reformulation"),
+                    float(item.get("confidence", 0.0)),
+                    json.dumps(item),
+                    utcnow(),
+                ),
+            )
+        self.conn.commit()
+
+    def list_bridge_hypotheses(self, project_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT * FROM bridge_hypotheses
+            WHERE project_id = ?
+            ORDER BY confidence DESC, created_at DESC
+            LIMIT ?
+            """,
+            (project_id, limit),
+        ).fetchall()
+        return [self._decode_bridge_row(row) for row in rows]
 
     def latest_manager_run(self, project_id: str) -> Optional[Dict[str, Any]]:
         row = self.conn.execute(
@@ -2574,6 +2730,7 @@ class Database:
             "no_signal_branches": self.no_signal_branches(project_id),
             "assumption_sensitivity": self.assumption_sensitivity(project_id),
             "open_discovery_questions": open_questions,
+            "bridge_hypotheses": self.list_bridge_hypotheses(project_id, limit=10),
             "discovery_graph_counts": {
                 "nodes": len(discovery_nodes),
                 "edges": len(self.list_discovery_edges(project_id)),
@@ -2601,6 +2758,8 @@ class Database:
             ),
             "active_queue.json": self.query_view("active_queue_summary", project_id=project_id),
             "incidents.json": self.query_view("incident_summary", project_id=project_id),
+            "bridge_hypotheses.json": self.list_bridge_hypotheses(project_id),
+            "campaign_interpretations.json": self.list_campaign_interpretations(project_id),
         }
 
         written: Dict[str, str] = {}

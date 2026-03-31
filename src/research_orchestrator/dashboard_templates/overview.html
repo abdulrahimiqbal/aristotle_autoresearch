@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="grid grid-3">
+  <article class="panel">
+    <h2>Campaign snapshot</h2>
+    <table>
+      <tr><th>Campaign</th><td>{{ state.campaign_name }}</td></tr>
+      <tr><th>Manager status</th><td>{{ state.campaign_snapshot.manager_status }}</td></tr>
+      <tr><th>Total experiments</th><td>{{ state.campaign_snapshot.total_experiments }}</td></tr>
+      <tr><th>Active / Failed / Stalled</th><td>{{ state.campaign_snapshot.active }} / {{ state.campaign_snapshot.failed }} / {{ state.campaign_snapshot.stalled }}</td></tr>
+      <tr><th>Graph nodes / edges</th><td>{{ state.campaign_snapshot.graph_nodes }} / {{ state.campaign_snapshot.graph_edges }}</td></tr>
+      <tr><th>Recurring clusters</th><td>{{ state.campaign_snapshot.recurring_cluster_count }}</td></tr>
+      <tr><th>Open incidents</th><td>{{ state.campaign_snapshot.open_incidents }}</td></tr>
+      <tr><th>DB health</th><td>{{ state.campaign_snapshot.db_health }} ({{ state.campaign_snapshot.integrity_status }})</td></tr>
+      <tr><th>Last export</th><td>{{ state.campaign_snapshot.last_export_time or "n/a" }}</td></tr>
+    </table>
+  </article>
+
+  <article class="panel">
+    <h2>Knowledge pipeline</h2>
+    <table>
+      {% for item in state.knowledge_pipeline %}
+      <tr><th>{{ item.label }}</th><td>{{ item.value }}</td></tr>
+      {% endfor %}
+    </table>
+  </article>
+
+  <article class="panel">
+    <h2>Falsehood boundary map</h2>
+    {% for item in state.falsehood_boundaries %}
+      <div class="block">
+        <div><a href="/problem/{{ item.conjecture_id }}">{{ item.conjecture_id }}</a></div>
+        <div class="muted">{{ item.falsified_weakened_variants }}</div>
+        <div class="muted">Witness regions: {{ item.witness_backed_false_regions }}</div>
+      </div>
+    {% endfor %}
+  </article>
+</section>
+
+<section class="panel">
+  <h2>Knowledge structure</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Reuse</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Touched conjectures</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in state.knowledge_structures %}
+      <tr>
+        <td>{{ row.name }}</td>
+        <td>{{ row.type }}</td>
+        <td>{{ row.reuse_count }}</td>
+        <td>{{ row.role }}</td>
+        <td>{{ row.status }}</td>
+        <td>{{ row.touches|join(", ") if row.touches else "n/a" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="panel">
+  <h2>Problem progress</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Conjecture</th>
+        <th>Experiments</th>
+        <th>New signals</th>
+        <th>Strongest motif</th>
+        <th>Strongest obstruction</th>
+        <th>Proof traction</th>
+        <th>Current best route</th>
+        <th>Still missing</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in state.problem_progress %}
+      <tr>
+        <td><a href="/problem/{{ row.conjecture_id }}">{{ row.conjecture_id }}</a></td>
+        <td>{{ row.experiments_count }}</td>
+        <td>{{ row.total_new_signals }}</td>
+        <td>{{ row.strongest_motif }}</td>
+        <td>{{ row.strongest_obstruction }}</td>
+        <td>{{ row.proof_traction_state }}</td>
+        <td>{{ row.current_best_route }}</td>
+        <td>{{ row.what_is_still_missing }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="grid grid-2">
+  <article class="panel">
+    <h2>Recent results and what they mean</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Experiment</th>
+          <th>Conjecture</th>
+          <th>Move / family</th>
+          <th>Status</th>
+          <th>Proof outcome</th>
+          <th>New signals</th>
+          <th>Interpretation</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in state.recent_results[:20] %}
+        <tr>
+          <td><a href="/experiment/{{ row.experiment_id }}">{{ row.experiment_id }}</a></td>
+          <td>{{ row.conjecture_id }}</td>
+          <td>{{ row.move }} / {{ row.move_family }}</td>
+          <td>{{ row.status }}</td>
+          <td>{{ row.proof_outcome }}</td>
+          <td>{{ row.new_signal_count }}</td>
+          <td>{{ row.interpretation }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+
+  <article class="panel">
+    <h2>Manager next actions</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Priority</th>
+          <th>Problem</th>
+          <th>Move / family</th>
+          <th>Rationale</th>
+          <th>Motif</th>
+          <th>Expected signal</th>
+          <th>Reuse</th>
+          <th>Blocker support</th>
+          <th>Witness support</th>
+          <th>Velocity</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in state.manager_actions %}
+        <tr>
+          <td>{{ row.priority }}</td>
+          <td><a href="/problem/{{ row.problem }}">{{ row.problem }}</a></td>
+          <td>{{ row.move }}</td>
+          <td>{{ row.rationale }}</td>
+          <td>{{ row.motif_signature or row.motif_id or "n/a" }}</td>
+          <td>{{ row.expected_signal or "n/a" }}</td>
+          <td>{{ row.reuse_potential }}</td>
+          <td>{{ row.blocker_support }}</td>
+          <td>{{ row.witness_support }}</td>
+          <td>{{ row.recent_signal_velocity }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+</section>
+
+<section class="panel">
+  <h2>Manager stream of thought</h2>
+  {% if state.manager_reasoning %}
+    {% for row in state.manager_reasoning %}
+      <div class="block">
+        <div><strong>{{ row.title }}</strong> <span class="muted">({{ row.kind }})</span></div>
+        {% if row.created_at %}<div class="muted">{{ row.created_at }}</div>{% endif %}
+        {% if row.summary %}<div>{{ row.summary }}</div>{% endif %}
+        {% if row.reasoning %}<pre>{{ row.reasoning }}</pre>{% endif %}
+        {% if row.prompt %}<details><summary>Prompt</summary><pre>{{ row.prompt }}</pre></details>{% endif %}
+        {% if row.raw_response %}<details><summary>Stored raw output</summary><pre>{{ row.raw_response }}</pre></details>{% endif %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="muted">No stored manager reasoning artifacts yet.</div>
+  {% endif %}
+</section>
+{% endblock %}

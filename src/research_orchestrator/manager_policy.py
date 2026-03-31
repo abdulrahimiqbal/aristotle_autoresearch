@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
-import subprocess
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Tuple
 
@@ -170,11 +168,21 @@ def candidate_score_breakdown(candidate: Dict[str, Any]) -> Dict[str, Any]:
     }
     move_bonus = max(0.0, float(5 - MOVE_PRIORITY.get(candidate["move"], 5)))
     bonuses["move_family_priority"] = move_bonus
-    score = round(sum(bonuses.values()) - sum(penalties.values()), 4)
+    baseline_score = round(sum(bonuses.values()) - sum(penalties.values()), 4)
+    annotation = candidate.get("llm_annotation") or candidate.get("candidate_metadata", {}).get("llm_annotation", {})
+    llm_adjustments = {
+        "phase_alignment": float(annotation.get("phase_alignment", 0.0) * 0.8) if isinstance(annotation, dict) else 0.0,
+        "failure_value": float(annotation.get("failure_value", 0.0) * 0.6) if isinstance(annotation, dict) else 0.0,
+        "llm_delta": float(annotation.get("llm_delta", 0.0)) if isinstance(annotation, dict) else 0.0,
+    }
+    llm_adjustments["total"] = round(llm_adjustments["phase_alignment"] + llm_adjustments["failure_value"] + llm_adjustments["llm_delta"], 4)
+    score = round(baseline_score + llm_adjustments["total"], 4)
     return {
         "policy_version": MANAGER_POLICY_VERSION,
         "bonuses": bonuses,
         "penalties": penalties,
+        "baseline_score": baseline_score,
+        "llm_adjustments": llm_adjustments,
         "heuristic_key": list(_heuristic_key(candidate)),
         "score": score,
     }
@@ -182,6 +190,16 @@ def candidate_score_breakdown(candidate: Dict[str, Any]) -> Dict[str, Any]:
 
 def _heuristic_rank(frontier: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return sorted(frontier, key=_heuristic_key)
+
+
+def _score_rank(frontier: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    return sorted(
+        frontier,
+        key=lambda candidate: (
+            -candidate_score_breakdown(candidate)["score"],
+            *_heuristic_key(candidate),
+        ),
+    )
 
 
 def _diversify_candidates(ranked: List[Dict[str, Any]], max_count: int, exploration_floor: int) -> List[Dict[str, Any]]:
@@ -215,62 +233,6 @@ def _diversify_candidates(ranked: List[Dict[str, Any]], max_count: int, explorat
     return chosen[:max_count]
 
 
-def _llm_command() -> List[str]:
-    raw = os.environ.get("RESEARCH_ORCHESTRATOR_LLM_MANAGER_COMMAND", "").strip()
-    if not raw:
-        return []
-    return raw.split()
-
-
-def _run_llm_manager(prompt: str) -> Tuple[str, bool]:
-    command = _llm_command()
-    if not command:
-        return "", False
-    completed = subprocess.run(
-        command,
-        input=prompt,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if completed.returncode != 0:
-        return completed.stdout + ("\n" + completed.stderr if completed.stderr else ""), False
-    return completed.stdout.strip(), True
-
-
-def _validate_llm_response(
-    raw_response: str,
-    frontier: List[Dict[str, Any]],
-    max_count: int,
-) -> Tuple[bool, List[str], str]:
-    try:
-        payload = json.loads(raw_response)
-    except json.JSONDecodeError:
-        return False, [], ""
-    if not isinstance(payload, dict):
-        return False, [], ""
-    ranked_ids = payload.get("ranked_experiment_ids")
-    rationale = payload.get("rationale", "")
-    if not isinstance(ranked_ids, list) or not all(isinstance(item, str) for item in ranked_ids):
-        return False, [], ""
-    known = {candidate["experiment_id"]: candidate for candidate in frontier}
-    deduped: List[str] = []
-    seen: set[str] = set()
-    for experiment_id in ranked_ids:
-        if experiment_id in seen:
-            continue
-        if experiment_id not in known:
-            return False, [], ""
-        candidate = known[experiment_id]
-        if candidate["duplicate_active_signature"]:
-            return False, [], ""
-        seen.add(experiment_id)
-        deduped.append(experiment_id)
-        if len(deduped) >= max_count:
-            break
-    return True, deduped, rationale if isinstance(rationale, str) else ""
-
-
 def _candidate_decision(candidate: Dict[str, Any], reason: str) -> CandidateDecision:
     breakdown = candidate_score_breakdown(candidate)
     return CandidateDecision(
@@ -292,9 +254,12 @@ def build_candidate_audits(
     frontier: List[Dict[str, Any]],
     selected_ids: List[str],
     skipped: List[Dict[str, Any]],
+    final_ranking: List[Dict[str, Any]] | None = None,
 ) -> List[Dict[str, Any]]:
     skipped_by_id = {item["experiment_id"]: item["reason"] for item in skipped if item.get("experiment_id")}
     ranked = _heuristic_rank(frontier)
+    final_ranking = final_ranking or ranked
+    final_positions = {item["experiment_id"]: index for index, item in enumerate(final_ranking, start=1)}
     audits: List[Dict[str, Any]] = []
     for index, candidate in enumerate(ranked, start=1):
         breakdown = candidate_score_breakdown(candidate)
@@ -308,6 +273,7 @@ def build_candidate_audits(
                 "experiment_id": candidate["experiment_id"],
                 "conjecture_id": candidate["conjecture_id"],
                 "rank_position": index,
+                "final_rank_position": final_positions.get(candidate["experiment_id"], index),
                 "selected": candidate["experiment_id"] in selected_ids,
                 "selection_reason": selection_reason,
                 "policy_score": breakdown["score"],
@@ -433,40 +399,37 @@ def choose_candidates_for_submission(
         family_counts[family_key] = current + 1
         eligible.append(candidate)
     heuristic_ranked = _heuristic_rank(eligible)
-
-    should_try_llm = llm_manager_mode in {"on", "auto"}
-    if should_try_llm:
-        raw_response, success = _run_llm_manager(prompt)
-        if success:
-            valid, ranked_ids, rationale = _validate_llm_response(raw_response, frontier, max_count)
-            if valid:
-                mapping = {candidate["experiment_id"]: candidate for candidate in frontier}
-                chosen = [
-                    _candidate_decision(mapping[experiment_id], "chosen by llm-ranked policy")
-                    for experiment_id in ranked_ids
-                ]
-                return PolicyDecision(
-                    chosen=chosen,
-                    skipped=skipped,
-                    policy_path="llm",
-                    manager_prompt=prompt,
-                    raw_response=raw_response,
-                    rationale=rationale or "LLM-ranked candidate ordering accepted by validator.",
-                    candidate_audits=build_candidate_audits(frontier, ranked_ids, skipped),
-                )
-        if llm_manager_mode == "on":
-            skipped.append({"experiment_id": "", "conjecture_id": "", "reason": "llm output invalid; falling back to heuristic policy"})
-
+    score_ranked = _score_rank(eligible)
+    using_llm_annotations = llm_manager_mode in {"on", "auto"} and any(
+        isinstance(item.get("llm_annotation") or item.get("candidate_metadata", {}).get("llm_annotation"), dict)
+        for item in eligible
+    )
+    selected_pool = score_ranked if using_llm_annotations else heuristic_ranked
     chosen = [
-        _candidate_decision(candidate, "chosen by deterministic fallback policy")
-        for candidate in _diversify_candidates(heuristic_ranked, max_count, exploration_floor)
+        _candidate_decision(candidate, "chosen by llm-assisted bounded scoring" if using_llm_annotations else "chosen by deterministic fallback policy")
+        for candidate in _diversify_candidates(selected_pool, max_count, exploration_floor)
     ]
+    selected_ids = [item.experiment_id for item in chosen]
+    divergence = {
+        "baseline_top_ids": [item["experiment_id"] for item in heuristic_ranked[:max_count]],
+        "final_top_ids": [item["experiment_id"] for item in score_ranked[:max_count]],
+        "changed": [item["experiment_id"] for item in score_ranked[:max_count] if item["experiment_id"] not in {cand["experiment_id"] for cand in heuristic_ranked[:max_count]}],
+        "avg_llm_delta": round(
+            sum(float((item.get("llm_annotation") or item.get("candidate_metadata", {}).get("llm_annotation", {})).get("llm_delta", 0.0)) for item in eligible)
+            / max(1, len(eligible)),
+            4,
+        ),
+    }
     return PolicyDecision(
         chosen=chosen,
         skipped=skipped,
-        policy_path="fallback",
+        policy_path="llm_assisted" if using_llm_annotations else "fallback",
         manager_prompt=prompt,
-        raw_response="",
-        rationale="Fallback policy ranked candidates by motif reuse, recent signal velocity, boundary evidence, and an exploration floor.",
-        candidate_audits=build_candidate_audits(frontier, [item.experiment_id for item in chosen], skipped),
+        raw_response=json.dumps({"divergence": divergence}, indent=2) if using_llm_annotations else "",
+        rationale=(
+            "LLM-assisted policy applied bounded annotation deltas after deterministic hard-constraint filtering."
+            if using_llm_annotations
+            else "Fallback policy ranked candidates by motif reuse, recent signal velocity, boundary evidence, and an exploration floor."
+        ),
+        candidate_audits=build_candidate_audits(frontier, selected_ids, skipped, final_ranking=selected_pool),
     )

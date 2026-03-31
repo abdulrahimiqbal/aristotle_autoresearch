@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+  <h2>Health and source integrity</h2>
+  <table>
+    <tr><th>Source mode</th><td>{{ state.health.source_mode }}</td></tr>
+    <tr><th>State directory</th><td>{{ state.health.state_dir or "n/a" }}</td></tr>
+    <tr><th>DB path</th><td>{{ state.health.db_path or "n/a" }}</td></tr>
+    <tr><th>SQLite readable</th><td>{{ state.health.db_readable }}</td></tr>
+    <tr><th>SQLite corrupt</th><td>{{ state.health.db_corrupt }}</td></tr>
+    <tr><th>SQLite integrity</th><td>{{ state.health.db_integrity }}</td></tr>
+    <tr><th>Last bundle export</th><td>{{ state.health.last_bundle_export or "n/a" }}</td></tr>
+    <tr><th>Last DB update</th><td>{{ state.health.last_db_update or "n/a" }}</td></tr>
+    <tr><th>Stale-data warning</th><td>{{ state.health.stale_bundle_warning or "none" }}</td></tr>
+    <tr><th>Missing bundle files</th><td>{{ state.health.missing_files|join(", ") if state.health.missing_files else "none" }}</td></tr>
+  </table>
+</section>
+{% endblock %}
+

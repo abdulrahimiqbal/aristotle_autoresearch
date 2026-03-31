@@ -341,3 +341,106 @@ class EvaluationScore:
     duplication_penalty: float = 0.0
     ambiguity_penalty: float = 0.0
     notes: List[str] = field(default_factory=list)
+
+
+@dataclass
+class EvidenceRef:
+    ref_type: str
+    ref_id: str
+    label: str = ""
+    conjecture_id: str = ""
+    experiment_id: str = ""
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class CampaignBriefSection:
+    title: str
+    summary: str
+    refs: List[EvidenceRef] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class CampaignBrief:
+    project_id: str
+    generated_at: str
+    phase_estimate: str
+    evidence_pack: Dict[str, Any] = field(default_factory=dict)
+    narrative_summary: List[CampaignBriefSection] = field(default_factory=list)
+
+
+@dataclass
+class MotifAssessment:
+    motif_id: str
+    summary: str
+    confidence: float = 0.0
+    observed_vs_inferred: str = "observed"
+    evidence_refs: List[EvidenceRef] = field(default_factory=list)
+
+
+@dataclass
+class BridgeHypothesis:
+    source_conjecture_id: str
+    target_conjecture_id: str
+    shared_structure: str
+    transfer_rationale: str
+    suggested_move_family: str = "transfer_reformulation"
+    confidence: float = 0.0
+    source_evidence: List[EvidenceRef] = field(default_factory=list)
+    evidence_refs: List[EvidenceRef] = field(default_factory=list)
+
+
+@dataclass
+class BranchAssessment:
+    conjecture_id: str
+    move_family: str
+    summary: str
+    status: str = "active"
+    confidence: float = 0.0
+    observed_vs_inferred: str = "observed"
+    evidence_refs: List[EvidenceRef] = field(default_factory=list)
+
+
+@dataclass
+class GapDescription:
+    conjecture_id: str
+    category: str
+    description: str
+    confidence: float = 0.0
+    observed_vs_inferred: str = "observed"
+    evidence_refs: List[EvidenceRef] = field(default_factory=list)
+
+
+@dataclass
+class CampaignInterpretation:
+    phase_assessment: str = "heuristic_only"
+    dominant_motifs: List[MotifAssessment] = field(default_factory=list)
+    cross_conjecture_bridges: List[BridgeHypothesis] = field(default_factory=list)
+    stale_branches: List[BranchAssessment] = field(default_factory=list)
+    missing_experiments: List[GapDescription] = field(default_factory=list)
+    confidence: float = 0.0
+    evidence_refs: List[EvidenceRef] = field(default_factory=list)
+    observed_vs_inferred: str = "observed"
+
+
+@dataclass
+class CandidateAnnotation:
+    experiment_id: str
+    mathematical_rationale: str = ""
+    connects_to_motif: str = ""
+    expected_discovery: str = ""
+    expected_failure_signal: str = ""
+    phase_alignment: float = 0.0
+    failure_value: float = 0.0
+    llm_delta: float = 0.0
+    confidence: float = 0.0
+    evidence_refs: List[EvidenceRef] = field(default_factory=list)
+
+
+@dataclass
+class SynthesizedMoveParameters:
+    move_family: str
+    parameters: Dict[str, Any]
+    rationale: str = ""
+    source_evidence: List[EvidenceRef] = field(default_factory=list)

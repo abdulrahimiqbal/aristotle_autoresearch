@@ -195,3 +195,47 @@ def replay_manager_run(db: Database, run_id: str) -> Dict[str, Any]:
         "historical_candidate_count": len(audits),
         "current_candidate_ranking": current_audits,
     }
+
+
+def manager_llm_report(db: Database, project_id: str) -> Dict[str, Any]:
+    runs = db.list_manager_runs(project_id, limit=200)
+    interpretations = db.list_campaign_interpretations(project_id, limit=200)
+    bridges = db.list_bridge_hypotheses(project_id, limit=500)
+    audits: List[Dict[str, Any]] = []
+    for run in runs:
+        audits.extend(db.list_manager_candidate_audits(run["run_id"]))
+    llm_audits = [item for item in audits if item.get("score_breakdown", {}).get("llm_adjustments", {}).get("total", 0) != 0]
+    accepted_synthesis = sum(
+        1
+        for item in audits
+        if item.get("candidate", {}).get("candidate_metadata", {}).get("llm_parameter_synthesis")
+    )
+    signal_by_policy: Dict[str, List[float]] = {}
+    for run in runs:
+        summary = run.get("summary", {})
+        submitted = summary.get("submitted_experiments", []) if isinstance(summary, dict) else []
+        for item in submitted:
+            experiment = db.get_experiment(item.get("experiment_id", ""))
+            if experiment is None:
+                continue
+            signal_by_policy.setdefault(run["policy_path"], []).append(float(experiment.get("new_signal_count") or 0))
+    return {
+        "project_id": project_id,
+        "manager_runs": len(runs),
+        "divergence_frequency": round(sum(1 for run in runs if run["policy_path"] == "llm_assisted") / max(1, len(runs)), 3),
+        "average_accepted_llm_delta": round(
+            sum(item["score_breakdown"]["llm_adjustments"]["llm_delta"] for item in llm_audits)
+            / max(1, len(llm_audits)),
+            4,
+        ),
+        "interpretation_validity_rate": round(
+            sum(1 for item in interpretations if item.get("validation_status") == "valid") / max(1, len(interpretations)),
+            3,
+        ),
+        "parameter_synthesis_acceptance_rate": round(accepted_synthesis / max(1, len(audits)), 3),
+        "bridge_hypothesis_count": len(bridges),
+        "downstream_signal_comparison": {
+            policy: round(sum(values) / max(1, len(values)), 3)
+            for policy, values in signal_by_policy.items()
+        },
+    }

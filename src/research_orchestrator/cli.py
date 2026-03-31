@@ -7,8 +7,10 @@ from pathlib import Path
 
 from research_orchestrator.campaign_planner import synthesize_campaign
 from research_orchestrator.charter import load_charter, load_conjecture
+from research_orchestrator.dashboard_loader import DashboardLoader
 from research_orchestrator.db import Database
 from research_orchestrator.github_state import publish_state_bundle, sync_github_state, sync_state_bundle
+from research_orchestrator.llm_manager import build_campaign_brief, render_campaign_brief
 from research_orchestrator.orchestrator import (
     backfill_provider_results,
     manager_tick,
@@ -16,7 +18,7 @@ from research_orchestrator.orchestrator import (
     submit_one_cycle,
     sync_provider_results,
 )
-from research_orchestrator.replay import replay_experiment, replay_manager_run, reconstruct_manifest
+from research_orchestrator.replay import manager_llm_report, replay_experiment, replay_manager_run, reconstruct_manifest
 from research_orchestrator.reporter import build_report, write_report
 from research_orchestrator.manager import choose_next_experiment
 
@@ -122,6 +124,20 @@ def cmd_audit_run(args):
     db = Database(args.db)
     db.initialize()
     payload = replay_manager_run(db, args.run_id)
+    print(json.dumps(payload, indent=2))
+
+
+def cmd_campaign_brief(args):
+    db = Database(args.db)
+    db.initialize()
+    brief = build_campaign_brief(db, args.project)
+    print(json.dumps(render_campaign_brief(brief), indent=2))
+
+
+def cmd_manager_llm_report(args):
+    db = Database(args.db)
+    db.initialize()
+    payload = manager_llm_report(db, args.project)
     print(json.dumps(payload, indent=2))
 
 
@@ -353,6 +369,38 @@ def cmd_publish_state_bundle(args):
     print(json.dumps({"written": written, "authoritative_artifact": "readable_bundle"}, indent=2))
 
 
+def cmd_dashboard(args):
+    if not args.state_dir and not args.db:
+        raise SystemExit("dashboard requires at least one source: --state-dir and/or --db")
+    try:
+        state = DashboardLoader(
+            state_dir=args.state_dir,
+            db_path=args.db,
+            project_id=args.project,
+        ).load()
+    except Exception as exc:
+        raise SystemExit(f"dashboard source initialization failed: {exc}") from exc
+    print(
+        f"Launching dashboard | source={state.source_mode} | project={state.project_id} | "
+        f"state_dir={args.state_dir or 'none'} | db={args.db or 'none'}"
+    )
+    if state.health.db_corrupt and state.source_mode in {"bundle", "mixed"}:
+        print("Warning: sqlite appears corrupt; serving from readable bundle fallback.")
+    if state.health.stale_bundle_warning:
+        print(f"Warning: {state.health.stale_bundle_warning}")
+    try:
+        from research_orchestrator.dashboard_app import create_dashboard_app
+        import uvicorn
+    except ModuleNotFoundError as exc:
+        raise SystemExit(
+            "dashboard dependencies are missing; install project dependencies first "
+            "(fastapi, uvicorn, jinja2)."
+        ) from exc
+
+    app = create_dashboard_app(state_dir=args.state_dir, db=args.db, project_id=args.project)
+    uvicorn.run(app, host=args.host, port=args.port, reload=args.reload)
+
+
 def build_parser():
     parser = argparse.ArgumentParser(prog="research-orchestrator")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -441,11 +489,21 @@ def build_parser():
     audit_run.add_argument("--run-id", required=True)
     audit_run.set_defaults(func=cmd_audit_run)
 
+    campaign_brief = sub.add_parser("campaign-brief", help="Render the structured campaign brief used for manager reasoning.")
+    campaign_brief.add_argument("--db", required=True)
+    campaign_brief.add_argument("--project", required=True)
+    campaign_brief.set_defaults(func=cmd_campaign_brief)
+
     replay_run = sub.add_parser("replay-run", help="Replay a historical experiment scoring decision from stored manifests.")
     replay_run.add_argument("--db", required=True)
     replay_run.add_argument("--experiment-id", required=True)
     replay_run.add_argument("--include-manifest", action="store_true")
     replay_run.set_defaults(func=cmd_replay_run)
+
+    llm_report = sub.add_parser("manager-llm-report", help="Summarize LLM-assisted manager divergence, validity, and downstream signal.")
+    llm_report.add_argument("--db", required=True)
+    llm_report.add_argument("--project", required=True)
+    llm_report.set_defaults(func=cmd_manager_llm_report)
 
     sync_github = sub.add_parser(
         "sync-github-state",
@@ -480,6 +538,15 @@ def build_parser():
     publish_bundle.add_argument("--manager-snapshot")
     publish_bundle.add_argument("--include-sqlite", action="store_true")
     publish_bundle.set_defaults(func=cmd_publish_state_bundle)
+
+    dashboard = sub.add_parser("dashboard", help="Launch a local, live dashboard from readable bundle and/or SQLite.")
+    dashboard.add_argument("--state-dir")
+    dashboard.add_argument("--db")
+    dashboard.add_argument("--project")
+    dashboard.add_argument("--host", default="127.0.0.1")
+    dashboard.add_argument("--port", type=int, default=8000)
+    dashboard.add_argument("--reload", action="store_true")
+    dashboard.set_defaults(func=cmd_dashboard)
 
     lint = sub.add_parser("lint-prompts", help="Generate prompts for the next cycle and lint them.")
     lint.add_argument("--db", required=True)
