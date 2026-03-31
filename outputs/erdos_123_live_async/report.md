@@ -26,7 +26,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - repeated no-signal streak: 0
 - duplicate frontier pressure: 3
 - move-family diversity: frontier=9 completed=5
-- open incidents: 4
+- open incidents: 5
 
 ## Version Drift
 
@@ -1007,6 +1007,7 @@ The sorry here represents the core open mathematical co`
 ## Incidents
 
 - `warning` `repeated_provider_failures`: Provider-side failures reached 8 in recent completed experiments.
+- `warning` `retry_budget_exhausted`: Experiment abd99d04-1751-4f5c-a802-c4d16072db93 reached retry budget (6 attempts).
 - `warning` `retry_budget_exhausted`: Experiment e7ffb40d-1e42-444e-8ffd-4d486f55a51e reached retry budget (6 attempts).
 - `warning` `retry_budget_exhausted`: Experiment b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21 reached retry budget (12 attempts).
 - `warning` `retry_budget_exhausted`: Experiment bff4c05f-d103-47ac-83f8-1164972a1bca reached retry budget (13 attempts).
@@ -1038,21 +1039,21 @@ The sorry here represents the core open mathematical co`
 - synced `abd99d04-1751-4f5c-a802-c4d16072db93` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `e3d8383c-3e6e-4996-b4e4-f0354432fc76` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- considered `b936d333-1b33-43d3-a75f-e82f56c35e73` rank=1 score=188.1275
-- considered `c8b8b482-8341-462e-8d34-ee36dff5f739` rank=2 score=197.5745
-- considered `f2d49f37-005a-47cc-9bb8-b104485245a6` rank=3 score=192.1525
-- considered `bb3bd61b-7b8f-491f-afe5-447913f425eb` rank=4 score=197.2975
-- considered `3057adbc-db6d-4408-a8e5-1a34ad22fe3e` rank=5 score=194.1066
-- skipped `c8b8b482-8341-462e-8d34-ee36dff5f739` for `erdos-123` (duplicate active experiment signature)
-- skipped `f2d49f37-005a-47cc-9bb8-b104485245a6` for `erdos-123` (duplicate active experiment signature)
-- skipped `bb3bd61b-7b8f-491f-afe5-447913f425eb` for `erdos-123` (conjecture active cap reached)
-- skipped `3057adbc-db6d-4408-a8e5-1a34ad22fe3e` for `erdos-123` (conjecture active cap reached)
-- skipped `7125e10a-0a6b-4a1c-ad97-de9eaa358a28` for `erdos-123` (conjecture active cap reached)
-- skipped `b1f8a72a-81c3-4b7a-bb47-aa31f8a8a83c` for `erdos-123` (conjecture active cap reached)
-- skipped `384e9c14-0bd3-4143-b0f9-a7c7cbbf8651` for `erdos-123` (conjecture active cap reached)
-- skipped `b2289b43-9faf-43cf-a8db-2b376e36e7eb` for `erdos-123` (conjecture active cap reached)
-- skipped `b936d333-1b33-43d3-a75f-e82f56c35e73` for `erdos-123` (duplicate active experiment signature)
-- skipped `08bde9ff-97fc-4fe0-871c-0d5455a261ef` for `erdos-123` (conjecture active cap reached)
+- considered `a3d812bb-80b8-43d3-8d33-04dc8ea2cf27` rank=1 score=188.1275
+- considered `ac4c187c-86dc-4de6-9d79-179b051753e1` rank=2 score=197.5745
+- considered `06507e2c-4d18-4a03-9c0b-2c96ea878568` rank=3 score=192.1525
+- considered `7c851c45-b2aa-481a-b140-c587bf0918d1` rank=4 score=197.2975
+- considered `99ffefbf-6313-4fe5-a9af-a6a3cc30942a` rank=5 score=194.1066
+- skipped `ac4c187c-86dc-4de6-9d79-179b051753e1` for `erdos-123` (duplicate active experiment signature)
+- skipped `06507e2c-4d18-4a03-9c0b-2c96ea878568` for `erdos-123` (duplicate active experiment signature)
+- skipped `7c851c45-b2aa-481a-b140-c587bf0918d1` for `erdos-123` (conjecture active cap reached)
+- skipped `99ffefbf-6313-4fe5-a9af-a6a3cc30942a` for `erdos-123` (conjecture active cap reached)
+- skipped `2a592ecc-dcc6-4aec-9da6-389fd53e3491` for `erdos-123` (conjecture active cap reached)
+- skipped `0b3869b7-a71c-493b-9f07-71d974911bca` for `erdos-123` (conjecture active cap reached)
+- skipped `5b3aa442-9d44-4725-8f8e-c32abf978d11` for `erdos-123` (conjecture active cap reached)
+- skipped `0b1e6951-1b02-4713-ac91-8a4244bc9641` for `erdos-123` (conjecture active cap reached)
+- skipped `a3d812bb-80b8-43d3-8d33-04dc8ea2cf27` for `erdos-123` (duplicate active experiment signature)
+- skipped `10a9984b-c78c-4f71-bfc1-aeeac8d6fbd0` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
