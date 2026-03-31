@@ -1,8 +1,8 @@
 ID                                   STATUS          CREATED              PROGRESS  
 -------------------------------------------------------------------------------------
-516dc484-7dcb-4208-aa9d-a41f19654867 IN_PROGRESS     16 mins ago          4%        
-d66431a4-c5e5-44ad-b3e0-445c960bea9d COMPLETE        16 mins ago          100%      
-424bf26a-ed1e-4450-a24a-4f2faf73d590 IN_PROGRESS     16 mins ago          11%       
+516dc484-7dcb-4208-aa9d-a41f19654867 IN_PROGRESS     18 mins ago          4%        
+d66431a4-c5e5-44ad-b3e0-445c960bea9d COMPLETE        18 mins ago          100%      
+424bf26a-ed1e-4450-a24a-4f2faf73d590 IN_PROGRESS     18 mins ago          11%       
 aed6ab7d-9a83-4221-8293-7ee0bcf0ca3a IN_PROGRESS     1 hour ago           20%       
 90751368-8e7f-453a-bba1-ea8cc107b3d8 COMPLETE        1 hour ago           100%      
 f7b9db7f-9bae-4ccc-abe0-739316500bc2 COMPLETE        1 hour ago           100%      
@@ -74,9 +74,9 @@ fc6c7c37-fce0-4aad-84ed-21c7a077683f OUT_OF_BUDGET   20 hours ago         100%
 be5e3c03-db41-4cbc-a750-db57c6a3d1ac COMPLETE        22 hours ago         100%      
 28ce129f-49f2-4598-8f6f-6ee0507ea5c2 COMPLETE_WITH_ERRORS 22 hours ago         100%      
 8791bd2b-5262-49e9-a8bb-4086726fe6c6 COMPLETE_WITH_ERRORS 23 hours ago         100%      
-cdad2d05-d720-41fd-b99d-40d782c3182d COMPLETE        23 hours ago         100%      
-4fabcbad-64d0-4445-ac05-989aa1487752 COMPLETE        23 hours ago         100%      
-fdf51e7b-e252-4ecb-a3af-f45543123e32 COMPLETE_WITH_ERRORS 23 hours ago         100%      
+cdad2d05-d720-41fd-b99d-40d782c3182d COMPLETE        1 day ago            100%      
+4fabcbad-64d0-4445-ac05-989aa1487752 COMPLETE        1 day ago            100%      
+fdf51e7b-e252-4ecb-a3af-f45543123e32 COMPLETE_WITH_ERRORS 1 day ago            100%      
 2288f2cf-a45b-4bac-9d06-fffc7d459a46 COMPLETE        1 day ago            100%      
 730c2564-2d9f-40d4-b545-1f8dec1ccd76 COMPLETE        1 day ago            100%      
 916781cd-368a-4395-810a-613f5ab85845 COMPLETE        1 day ago            100%      
