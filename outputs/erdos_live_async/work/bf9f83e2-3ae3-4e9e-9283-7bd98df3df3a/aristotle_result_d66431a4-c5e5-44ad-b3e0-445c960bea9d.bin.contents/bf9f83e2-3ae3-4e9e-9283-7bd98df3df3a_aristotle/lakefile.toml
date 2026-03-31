@@ -1,0 +1,8 @@
+name = "RequestProject"
+
+[[require]]
+name = "mathlib"
+path = ".lake/packages/mathlib"
+
+[[lean_lib]]
+name = "Main"
