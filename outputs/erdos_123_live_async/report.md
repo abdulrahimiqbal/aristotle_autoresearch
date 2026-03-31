@@ -245,8 +245,8 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Incidents
 
-- `warning` `retry_budget_exhausted`: Experiment b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21 reached retry budget (9 attempts).
-- `warning` `retry_budget_exhausted`: Experiment bff4c05f-d103-47ac-83f8-1164972a1bca reached retry budget (10 attempts).
+- `warning` `retry_budget_exhausted`: Experiment b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21 reached retry budget (10 attempts).
+- `warning` `retry_budget_exhausted`: Experiment bff4c05f-d103-47ac-83f8-1164972a1bca reached retry budget (11 attempts).
 
 ## Audit Trail
 
@@ -268,25 +268,25 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - recurring structures considered: lemmas=2, subgoals=0, traces=0
 - synced `bff4c05f-d103-47ac-83f8-1164972a1bca` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- considered `a4f0f6ca-684e-44d8-b75d-ae7328724343` rank=1 score=179.4144
-- considered `c98c107d-aa84-4126-9054-60dddb2d462c` rank=2 score=179.4144
-- considered `e7c7928a-3497-458c-b027-e38004478195` rank=3 score=179.4144
-- considered `985bbb87-025b-4ec6-8ddf-975a0a1abb43` rank=4 score=178.9144
-- considered `5110e48f-e10a-4e7a-aa79-50e0b92d89f7` rank=5 score=178.9144
-- skipped `7286e20d-19e1-412d-be94-95cbcba22e13` for `erdos-123` (duplicate active experiment signature)
-- skipped `35e005b2-1a4f-4fd2-8403-61ed19c96603` for `erdos-123` (conjecture active cap reached)
-- skipped `69f64eb1-b4d6-438c-b2cf-bee425da6ce4` for `erdos-123` (conjecture active cap reached)
-- skipped `e7d6686e-bdb6-4e1c-9036-2dbe4228a074` for `erdos-123` (conjecture active cap reached)
-- skipped `bebc2d11-102a-441f-86cf-a19bcf886a2e` for `erdos-123` (conjecture active cap reached)
-- skipped `4f75babe-f2ef-4f3b-98c0-1f873ed4d1e4` for `erdos-123` (conjecture active cap reached)
-- skipped `3f657c02-7b5f-443a-bdaf-533a4031b5ac` for `erdos-123` (conjecture active cap reached)
-- skipped `563156ab-259e-43ae-8f3d-71b41c6e7f1a` for `erdos-123` (conjecture active cap reached)
-- skipped `a4f0f6ca-684e-44d8-b75d-ae7328724343` for `erdos-123` (conjecture active cap reached)
-- skipped `c98c107d-aa84-4126-9054-60dddb2d462c` for `erdos-123` (conjecture active cap reached)
-- skipped `e7c7928a-3497-458c-b027-e38004478195` for `erdos-123` (conjecture active cap reached)
-- skipped `985bbb87-025b-4ec6-8ddf-975a0a1abb43` for `erdos-123` (conjecture active cap reached)
-- skipped `5110e48f-e10a-4e7a-aa79-50e0b92d89f7` for `erdos-123` (conjecture active cap reached)
-- skipped `da4939cc-9e5a-4039-b2d6-8d6a7c832717` for `erdos-123` (conjecture active cap reached)
+- considered `e2675b9a-96db-46ad-aa1a-deb3b306e998` rank=1 score=179.4144
+- considered `d07a3c33-4e01-40a2-97a9-1490baf6bfc2` rank=2 score=179.4144
+- considered `71274f55-d10e-4843-b0ab-a1965825d80b` rank=3 score=179.4144
+- considered `d5332701-1469-495c-ba8c-da0bb7b17502` rank=4 score=178.9144
+- considered `d4b06ae1-aabf-4585-a38e-3f2ce069bb40` rank=5 score=178.9144
+- skipped `bad139f6-d6fa-49fe-afa9-8aa81130a2a1` for `erdos-123` (duplicate active experiment signature)
+- skipped `841ede22-4ec5-4275-848a-2dd32c84e67b` for `erdos-123` (conjecture active cap reached)
+- skipped `b07dee06-69a6-437d-a0d3-87003bd6b759` for `erdos-123` (conjecture active cap reached)
+- skipped `032b5b47-70fb-4aa9-8f87-1f141e291dc6` for `erdos-123` (conjecture active cap reached)
+- skipped `5ddcc197-73ba-4b85-b0bf-244a02d32032` for `erdos-123` (conjecture active cap reached)
+- skipped `89152af7-b635-45a9-99ce-7e0eee51af56` for `erdos-123` (conjecture active cap reached)
+- skipped `103455b1-5114-4082-9b5d-93c9b519b357` for `erdos-123` (conjecture active cap reached)
+- skipped `17de5fb8-d1b3-4ae2-9199-de3f549e56ac` for `erdos-123` (conjecture active cap reached)
+- skipped `e2675b9a-96db-46ad-aa1a-deb3b306e998` for `erdos-123` (conjecture active cap reached)
+- skipped `d07a3c33-4e01-40a2-97a9-1490baf6bfc2` for `erdos-123` (conjecture active cap reached)
+- skipped `71274f55-d10e-4843-b0ab-a1965825d80b` for `erdos-123` (conjecture active cap reached)
+- skipped `d5332701-1469-495c-ba8c-da0bb7b17502` for `erdos-123` (conjecture active cap reached)
+- skipped `d4b06ae1-aabf-4585-a38e-3f2ce069bb40` for `erdos-123` (conjecture active cap reached)
+- skipped `001c8972-d496-42d1-99ed-e0e3d50b25eb` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
