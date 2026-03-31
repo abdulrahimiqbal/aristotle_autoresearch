@@ -112,7 +112,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - reused signal count: 0
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_list_stdout.txt` (8756 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_list_stdout.txt` (8746 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bff4c05f-d103-47ac-83f8-1164972a1bca/aristotle_list_stderr.txt`
@@ -138,7 +138,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - reused signal count: 0
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21/aristotle_list_stdout.txt` (8756 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21/aristotle_list_stdout.txt` (8746 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21/aristotle_list_stderr.txt`
@@ -245,8 +245,8 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Incidents
 
-- `warning` `retry_budget_exhausted`: Experiment b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21 reached retry budget (8 attempts).
-- `warning` `retry_budget_exhausted`: Experiment bff4c05f-d103-47ac-83f8-1164972a1bca reached retry budget (9 attempts).
+- `warning` `retry_budget_exhausted`: Experiment b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21 reached retry budget (9 attempts).
+- `warning` `retry_budget_exhausted`: Experiment bff4c05f-d103-47ac-83f8-1164972a1bca reached retry budget (10 attempts).
 
 ## Audit Trail
 
@@ -259,35 +259,34 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 - policy path: `fallback`
 - policy candidate audits: 14
-- jobs synced: 3
+- jobs synced: 2
 - jobs submitted: 0
-- active before: 3
+- active before: 2
 - active after: 2
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=2, subgoals=0, traces=0
 - synced `bff4c05f-d103-47ac-83f8-1164972a1bca` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- synced `ddb1aae2-1b93-438c-9165-39a34b6f05c6` with proof_outcome=`partial` new_signal=1 reused_signal=0
-- considered `06a1c1c2-b313-490a-8581-718e07ad5559` rank=1 score=179.4144
-- considered `2155d333-72dc-4a25-8c77-b7286e65108f` rank=2 score=179.4144
-- considered `4812c537-69e4-4249-9ba3-4861e87a02b5` rank=3 score=179.4144
-- considered `24c18b88-589b-476f-be9d-4b004085522c` rank=4 score=178.9144
-- considered `8d030c8b-6e48-483c-a478-e3e57ec245f0` rank=5 score=178.9144
-- skipped `663c42d4-8870-42a8-ba2a-5698e789e62a` for `erdos-123` (duplicate active experiment signature)
-- skipped `cd27e6e1-9218-4fcd-adc0-dbebb92522b9` for `erdos-123` (conjecture active cap reached)
-- skipped `d23be54a-3289-4834-8e8d-5cea9e4294e8` for `erdos-123` (conjecture active cap reached)
-- skipped `98906f2b-5fcf-4d81-8f55-e63b86f0ca28` for `erdos-123` (conjecture active cap reached)
-- skipped `89beab61-07b9-411d-ac39-3b8f5c18669c` for `erdos-123` (conjecture active cap reached)
-- skipped `3ebfd1bb-fda0-45ee-ad80-40b2890ae7f2` for `erdos-123` (conjecture active cap reached)
-- skipped `1695be73-cb72-4846-a5e3-7d4569298594` for `erdos-123` (conjecture active cap reached)
-- skipped `e0cfc37e-42db-4422-92d6-3d4d156bf595` for `erdos-123` (conjecture active cap reached)
-- skipped `06a1c1c2-b313-490a-8581-718e07ad5559` for `erdos-123` (conjecture active cap reached)
-- skipped `2155d333-72dc-4a25-8c77-b7286e65108f` for `erdos-123` (conjecture active cap reached)
-- skipped `4812c537-69e4-4249-9ba3-4861e87a02b5` for `erdos-123` (conjecture active cap reached)
-- skipped `24c18b88-589b-476f-be9d-4b004085522c` for `erdos-123` (conjecture active cap reached)
-- skipped `8d030c8b-6e48-483c-a478-e3e57ec245f0` for `erdos-123` (conjecture active cap reached)
-- skipped `d0f37c82-1c2f-4ad4-a8a1-1d1d2d447236` for `erdos-123` (conjecture active cap reached)
+- considered `a4f0f6ca-684e-44d8-b75d-ae7328724343` rank=1 score=179.4144
+- considered `c98c107d-aa84-4126-9054-60dddb2d462c` rank=2 score=179.4144
+- considered `e7c7928a-3497-458c-b027-e38004478195` rank=3 score=179.4144
+- considered `985bbb87-025b-4ec6-8ddf-975a0a1abb43` rank=4 score=178.9144
+- considered `5110e48f-e10a-4e7a-aa79-50e0b92d89f7` rank=5 score=178.9144
+- skipped `7286e20d-19e1-412d-be94-95cbcba22e13` for `erdos-123` (duplicate active experiment signature)
+- skipped `35e005b2-1a4f-4fd2-8403-61ed19c96603` for `erdos-123` (conjecture active cap reached)
+- skipped `69f64eb1-b4d6-438c-b2cf-bee425da6ce4` for `erdos-123` (conjecture active cap reached)
+- skipped `e7d6686e-bdb6-4e1c-9036-2dbe4228a074` for `erdos-123` (conjecture active cap reached)
+- skipped `bebc2d11-102a-441f-86cf-a19bcf886a2e` for `erdos-123` (conjecture active cap reached)
+- skipped `4f75babe-f2ef-4f3b-98c0-1f873ed4d1e4` for `erdos-123` (conjecture active cap reached)
+- skipped `3f657c02-7b5f-443a-bdaf-533a4031b5ac` for `erdos-123` (conjecture active cap reached)
+- skipped `563156ab-259e-43ae-8f3d-71b41c6e7f1a` for `erdos-123` (conjecture active cap reached)
+- skipped `a4f0f6ca-684e-44d8-b75d-ae7328724343` for `erdos-123` (conjecture active cap reached)
+- skipped `c98c107d-aa84-4126-9054-60dddb2d462c` for `erdos-123` (conjecture active cap reached)
+- skipped `e7c7928a-3497-458c-b027-e38004478195` for `erdos-123` (conjecture active cap reached)
+- skipped `985bbb87-025b-4ec6-8ddf-975a0a1abb43` for `erdos-123` (conjecture active cap reached)
+- skipped `5110e48f-e10a-4e7a-aa79-50e0b92d89f7` for `erdos-123` (conjecture active cap reached)
+- skipped `da4939cc-9e5a-4039-b2d6-8d6a7c832717` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
