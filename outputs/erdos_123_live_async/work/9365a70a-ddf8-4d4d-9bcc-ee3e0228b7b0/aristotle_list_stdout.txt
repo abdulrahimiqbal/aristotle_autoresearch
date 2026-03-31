@@ -1,6 +1,6 @@
 ID                                   STATUS          CREATED              PROGRESS  
 -------------------------------------------------------------------------------------
-46b495cf-4123-4142-b310-90875d1ce7e9 IN_PROGRESS     2 mins ago           1%        
+46b495cf-4123-4142-b310-90875d1ce7e9 IN_PROGRESS     3 mins ago           3%        
 1095834b-80a1-4ca4-bddb-46df6790ddc0 COMPLETE        1 hour ago           100%      
 2b51283d-c2e9-461c-af77-93493b373bb1 IN_PROGRESS     1 hour ago           24%       
 e4db655d-aa69-46aa-89ee-c8c28cc0e200 COMPLETE        1 hour ago           100%      
