@@ -12,6 +12,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from research_orchestrator.charter import load_charter, load_conjecture
+from research_orchestrator.dashboard_loader import DashboardLoader
 from research_orchestrator.db import Database
 from research_orchestrator.orchestrator import manager_tick
 from research_orchestrator.types import ProviderResult
@@ -277,6 +278,27 @@ class ManagerTickTest(unittest.TestCase):
         completed = self.db.list_completed_experiments(self.project_id)
         self.assertEqual(len(completed), 1)
         self.assertEqual(completed[0]["blocker_type"], "malformed")
+
+    def test_db_only_dashboard_exposes_manager_reasoning_after_tick(self):
+        provider = AsyncProviderStub()
+        with patch("research_orchestrator.orchestrator.get_provider", return_value=provider):
+            manager_tick(
+                db=self.db,
+                project_id=self.project_id,
+                provider_name="aristotle-cli",
+                workspace_root=self.tempdir / "work",
+                max_active=3,
+                max_submit_per_tick=3,
+                llm_manager_mode="off",
+                report_output=self.report_path,
+                snapshot_output=self.snapshot_path,
+            )
+
+        state = DashboardLoader(state_dir=None, db_path=self.tempdir / "state.sqlite", project_id=self.project_id).load()
+        self.assertTrue(state.manager_reasoning)
+        self.assertEqual(state.manager_reasoning[0]["kind"], "manager_tick")
+        self.assertIn("Fallback policy ranked candidates", state.manager_reasoning[0]["summary"])
+        self.assertIn("Research Manager", state.manager_reasoning[0]["prompt"])
 
 
 if __name__ == "__main__":

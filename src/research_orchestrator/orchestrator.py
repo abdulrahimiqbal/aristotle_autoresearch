@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from research_orchestrator.db import Database
 from research_orchestrator.evaluator import score_result
@@ -12,6 +12,8 @@ from research_orchestrator.prompt_linter import lint_manager_prompt, lint_worker
 from research_orchestrator.prompts import build_worker_prompt
 from research_orchestrator.provider_registry import get_provider
 from research_orchestrator.result_ingestion import build_verification_signals, prepare_ingested_result
+from research_orchestrator.route_planner import assign_routes_to_frontier, select_route
+from research_orchestrator.live_projections import refresh_live_projections
 from research_orchestrator.types import ExperimentBrief
 
 
@@ -47,6 +49,7 @@ def _prepare_cycle_from_candidate(db: Database, project_id: str, candidate: Dict
         experiment_id=candidate["experiment_id"],
         project_id=project_id,
         conjecture_id=candidate["conjecture_id"],
+        route_id=candidate.get("route_id", ""),
         phase=candidate["phase"],
         move=candidate["move"],
         objective=candidate["objective"],
@@ -86,6 +89,7 @@ def _brief_from_experiment(experiment: Dict[str, object]) -> ExperimentBrief:
         experiment_id=experiment["experiment_id"],
         project_id=experiment["project_id"],
         conjecture_id=experiment["conjecture_id"],
+        route_id=experiment.get("route_id", ""),
         phase=experiment["phase"],
         move=experiment["move"],
         objective=experiment["objective"],
@@ -103,6 +107,74 @@ def _brief_from_experiment(experiment: Dict[str, object]) -> ExperimentBrief:
     )
 
 
+def _manager_paused(db: Database, project_id: str) -> bool:
+    row = db.conn.execute(
+        """
+        SELECT command_type FROM operator_commands
+        WHERE project_id = ?
+          AND command_type IN ('pause-manager', 'resume-manager')
+          AND status IN ('pending', 'applied')
+        ORDER BY issued_at DESC
+        LIMIT 1
+        """,
+        (project_id,),
+    ).fetchone()
+    if row is None:
+        return False
+    return row["command_type"] == "pause-manager"
+
+
+def _apply_operator_commands(db: Database, project_id: str, run_id: str) -> Dict[str, Any]:
+    commands = db.list_operator_commands(project_id, status="pending")
+    applied: list[dict[str, Any]] = []
+    for command in commands:
+        details: dict[str, Any] = {"command_id": command["command_id"]}
+        status = "applied"
+        if command["command_type"] == "pause-manager":
+            details["paused"] = True
+        elif command["command_type"] == "resume-manager":
+            details["paused"] = False
+        elif command["command_type"] == "prioritize-route":
+            priority = int(command["payload"].get("priority", 5))
+            if command.get("route_id"):
+                db.set_route_operator_priority(command["route_id"], priority)
+                details["priority"] = priority
+        elif command["command_type"] == "pause-route":
+            if command.get("route_id"):
+                db.set_route_status(command["route_id"], "stalled")
+        elif command["command_type"] == "retry-experiment":
+            if command.get("target_id"):
+                db.reset_experiment_for_retry(command["target_id"])
+        elif command["command_type"] == "kill-job":
+            if command.get("target_id"):
+                db.mark_experiment_killed(command["target_id"])
+        elif command["command_type"] == "operator-note":
+            note = command["payload"].get("note", "")
+            if command.get("route_id") and note:
+                db.append_route_note(command["route_id"], note)
+                details["note"] = note
+        else:
+            status = "rejected"
+            details["reason"] = "unknown command_type"
+        db.mark_operator_command_applied(command["command_id"], status=status, details=details)
+        db.emit_manager_event(
+            project_id=project_id,
+            run_id=run_id,
+            event_type="operator.command.applied",
+            source_component="operator",
+            experiment_id=command.get("target_id"),
+            route_id=command.get("route_id"),
+            payload={
+                "command_id": command["command_id"],
+                "command_type": command["command_type"],
+                "status": status,
+                "details": details,
+            },
+        )
+        applied.append(details)
+    return {"manager_paused": _manager_paused(db, project_id), "applied": applied}
+
+
 def _finalize_result(
     db: Database,
     project_id: str,
@@ -111,6 +183,7 @@ def _finalize_result(
     result,
     manager_lint,
     worker_lint,
+    run_id: str | None = None,
 ):
     result.metadata = dict(result.metadata)
     result.metadata.setdefault("provider_name", provider_name)
@@ -160,6 +233,48 @@ def _finalize_result(
         result=result,
         evaluation=evaluation.__dict__,
     )
+    resolved_run_id = run_id or f"ingestion:{brief.experiment_id}"
+    route_id = getattr(brief, "route_id", "") or None
+    db.emit_manager_event(
+        project_id=project_id,
+        run_id=resolved_run_id,
+        event_type="result.ingested",
+        source_component="result_ingestion",
+        experiment_id=brief.experiment_id,
+        route_id=route_id,
+        payload={
+            "status": result.status,
+            "proof_outcome": result.proof_outcome,
+            "blocker_type": result.blocker_type,
+            "new_signal_count": result.new_signal_count,
+            "reused_signal_count": result.reused_signal_count,
+        },
+    )
+    if route_id:
+        strength_delta = float(result.new_signal_count or 0) + float(result.reused_signal_count or 0) * 0.4
+        db.insert_route_evidence(
+            route_id=route_id,
+            evidence_type="result",
+            source_experiment_id=brief.experiment_id,
+            strength_delta=strength_delta,
+            payload={
+                "status": result.status,
+                "proof_outcome": result.proof_outcome,
+                "blocker_type": result.blocker_type,
+            },
+        )
+        db.emit_manager_event(
+            project_id=project_id,
+            run_id=resolved_run_id,
+            event_type="route.strengthened" if strength_delta > 0 else "route.stalled",
+            source_component="route_tracker",
+            experiment_id=brief.experiment_id,
+            route_id=route_id,
+            payload={
+                "strength_delta": strength_delta,
+                "status": result.status,
+            },
+        )
     db.add_audit_event(
         project_id=project_id,
         experiment_id=brief.experiment_id,
@@ -178,6 +293,7 @@ def _finalize_result(
             incident_type=result.blocker_type,
             detail=result.notes or result.signal_summary,
             severity="error" if result.blocker_type != "malformed" else "warning",
+            run_id=resolved_run_id,
         )
     incident_type = result.metadata.get("incident_type", "")
     if incident_type:
@@ -187,6 +303,7 @@ def _finalize_result(
             incident_type=incident_type,
             detail=result.metadata.get("incident_detail", result.notes or result.signal_summary),
             severity=result.metadata.get("incident_severity", "warning"),
+            run_id=resolved_run_id,
         )
     for issue in prepared.validation_issues:
         db.create_incident(
@@ -195,6 +312,7 @@ def _finalize_result(
             incident_type=f"verification_validation_{issue.issue_type}",
             detail=issue.detail,
             severity=issue.severity,
+            run_id=resolved_run_id,
         )
 
     if brief.move == "perturb_assumption":
@@ -229,6 +347,7 @@ def _finalize_result(
         note_markdown=json.dumps(memo, indent=2),
         structured=memo,
     )
+    refresh_live_projections(db, project_id)
     return evaluation
 
 
@@ -236,6 +355,17 @@ def run_one_cycle(db: Database, project_id: str, provider_name: str, workspace_r
     prepared = _prepare_cycle(db, project_id, workspace_root)
     brief = prepared["brief"]
     provider = get_provider(provider_name)
+    run_id = f"cycle:{brief.experiment_id}"
+
+    db.emit_manager_event(
+        project_id=project_id,
+        run_id=run_id,
+        event_type="cycle.started",
+        source_component="single_cycle",
+        experiment_id=brief.experiment_id,
+        route_id=getattr(brief, "route_id", None) or None,
+        payload={"move": brief.move, "phase": brief.phase, "provider": provider.name},
+    )
 
     result = provider.run(
         charter=prepared["charter"],
@@ -251,7 +381,25 @@ def run_one_cycle(db: Database, project_id: str, provider_name: str, workspace_r
         result=result,
         manager_lint=prepared["manager_prompt_lint"],
         worker_lint=prepared["worker_prompt_lint"],
+        run_id=run_id,
     )
+
+    db.emit_manager_event(
+        project_id=project_id,
+        run_id=run_id,
+        event_type="cycle.completed",
+        source_component="single_cycle",
+        experiment_id=brief.experiment_id,
+        route_id=getattr(brief, "route_id", None) or None,
+        payload={
+            "status": result.status,
+            "proof_outcome": result.proof_outcome,
+            "blocker_type": result.blocker_type,
+            "new_signal_count": getattr(result, "new_signal_count", 0),
+            "reused_signal_count": getattr(result, "reused_signal_count", 0),
+        },
+    )
+    refresh_live_projections(db, project_id)
 
     return {
         "brief": brief,
@@ -271,6 +419,17 @@ def submit_one_cycle(db: Database, project_id: str, provider_name: str, workspac
     provider = get_provider(provider_name)
     if not provider.supports_async:
         return run_one_cycle(db, project_id, provider_name, workspace_root)
+
+    run_id = f"cycle:{brief.experiment_id}"
+    db.emit_manager_event(
+        project_id=project_id,
+        run_id=run_id,
+        event_type="cycle.submit.started",
+        source_component="single_cycle",
+        experiment_id=brief.experiment_id,
+        route_id=getattr(brief, "route_id", None) or None,
+        payload={"move": brief.move, "phase": brief.phase, "provider": provider.name},
+    )
 
     result = provider.submit(
         charter=prepared["charter"],
@@ -297,6 +456,20 @@ def submit_one_cycle(db: Database, project_id: str, provider_name: str, workspac
             "discovery_question_id": brief.discovery_question_id,
         },
     )
+    db.emit_manager_event(
+        project_id=project_id,
+        run_id=run_id,
+        event_type="candidate.submitted",
+        source_component="single_cycle",
+        experiment_id=brief.experiment_id,
+        route_id=getattr(brief, "route_id", None) or None,
+        payload={
+            "move": brief.move,
+            "status": result.status,
+            "external_id": result.external_id,
+            "external_status": result.external_status,
+        },
+    )
     memo = {
         "experiment_id": brief.experiment_id,
         "project_id": project_id,
@@ -316,6 +489,7 @@ def submit_one_cycle(db: Database, project_id: str, provider_name: str, workspac
         note_markdown=json.dumps(memo, indent=2),
         structured=memo,
     )
+    refresh_live_projections(db, project_id)
     return {
         "brief": brief,
         "manager_prompt": prepared["manager_prompt"],
@@ -328,7 +502,13 @@ def submit_one_cycle(db: Database, project_id: str, provider_name: str, workspac
     }
 
 
-def sync_provider_results(db: Database, project_id: str, provider_name: str, limit: Optional[int] = None) -> List[Dict[str, object]]:
+def sync_provider_results(
+    db: Database,
+    project_id: str,
+    provider_name: str,
+    limit: Optional[int] = None,
+    run_id: str | None = None,
+) -> List[Dict[str, object]]:
     provider = get_provider(provider_name)
     if not provider.supports_async:
         return []
@@ -370,6 +550,18 @@ def sync_provider_results(db: Database, project_id: str, provider_name: str, lim
                 result=result,
                 evaluation=None,
             )
+            db.emit_manager_event(
+                project_id=project_id,
+                run_id=run_id or f"sync:{project_id}",
+                event_type="job.synced",
+                source_component="provider_sync",
+                experiment_id=brief.experiment_id,
+                route_id=brief.route_id or None,
+                payload={
+                    "status": result.status,
+                    "external_status": result.external_status,
+                },
+            )
             synced.append({"brief": brief, "result": result, "evaluation": None})
             continue
 
@@ -381,6 +573,7 @@ def sync_provider_results(db: Database, project_id: str, provider_name: str, lim
             result=result,
             manager_lint=lint_manager_prompt(""),
             worker_lint=lint_worker_prompt(""),
+            run_id=run_id,
         )
         synced.append({"brief": brief, "result": result, "evaluation": evaluation})
     return synced
@@ -442,16 +635,30 @@ def manager_tick(
     report_output: str | Path,
     snapshot_output: str | Path,
 ) -> Dict[str, object]:
+    import uuid
+
+    run_id = str(uuid.uuid4())
     provider = get_provider(provider_name)
     spec = db.get_campaign_spec(project_id)
     runtime_policy = spec.runtime_policy if spec is not None else None
     budget_policy = spec.budget_policy if spec is not None else None
+    db.emit_manager_event(
+        project_id=project_id,
+        run_id=run_id,
+        event_type="manager.tick.started",
+        source_component="manager",
+        payload={
+            "provider": provider.name,
+            "max_active": max_active,
+            "max_submit_per_tick": max_submit_per_tick,
+        },
+    )
     expired_stale = db.expire_stale_active_experiments(
         project_id,
         max_age_seconds=runtime_policy.stale_run_timeout_seconds if runtime_policy is not None else getattr(provider, "STALE_PROGRESS_TIMEOUT_SECONDS", 6 * 3600),
     )
     active_before = db.count_active_experiments(project_id, provider=provider.name)
-    synced = sync_provider_results(db, project_id, provider_name, limit=max_active * 4)
+    synced = sync_provider_results(db, project_id, provider_name, limit=max_active * 4, run_id=run_id)
     operational_status = db.escalate_operational_incidents(
         project_id,
         repeated_failure_threshold=runtime_policy.repeated_failure_incident_threshold if runtime_policy is not None else 3,
@@ -460,17 +667,86 @@ def manager_tick(
         stuck_run_timeout_seconds=runtime_policy.stuck_run_timeout_seconds if runtime_policy is not None else 2 * 3600,
         max_attempts_per_experiment=budget_policy.max_attempts_per_experiment if budget_policy is not None else 6,
     )
+    command_state = _apply_operator_commands(db, project_id, run_id)
     active_now = db.count_active_experiments(project_id, provider=provider.name)
     capacity_remaining = max(0, max_active - active_now)
     requested_submissions = min(capacity_remaining, max_submit_per_tick)
 
     frontier = generate_frontier(db, project_id, workspace_root)
+    frontier, route_scores = assign_routes_to_frontier(db, project_id, frontier)
+    selected_route, ranked_routes = select_route(route_scores)
+    db.emit_manager_event(
+        project_id=project_id,
+        run_id=run_id,
+        event_type="frontier.generated",
+        source_component="manager",
+        payload={
+            "frontier_count": len(frontier),
+            "route_count": len(route_scores),
+        },
+    )
+    if selected_route is not None:
+        db.emit_manager_event(
+            project_id=project_id,
+            run_id=run_id,
+            event_type="route.selected",
+            source_component="planner",
+            route_id=selected_route.route_id,
+            payload={
+                "route_id": selected_route.route_id,
+                "route_key": selected_route.route_key,
+                "total_score": selected_route.total_score,
+                "components": selected_route.components,
+                "alternatives": [
+                    {
+                        "route_id": item.route_id,
+                        "route_key": item.route_key,
+                        "total_score": item.total_score,
+                        "components": item.components,
+                    }
+                    for item in ranked_routes[:5]
+                ],
+            },
+        )
+    for route in ranked_routes[:5]:
+        db.emit_manager_event(
+            project_id=project_id,
+            run_id=run_id,
+            event_type="route.updated",
+            source_component="planner",
+            route_id=route.route_id,
+            payload={
+                "route_id": route.route_id,
+                "route_key": route.route_key,
+                "total_score": route.total_score,
+                "components": route.components,
+            },
+        )
     policy = choose_candidates_for_submission(
         db=db,
         project_id=project_id,
         frontier=frontier,
         max_count=requested_submissions,
         llm_manager_mode=llm_manager_mode,
+        route_id=selected_route.route_id if selected_route is not None else None,
+        route_context={
+            "selected_route": {
+                "route_id": selected_route.route_id,
+                "route_key": selected_route.route_key,
+                "total_score": selected_route.total_score,
+                "components": selected_route.components,
+            }
+            if selected_route is not None
+            else None,
+            "alternatives": [
+                {
+                    "route_id": item.route_id,
+                    "route_key": item.route_key,
+                    "total_score": item.total_score,
+                }
+                for item in ranked_routes[:5]
+            ],
+        },
     )
     if runtime_policy is not None and runtime_policy.pause_on_incident:
         open_errors = [item for item in db.list_incidents(project_id, status="open") if item["severity"] == "error"]
@@ -483,11 +759,92 @@ def manager_tick(
                     "reason": "runtime policy paused submissions because open error incidents exist",
                 }
             )
+    if command_state["manager_paused"]:
+        policy.chosen = []
+        policy.skipped.append(
+            {
+                "experiment_id": "",
+                "conjecture_id": "",
+                "reason": "operator paused manager submissions",
+            }
+        )
 
     submissions = []
+    for audit in policy.candidate_audits[:20]:
+        db.emit_manager_event(
+            project_id=project_id,
+            run_id=run_id,
+            event_type="candidate.scored",
+            source_component="policy",
+            experiment_id=audit.get("experiment_id"),
+            route_id=(audit.get("candidate") or {}).get("route_id"),
+            payload={
+                "experiment_id": audit.get("experiment_id"),
+                "route_id": (audit.get("candidate") or {}).get("route_id"),
+                "score_breakdown": audit.get("score_breakdown", {}),
+                "selected": bool(audit.get("selected")),
+            },
+        )
+    for skipped in policy.skipped[:20]:
+        db.emit_manager_event(
+            project_id=project_id,
+            run_id=run_id,
+            event_type="candidate.rejected",
+            source_component="policy",
+            experiment_id=skipped.get("experiment_id"),
+            payload={
+                "experiment_id": skipped.get("experiment_id"),
+                "reason": skipped.get("reason", ""),
+            },
+        )
+    db.emit_manager_event(
+        project_id=project_id,
+        run_id=run_id,
+        event_type="policy.prompt.created",
+        source_component="policy",
+        payload={
+            "policy_path": policy.policy_path,
+            "prompt": policy.manager_prompt,
+        },
+    )
+    if policy.raw_response:
+        db.emit_manager_event(
+            project_id=project_id,
+            run_id=run_id,
+            event_type="policy.response.received",
+            source_component="policy",
+            payload={"raw_response": policy.raw_response},
+        )
+        db.emit_manager_event(
+            project_id=project_id,
+            run_id=run_id,
+            event_type="policy.response.parsed",
+            source_component="policy",
+            payload={"rationale": policy.rationale},
+        )
+    if policy.policy_path == "fallback":
+        db.emit_manager_event(
+            project_id=project_id,
+            run_id=run_id,
+            event_type="policy.fallback.used",
+            source_component="policy",
+            payload={"rationale": policy.rationale},
+        )
     for decision in policy.chosen[:requested_submissions]:
         candidate = next(
             item for item in frontier if item["experiment_id"] == decision.experiment_id
+        )
+        db.emit_manager_event(
+            project_id=project_id,
+            run_id=run_id,
+            event_type="candidate.selected",
+            source_component="policy",
+            experiment_id=decision.experiment_id,
+            route_id=candidate.get("route_id"),
+            payload={
+                "experiment_id": decision.experiment_id,
+                "reason": decision.reason,
+            },
         )
         prepared = _prepare_cycle_from_candidate(db, project_id, candidate)
         result = provider.submit(
@@ -521,6 +878,7 @@ def manager_tick(
                     result=result,
                     manager_lint=prepared["manager_prompt_lint"],
                     worker_lint=prepared["worker_prompt_lint"],
+                    run_id=run_id,
                 )
         else:
             _finalize_result(
@@ -531,8 +889,22 @@ def manager_tick(
                 result=result,
                 manager_lint=prepared["manager_prompt_lint"],
                 worker_lint=prepared["worker_prompt_lint"],
+                run_id=run_id,
             )
         if not provider.supports_async or result.status in {"submitted", "in_progress"}:
+            db.emit_manager_event(
+                project_id=project_id,
+                run_id=run_id,
+                event_type="job.submitted",
+                source_component="provider",
+                experiment_id=prepared["brief"].experiment_id,
+                route_id=prepared["brief"].route_id or candidate.get("route_id"),
+                payload={
+                    "status": result.status,
+                    "external_id": result.external_id,
+                    "external_status": result.external_status,
+                },
+            )
             submissions.append({
                 "experiment_id": prepared["brief"].experiment_id,
                 "conjecture_id": prepared["brief"].conjecture_id,
@@ -615,6 +987,8 @@ def manager_tick(
         "submitted_experiments": submissions,
         "skipped_candidates": policy.skipped,
         "policy_rationale": policy.rationale,
+        "manager_prompt": policy.manager_prompt,
+        "raw_response": policy.raw_response,
         "recurring_structures": snapshot["recurring_structures"],
         "signal_progress": snapshot["signal_progress"],
         "expired_stale_active_experiments": expired_stale,
@@ -633,6 +1007,7 @@ def manager_tick(
         report_path=str(report_output),
         snapshot_path=str(snapshot_output),
         summary=manager_run_summary,
+        run_id=run_id,
     )
     db.save_manager_candidate_audits(run_id=run_id, project_id=project_id, rows=policy.candidate_audits)
     db.save_campaign_health_snapshot(run_id=run_id, project_id=project_id, health=health)
@@ -641,6 +1016,7 @@ def manager_tick(
 
     from research_orchestrator.reporter import write_report
     write_report(db, project_id, report_output)
+    refresh_live_projections(db, project_id, run_id=run_id)
 
     return {
         "run_id": run_id,

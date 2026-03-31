@@ -142,6 +142,7 @@ class ExperimentBrief:
     candidate_metadata: Dict[str, Any] = field(default_factory=dict)
     discovery_question_id: str = ""
     discovery_question: str = ""
+    route_id: str = ""
 
 
 @dataclass

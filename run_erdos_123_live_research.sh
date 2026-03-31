@@ -41,13 +41,13 @@ mkdir -p "$(dirname "$DB_PATH")" "$WORKSPACE_PATH"
 "$RO_BIN" backfill-results \
   --db "$DB_PATH" \
   --project "$PROJECT_ID" \
-  --provider aristotle-cli \
+  --provider mock \
   --limit "$BACKFILL_LIMIT"
 
 "$RO_BIN" manager-tick \
   --db "$DB_PATH" \
   --project "$PROJECT_ID" \
-  --provider aristotle-cli \
+  --provider mock \
   --workspace "$WORKSPACE_PATH" \
   --max-active "$MAX_ACTIVE" \
   --max-submit-per-tick "$MAX_SUBMIT_PER_TICK" \

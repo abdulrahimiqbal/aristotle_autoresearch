@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from research_orchestrator.db import Database
@@ -139,21 +140,59 @@ def build_report(db: Database, project_id: str) -> str:
         lines.append("")
     lines.append("## Active jobs")
     lines.append("")
-    if active:
-        for item in summary.get("active_by_external_status", []):
-            lines.append(f"- `{item['external_status']}`: {item['count']}")
-    else:
-        lines.append("- None active.")
+    # Prefer *_current projection tables for operational data (Control Plane source of truth)
+    try:
+        active_current = [
+            json.loads(row["payload_json"])
+            for row in db.conn.execute(
+                "SELECT payload_json FROM active_experiments_current WHERE project_id = ?",
+                (project_id,),
+            ).fetchall()
+        ]
+        if active_current:
+            by_status: dict[str, int] = {}
+            for item in active_current:
+                status_key = item.get("external_status") or item.get("status") or "unknown"
+                by_status[status_key] = by_status.get(status_key, 0) + 1
+            for status_key, count in sorted(by_status.items()):
+                lines.append(f"- `{status_key}`: {count}")
+        else:
+            lines.append("- None active.")
+    except Exception:
+        # Fallback to legacy path if projections not yet available
+        if active:
+            for item in summary.get("active_by_external_status", []):
+                lines.append(f"- `{item['external_status']}`: {item['count']}")
+        else:
+            lines.append("- None active.")
     lines.append("")
     lines.append("## Recently completed")
     lines.append("")
-    if recent_completed:
-        for experiment in recent_completed:
-            lines.append(
-                f"- `{experiment['experiment_id']}` on `{experiment['conjecture_id']}` -> `{experiment['status']}`"
-            )
-    else:
-        lines.append("- None yet.")
+    # Prefer *_current projection tables (Control Plane source of truth)
+    try:
+        recent_current = [
+            json.loads(row["payload_json"])
+            for row in db.conn.execute(
+                "SELECT payload_json FROM recent_results_current WHERE project_id = ? ORDER BY completed_at DESC LIMIT 5",
+                (project_id,),
+            ).fetchall()
+        ]
+        if recent_current:
+            for experiment in recent_current:
+                lines.append(
+                    f"- `{experiment['experiment_id']}` on `{experiment['conjecture_id']}` -> `{experiment['status']}`"
+                )
+        else:
+            lines.append("- None yet.")
+    except Exception:
+        # Fallback to legacy path
+        if recent_completed:
+            for experiment in recent_completed:
+                lines.append(
+                    f"- `{experiment['experiment_id']}` on `{experiment['conjecture_id']}` -> `{experiment['status']}`"
+                )
+        else:
+            lines.append("- None yet.")
     lines.append("")
     lines.append("## Recurring lemmas")
     lines.append("")
@@ -325,6 +364,32 @@ def build_report(db: Database, project_id: str) -> str:
             lines.append(f"- `{event['event_type']}` at `{event['created_at']}`")
     else:
         lines.append("- No audit events.")
+    lines.append("")
+    lines.append("## Control Plane Status")
+    lines.append("")
+    try:
+        health_row = db.conn.execute(
+            "SELECT payload_json, last_event_at, last_projection_at, manager_status FROM system_health_current WHERE project_id = ?",
+            (project_id,),
+        ).fetchone()
+        if health_row:
+            lines.append(f"- manager status: `{health_row['manager_status']}`")
+            lines.append(f"- last event: `{health_row['last_event_at']}`")
+            lines.append(f"- last projection: `{health_row['last_projection_at']}`")
+        else:
+            lines.append("- Control plane projections not yet initialized. Run `db-refresh-projections` to populate.")
+        route_rows = db.conn.execute(
+            "SELECT route_key, route_status, current_strength, recent_signal_velocity FROM route_strength_current WHERE project_id = ? ORDER BY current_strength DESC LIMIT 5",
+            (project_id,),
+        ).fetchall()
+        if route_rows:
+            lines.append("- top routes:")
+            for route in route_rows:
+                lines.append(
+                    f"  - `{route['route_key']}` status=`{route['route_status']}` strength={route['current_strength']} velocity={route['recent_signal_velocity']}"
+                )
+    except Exception:
+        lines.append("- Control plane projections unavailable (migration may not have run yet).")
     lines.append("")
     lines.append("## Latest manager decision")
     lines.append("")

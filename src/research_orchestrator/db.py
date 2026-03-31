@@ -477,6 +477,12 @@ SCHEMA = [
         FOREIGN KEY(project_id) REFERENCES projects(project_id)
     )
     """,
+    """
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+        migration_id TEXT PRIMARY KEY,
+        applied_at TEXT NOT NULL
+    )
+    """,
 ]
 
 VIEWS = [
@@ -575,6 +581,226 @@ VIEWS = [
     """,
 ]
 
+MIGRATIONS: list[tuple[str, list[str]]] = [
+    (
+        "2026_04_01_live_control_plane",
+        [
+            "ALTER TABLE experiments ADD COLUMN route_id TEXT",
+            """
+            CREATE TABLE IF NOT EXISTS manager_events (
+                event_id TEXT PRIMARY KEY,
+                sequence_no INTEGER NOT NULL,
+                occurred_at TEXT NOT NULL,
+                project_id TEXT NOT NULL,
+                run_id TEXT NOT NULL,
+                experiment_id TEXT,
+                route_id TEXT,
+                event_type TEXT NOT NULL,
+                source_component TEXT NOT NULL,
+                visibility TEXT NOT NULL,
+                payload_json TEXT NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS theorem_routes (
+                route_id TEXT PRIMARY KEY,
+                project_id TEXT NOT NULL,
+                conjecture_id TEXT,
+                theorem_family TEXT NOT NULL,
+                route_key TEXT NOT NULL UNIQUE,
+                route_stage TEXT NOT NULL,
+                route_status TEXT NOT NULL,
+                current_strength REAL NOT NULL DEFAULT 0,
+                recent_signal_velocity REAL NOT NULL DEFAULT 0,
+                blocker_pressure REAL NOT NULL DEFAULT 0,
+                novelty_score REAL NOT NULL DEFAULT 0,
+                reuse_score REAL NOT NULL DEFAULT 0,
+                transfer_score REAL NOT NULL DEFAULT 0,
+                last_selected_at TEXT,
+                last_progress_at TEXT,
+                operator_priority INTEGER NOT NULL DEFAULT 0,
+                summary_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY(project_id) REFERENCES projects(project_id)
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS route_evidence (
+                evidence_id TEXT PRIMARY KEY,
+                route_id TEXT NOT NULL,
+                evidence_type TEXT NOT NULL,
+                source_experiment_id TEXT,
+                source_object_id TEXT,
+                strength_delta REAL NOT NULL DEFAULT 0,
+                payload_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(route_id) REFERENCES theorem_routes(route_id)
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS operator_commands (
+                command_id TEXT PRIMARY KEY,
+                project_id TEXT NOT NULL,
+                route_id TEXT,
+                command_type TEXT NOT NULL,
+                target_type TEXT NOT NULL,
+                target_id TEXT,
+                payload_json TEXT NOT NULL,
+                issued_at TEXT NOT NULL,
+                status TEXT NOT NULL,
+                FOREIGN KEY(project_id) REFERENCES projects(project_id)
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS operator_command_results (
+                result_id TEXT PRIMARY KEY,
+                command_id TEXT NOT NULL,
+                applied_at TEXT NOT NULL,
+                status TEXT NOT NULL,
+                details_json TEXT NOT NULL,
+                FOREIGN KEY(command_id) REFERENCES operator_commands(command_id)
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS projection_checkpoints (
+                projection_name TEXT PRIMARY KEY,
+                last_sequence_no INTEGER NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS live_manager_timeline (
+                event_id TEXT PRIMARY KEY,
+                sequence_no INTEGER NOT NULL,
+                occurred_at TEXT NOT NULL,
+                project_id TEXT NOT NULL,
+                run_id TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                route_id TEXT,
+                experiment_id TEXT,
+                summary_json TEXT NOT NULL,
+                payload_json TEXT NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS route_strength_current (
+                route_id TEXT PRIMARY KEY,
+                project_id TEXT NOT NULL,
+                route_key TEXT NOT NULL,
+                route_status TEXT NOT NULL,
+                current_strength REAL NOT NULL,
+                recent_signal_velocity REAL NOT NULL,
+                blocker_pressure REAL NOT NULL,
+                novelty_score REAL NOT NULL,
+                reuse_score REAL NOT NULL,
+                transfer_score REAL NOT NULL,
+                operator_priority INTEGER NOT NULL,
+                last_selected_at TEXT,
+                last_progress_at TEXT,
+                summary_json TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS route_decisions_current (
+                decision_id TEXT PRIMARY KEY,
+                project_id TEXT NOT NULL,
+                run_id TEXT NOT NULL,
+                occurred_at TEXT NOT NULL,
+                route_id TEXT NOT NULL,
+                payload_json TEXT NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS frontier_rankings_current (
+                entry_id TEXT PRIMARY KEY,
+                project_id TEXT NOT NULL,
+                run_id TEXT NOT NULL,
+                occurred_at TEXT NOT NULL,
+                rank_position INTEGER NOT NULL,
+                experiment_id TEXT NOT NULL,
+                route_id TEXT,
+                score REAL NOT NULL,
+                score_breakdown_json TEXT NOT NULL,
+                candidate_json TEXT NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS active_experiments_current (
+                experiment_id TEXT PRIMARY KEY,
+                project_id TEXT NOT NULL,
+                route_id TEXT,
+                conjecture_id TEXT NOT NULL,
+                move TEXT NOT NULL,
+                move_family TEXT NOT NULL,
+                status TEXT NOT NULL,
+                external_status TEXT,
+                updated_at TEXT NOT NULL,
+                payload_json TEXT NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS recent_results_current (
+                experiment_id TEXT PRIMARY KEY,
+                project_id TEXT NOT NULL,
+                route_id TEXT,
+                conjecture_id TEXT NOT NULL,
+                status TEXT NOT NULL,
+                proof_outcome TEXT,
+                blocker_type TEXT,
+                new_signal_count INTEGER NOT NULL,
+                reused_signal_count INTEGER NOT NULL,
+                completed_at TEXT NOT NULL,
+                payload_json TEXT NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS incidents_current (
+                incident_id TEXT PRIMARY KEY,
+                project_id TEXT NOT NULL,
+                experiment_id TEXT,
+                route_id TEXT,
+                incident_type TEXT NOT NULL,
+                severity TEXT NOT NULL,
+                status TEXT NOT NULL,
+                detail TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                payload_json TEXT NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS system_health_current (
+                project_id TEXT PRIMARY KEY,
+                last_event_at TEXT,
+                last_projection_at TEXT,
+                manager_status TEXT,
+                db_status TEXT,
+                source_mode TEXT,
+                payload_json TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS idx_manager_events_project ON manager_events(project_id)",
+            "CREATE INDEX IF NOT EXISTS idx_manager_events_route ON manager_events(route_id)",
+            "CREATE INDEX IF NOT EXISTS idx_manager_events_run ON manager_events(run_id)",
+            "CREATE INDEX IF NOT EXISTS idx_manager_events_type ON manager_events(event_type)",
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_manager_events_sequence ON manager_events(sequence_no)",
+            "CREATE INDEX IF NOT EXISTS idx_theorem_routes_project ON theorem_routes(project_id)",
+            "CREATE INDEX IF NOT EXISTS idx_theorem_routes_status ON theorem_routes(route_status)",
+            "CREATE INDEX IF NOT EXISTS idx_route_evidence_route ON route_evidence(route_id)",
+            "CREATE INDEX IF NOT EXISTS idx_operator_commands_project ON operator_commands(project_id)",
+            "CREATE INDEX IF NOT EXISTS idx_operator_commands_status ON operator_commands(status)",
+            "CREATE INDEX IF NOT EXISTS idx_timeline_project ON live_manager_timeline(project_id)",
+            "CREATE INDEX IF NOT EXISTS idx_route_strength_project ON route_strength_current(project_id)",
+            "CREATE INDEX IF NOT EXISTS idx_frontier_rankings_project ON frontier_rankings_current(project_id)",
+            "CREATE INDEX IF NOT EXISTS idx_active_experiments_project ON active_experiments_current(project_id)",
+            "CREATE INDEX IF NOT EXISTS idx_recent_results_project ON recent_results_current(project_id)",
+            "CREATE INDEX IF NOT EXISTS idx_incidents_project ON incidents_current(project_id)",
+        ],
+    ),
+]
+
 
 class Database:
     def __init__(self, path: str | Path):
@@ -604,9 +830,32 @@ class Database:
         for statement in SCHEMA:
             self.conn.execute(statement)
         self._ensure_experiment_columns()
+        self._apply_migrations()
         for statement in VIEWS:
             self.conn.execute(statement)
         self.conn.commit()
+
+    def _apply_migrations(self) -> None:
+        applied = {
+            row["migration_id"]
+            for row in self.conn.execute("SELECT migration_id FROM schema_migrations").fetchall()
+        }
+        for migration_id, statements in MIGRATIONS:
+            if migration_id in applied:
+                continue
+            with self.transaction(immediate=True):
+                for statement in statements:
+                    try:
+                        self.conn.execute(statement)
+                    except sqlite3.OperationalError as exc:
+                        message = str(exc).lower()
+                        if "duplicate column name" in message or "already exists" in message:
+                            continue
+                        raise
+                self.conn.execute(
+                    "INSERT INTO schema_migrations(migration_id, applied_at) VALUES (?, ?)",
+                    (migration_id, utcnow()),
+                )
 
     def _decode_experiment_row(self, row: sqlite3.Row | Dict[str, Any]) -> Dict[str, Any]:
         item = dict(row)
@@ -683,6 +932,21 @@ class Database:
 
     def quick_check(self) -> List[str]:
         return [row[0] for row in self.conn.execute("PRAGMA quick_check").fetchall()]
+
+    def check_event_timeline_integrity(self) -> Dict[str, Any]:
+        try:
+            row = self.conn.execute(
+                """
+                SELECT COUNT(*) FROM (
+                    SELECT sequence_no, LAG(sequence_no) OVER (ORDER BY sequence_no) AS prev
+                    FROM manager_events
+                ) WHERE prev IS NOT NULL AND sequence_no != prev + 1
+                """
+            ).fetchone()
+            gaps = int(row[0]) if row else 0
+            return {"gaps": gaps, "ok": gaps == 0}
+        except Exception as exc:
+            return {"gaps": 0, "ok": False, "error": str(exc)}
 
     def checkpoint_wal(self) -> Dict[str, int]:
         row = self.conn.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
@@ -1049,16 +1313,17 @@ class Database:
         self.conn.execute(
             """
             INSERT OR REPLACE INTO experiments(
-                experiment_id, project_id, conjecture_id, phase, move, objective, expected_signal,
+                experiment_id, project_id, conjecture_id, route_id, phase, move, objective, expected_signal,
                 modification_json, workspace_dir, lean_file, external_id, external_status,
                 submitted_at, last_synced_at, discovery_question_id, move_family, move_family_version,
                 theorem_family_id, move_title, rationale, candidate_metadata_json, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT created_at FROM experiments WHERE experiment_id = ?), ?))
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT created_at FROM experiments WHERE experiment_id = ?), ?))
             """,
             (
                 brief["experiment_id"],
                 brief["project_id"],
                 brief["conjecture_id"],
+                brief.get("route_id"),
                 brief["phase"],
                 brief["move"],
                 brief["objective"],
@@ -1251,17 +1516,26 @@ class Database:
             items.append(item)
         return items
 
-    def create_incident(self, project_id: str, incident_type: str, detail: str, experiment_id: str = "", severity: str = "warning") -> None:
+    def create_incident(
+        self,
+        project_id: str,
+        incident_type: str,
+        detail: str,
+        experiment_id: str = "",
+        severity: str = "warning",
+        run_id: Optional[str] = None,
+    ) -> None:
         import uuid
 
         now = utcnow()
+        incident_id = str(uuid.uuid4())
         self.conn.execute(
             """
             INSERT INTO incidents(incident_id, project_id, experiment_id, incident_type, severity, detail, status, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, 'open', ?, ?)
             """,
             (
-                str(uuid.uuid4()),
+                incident_id,
                 project_id,
                 experiment_id,
                 incident_type,
@@ -1272,6 +1546,29 @@ class Database:
             ),
         )
         self.conn.commit()
+        if run_id:
+            route_id = None
+            if experiment_id:
+                row = self.conn.execute(
+                    "SELECT route_id FROM experiments WHERE experiment_id = ?",
+                    (experiment_id,),
+                ).fetchone()
+                if row is not None:
+                    route_id = row[0]
+            self.emit_manager_event(
+                project_id=project_id,
+                run_id=run_id,
+                event_type="incident.opened",
+                source_component="incidents",
+                experiment_id=experiment_id or None,
+                route_id=route_id,
+                payload={
+                    "incident_id": incident_id,
+                    "incident_type": incident_type,
+                    "severity": severity,
+                    "detail": detail,
+                },
+            )
 
     def ensure_open_incident(
         self,
@@ -1794,10 +2091,11 @@ class Database:
         report_path: Optional[str],
         snapshot_path: Optional[str],
         summary: Dict[str, Any],
+        run_id: Optional[str] = None,
     ) -> str:
         import uuid
 
-        run_id = str(uuid.uuid4())
+        run_id = run_id or str(uuid.uuid4())
         now = utcnow()
         self.conn.execute(
             """
@@ -1869,6 +2167,394 @@ class Database:
             (run_id,),
         ).fetchall()
         return [self._decode_manager_candidate_audit(row) for row in rows]
+
+    def emit_manager_event(
+        self,
+        *,
+        project_id: str,
+        run_id: str,
+        event_type: str,
+        source_component: str,
+        payload: Dict[str, Any],
+        experiment_id: Optional[str] = None,
+        route_id: Optional[str] = None,
+        visibility: str = "public",
+        occurred_at: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        import uuid
+
+        now = occurred_at or utcnow()
+        event_id = str(uuid.uuid4())
+        with self.transaction(immediate=True):
+            row = self.conn.execute(
+                "SELECT COALESCE(MAX(sequence_no), 0) FROM manager_events"
+            ).fetchone()
+            next_seq = int(row[0]) + 1 if row is not None else 1
+            self.conn.execute(
+                """
+                INSERT INTO manager_events(
+                    event_id, sequence_no, occurred_at, project_id, run_id, experiment_id,
+                    route_id, event_type, source_component, visibility, payload_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    event_id,
+                    next_seq,
+                    now,
+                    project_id,
+                    run_id,
+                    experiment_id,
+                    route_id,
+                    event_type,
+                    source_component,
+                    visibility,
+                    json.dumps(payload),
+                ),
+            )
+        return {
+            "event_id": event_id,
+            "sequence_no": next_seq,
+            "occurred_at": now,
+            "project_id": project_id,
+            "run_id": run_id,
+            "experiment_id": experiment_id,
+            "route_id": route_id,
+            "event_type": event_type,
+            "source_component": source_component,
+            "visibility": visibility,
+            "payload": payload,
+        }
+
+    def list_manager_events(
+        self,
+        project_id: str,
+        *,
+        since_sequence: Optional[int] = None,
+        limit: int = 200,
+    ) -> List[Dict[str, Any]]:
+        params: list[Any] = [project_id]
+        query = "SELECT * FROM manager_events WHERE project_id = ?"
+        if since_sequence is not None:
+            query += " AND sequence_no > ?"
+            params.append(int(since_sequence))
+        query += " ORDER BY sequence_no ASC LIMIT ?"
+        params.append(int(limit))
+        rows = self.conn.execute(query, params).fetchall()
+        results: List[Dict[str, Any]] = []
+        for row in rows:
+            item = dict(row)
+            item["payload"] = json.loads(item.get("payload_json", "{}"))
+            results.append(item)
+        return results
+
+    def last_manager_event(self, project_id: str) -> Optional[Dict[str, Any]]:
+        row = self.conn.execute(
+            "SELECT * FROM manager_events WHERE project_id = ? ORDER BY sequence_no DESC LIMIT 1",
+            (project_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        item = dict(row)
+        item["payload"] = json.loads(item.get("payload_json", "{}"))
+        return item
+
+    def get_theorem_route_by_key(self, route_key: str) -> Optional[Dict[str, Any]]:
+        row = self.conn.execute(
+            "SELECT * FROM theorem_routes WHERE route_key = ?",
+            (route_key,),
+        ).fetchone()
+        if row is None:
+            return None
+        item = dict(row)
+        item["summary"] = json.loads(item.get("summary_json", "{}"))
+        return item
+
+    def get_theorem_route(self, route_id: str) -> Optional[Dict[str, Any]]:
+        row = self.conn.execute(
+            "SELECT * FROM theorem_routes WHERE route_id = ?",
+            (route_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        item = dict(row)
+        item["summary"] = json.loads(item.get("summary_json", "{}"))
+        return item
+
+    def list_theorem_routes(self, project_id: str, status: Optional[str] = None) -> List[Dict[str, Any]]:
+        params: list[Any] = [project_id]
+        query = "SELECT * FROM theorem_routes WHERE project_id = ?"
+        if status is not None:
+            query += " AND route_status = ?"
+            params.append(status)
+        query += " ORDER BY current_strength DESC, updated_at DESC"
+        rows = self.conn.execute(query, params).fetchall()
+        results: List[Dict[str, Any]] = []
+        for row in rows:
+            item = dict(row)
+            item["summary"] = json.loads(item.get("summary_json", "{}"))
+            results.append(item)
+        return results
+
+    def upsert_theorem_route(self, route: Dict[str, Any]) -> None:
+        now = utcnow()
+        self.conn.execute(
+            """
+            INSERT INTO theorem_routes(
+                route_id, project_id, conjecture_id, theorem_family, route_key, route_stage,
+                route_status, current_strength, recent_signal_velocity, blocker_pressure,
+                novelty_score, reuse_score, transfer_score, last_selected_at, last_progress_at,
+                operator_priority, summary_json, created_at, updated_at
+            ) VALUES (
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                COALESCE((SELECT created_at FROM theorem_routes WHERE route_id = ?), ?),
+                ?
+            )
+            ON CONFLICT(route_key) DO UPDATE SET
+                route_stage = excluded.route_stage,
+                route_status = excluded.route_status,
+                current_strength = excluded.current_strength,
+                recent_signal_velocity = excluded.recent_signal_velocity,
+                blocker_pressure = excluded.blocker_pressure,
+                novelty_score = excluded.novelty_score,
+                reuse_score = excluded.reuse_score,
+                transfer_score = excluded.transfer_score,
+                last_selected_at = excluded.last_selected_at,
+                last_progress_at = excluded.last_progress_at,
+                operator_priority = excluded.operator_priority,
+                summary_json = excluded.summary_json,
+                updated_at = excluded.updated_at
+            """,
+            (
+                route["route_id"],
+                route["project_id"],
+                route.get("conjecture_id"),
+                route.get("theorem_family", ""),
+                route["route_key"],
+                route.get("route_stage", "mapping"),
+                route.get("route_status", "active"),
+                float(route.get("current_strength", 0.0)),
+                float(route.get("recent_signal_velocity", 0.0)),
+                float(route.get("blocker_pressure", 0.0)),
+                float(route.get("novelty_score", 0.0)),
+                float(route.get("reuse_score", 0.0)),
+                float(route.get("transfer_score", 0.0)),
+                route.get("last_selected_at"),
+                route.get("last_progress_at"),
+                int(route.get("operator_priority", 0)),
+                json.dumps(route.get("summary", {})),
+                route["route_id"],
+                now,
+                now,
+            ),
+        )
+        self.conn.commit()
+
+    def insert_route_evidence(
+        self,
+        *,
+        route_id: str,
+        evidence_type: str,
+        strength_delta: float,
+        payload: Dict[str, Any],
+        source_experiment_id: Optional[str] = None,
+        source_object_id: Optional[str] = None,
+    ) -> str:
+        import uuid
+
+        evidence_id = str(uuid.uuid4())
+        self.conn.execute(
+            """
+            INSERT INTO route_evidence(
+                evidence_id, route_id, evidence_type, source_experiment_id, source_object_id,
+                strength_delta, payload_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                evidence_id,
+                route_id,
+                evidence_type,
+                source_experiment_id,
+                source_object_id,
+                float(strength_delta),
+                json.dumps(payload),
+                utcnow(),
+            ),
+        )
+        self.conn.commit()
+        return evidence_id
+
+    def set_route_operator_priority(self, route_id: str, priority: int) -> None:
+        self.conn.execute(
+            "UPDATE theorem_routes SET operator_priority = ?, updated_at = ? WHERE route_id = ?",
+            (int(priority), utcnow(), route_id),
+        )
+        self.conn.commit()
+
+    def set_route_status(self, route_id: str, status: str) -> None:
+        self.conn.execute(
+            "UPDATE theorem_routes SET route_status = ?, updated_at = ? WHERE route_id = ?",
+            (status, utcnow(), route_id),
+        )
+        self.conn.commit()
+
+    def append_route_note(self, route_id: str, note: str) -> None:
+        route = self.get_theorem_route(route_id)
+        if route is None:
+            return
+        summary = route.get("summary", {})
+        notes = summary.get("operator_notes", [])
+        notes.append({"note": note, "created_at": utcnow()})
+        summary["operator_notes"] = notes[-20:]
+        self.conn.execute(
+            "UPDATE theorem_routes SET summary_json = ?, updated_at = ? WHERE route_id = ?",
+            (json.dumps(summary), utcnow(), route_id),
+        )
+        self.conn.commit()
+
+    def reset_experiment_for_retry(self, experiment_id: str) -> None:
+        self.conn.execute(
+            """
+            UPDATE experiments
+            SET status = 'planned',
+                external_id = NULL,
+                external_status = NULL,
+                submitted_at = NULL,
+                last_synced_at = NULL
+            WHERE experiment_id = ?
+            """,
+            (experiment_id,),
+        )
+        self.conn.commit()
+
+    def mark_experiment_killed(self, experiment_id: str) -> None:
+        self.conn.execute(
+            """
+            UPDATE experiments
+            SET status = 'failed',
+                blocker_type = 'operator_killed',
+                external_status = 'killed',
+                completed_at = ?
+            WHERE experiment_id = ?
+            """,
+            (utcnow(), experiment_id),
+        )
+        self.conn.commit()
+
+    def list_route_evidence(self, route_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT * FROM route_evidence
+            WHERE route_id = ?
+            ORDER BY created_at DESC
+            LIMIT ?
+            """,
+            (route_id, int(limit)),
+        ).fetchall()
+        results: List[Dict[str, Any]] = []
+        for row in rows:
+            item = dict(row)
+            item["payload"] = json.loads(item.get("payload_json", "{}"))
+            results.append(item)
+        return results
+
+    def create_operator_command(
+        self,
+        *,
+        project_id: str,
+        command_type: str,
+        target_type: str,
+        payload: Dict[str, Any],
+        route_id: Optional[str] = None,
+        target_id: Optional[str] = None,
+        status: str = "pending",
+    ) -> str:
+        import uuid
+
+        command_id = str(uuid.uuid4())
+        self.conn.execute(
+            """
+            INSERT INTO operator_commands(
+                command_id, project_id, route_id, command_type, target_type, target_id,
+                payload_json, issued_at, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                command_id,
+                project_id,
+                route_id,
+                command_type,
+                target_type,
+                target_id,
+                json.dumps(payload),
+                utcnow(),
+                status,
+            ),
+        )
+        self.conn.commit()
+        return command_id
+
+    def list_operator_commands(self, project_id: str, status: Optional[str] = None) -> List[Dict[str, Any]]:
+        params: list[Any] = [project_id]
+        query = "SELECT * FROM operator_commands WHERE project_id = ?"
+        if status is not None:
+            query += " AND status = ?"
+            params.append(status)
+        query += " ORDER BY issued_at ASC"
+        rows = self.conn.execute(query, params).fetchall()
+        results: List[Dict[str, Any]] = []
+        for row in rows:
+            item = dict(row)
+            item["payload"] = json.loads(item.get("payload_json", "{}"))
+            results.append(item)
+        return results
+
+    def mark_operator_command_applied(
+        self,
+        command_id: str,
+        *,
+        status: str,
+        details: Dict[str, Any],
+    ) -> str:
+        import uuid
+
+        result_id = str(uuid.uuid4())
+        now = utcnow()
+        self.conn.execute(
+            "UPDATE operator_commands SET status = ? WHERE command_id = ?",
+            (status, command_id),
+        )
+        self.conn.execute(
+            """
+            INSERT INTO operator_command_results(
+                result_id, command_id, applied_at, status, details_json
+            ) VALUES (?, ?, ?, ?, ?)
+            """,
+            (result_id, command_id, now, status, json.dumps(details)),
+        )
+        self.conn.commit()
+        return result_id
+
+    def get_projection_checkpoint(self, projection_name: str) -> int:
+        row = self.conn.execute(
+            "SELECT last_sequence_no FROM projection_checkpoints WHERE projection_name = ?",
+            (projection_name,),
+        ).fetchone()
+        if row is None:
+            return 0
+        return int(row["last_sequence_no"])
+
+    def update_projection_checkpoint(self, projection_name: str, sequence_no: int) -> None:
+        self.conn.execute(
+            """
+            INSERT INTO projection_checkpoints(projection_name, last_sequence_no, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(projection_name) DO UPDATE SET
+                last_sequence_no = excluded.last_sequence_no,
+                updated_at = excluded.updated_at
+            """,
+            (projection_name, int(sequence_no), utcnow()),
+        )
+        self.conn.commit()
 
     def list_manager_runs(self, project_id: str, limit: int = 50) -> List[Dict[str, Any]]:
         rows = self.conn.execute(

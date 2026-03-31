@@ -32,3 +32,4 @@ lint_work/
 preview_work/
 outputs/
 test_demo/
+.vercel

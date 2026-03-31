@@ -5,6 +5,9 @@ Summary: Research orchestration layer around Aristotle for dependency mapping, l
 Author: OpenAI prototype generator
 Requires-Python: >=3.10
 Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.115.0
+Requires-Dist: uvicorn>=0.30.0
+Requires-Dist: jinja2>=3.1.0
 
 # Aristotle Research Orchestrator
 
@@ -103,6 +106,14 @@ research-orchestrator campaign-status \
   --project <project-id>
 ```
 
+Machine-readable health is also available:
+```bash
+research-orchestrator campaign-health \
+  --db ./state.sqlite \
+  --project <project-id> \
+  --format json
+```
+
 ### 3) Run autonomous cycles
 ```bash
 research-orchestrator run-cycle \
@@ -127,6 +138,100 @@ The report now includes:
 - discovery graph nodes and edges
 - incidents and audit trail
 - experiment-level discovery context
+- campaign health and version drift
+- latest manager candidate audit summary
+
+Replay historical experiment and manager decisions:
+```bash
+research-orchestrator replay-run \
+  --db ./state.sqlite \
+  --experiment-id <experiment-id> \
+  --include-manifest
+
+research-orchestrator audit-run \
+  --db ./state.sqlite \
+  --run-id <manager-run-id>
+```
+
+## Readable state bundles and motif-centric search
+
+The manager is now more motif-centric than linear. Strong recurring lemmas, unresolved subgoals, proof-trace fragments, witnesses, and missing assumptions can all spawn multiple related candidates in the same tick. In particular:
+- `promote_subgoal` promotes a recurring unresolved goal into its own target
+- `promote_trace` isolates a recurring proof fragment or tactic bottleneck
+- `boundary_map_from_witness` treats a falsifying witness as a local map of the false region
+- `boundary_map_from_missing_assumption` turns a fragile falsification into a minimal assumption-repair experiment
+
+The campaign also publishes a readable state bundle so humans do not need SQLite tooling just to inspect progress. The bundle is designed to be the primary inspection surface and can include:
+- `report.md`
+- `report.manager_snapshot.json`
+- `campaign_summary.json`
+- `conjecture_scoreboard.json`
+- `recurring_structures.json`
+- `active_queue.json`
+- `experiments.csv`
+- `incidents.json`
+- `integrity.json`
+- optional `state.snapshot.sqlite`
+
+### Export and inspect readable state
+```bash
+research-orchestrator db-export \
+  --db ./state.sqlite \
+  --project <project-id> \
+  --output-dir ./state_bundle
+```
+
+```bash
+research-orchestrator publish-state-bundle \
+  --db ./state.sqlite \
+  --project <project-id> \
+  --output-dir ./state_bundle \
+  --report ./report.md \
+  --manager-snapshot ./report.manager_snapshot.json \
+  --include-sqlite
+```
+
+If the SQLite file is unavailable, `campaign-status` can read the exported bundle:
+```bash
+research-orchestrator campaign-status \
+  --db ./missing-or-corrupt.sqlite \
+  --project <project-id> \
+  --state-dir ./state_bundle
+```
+
+### Live dashboard (bundle, db, or mixed)
+The dashboard is a lightweight FastAPI + Jinja app that reads real campaign state. It prefers bundle files for overview sections and uses SQLite for supplemental detail when both are provided.
+
+```bash
+research-orchestrator dashboard \
+  --state-dir ./state_bundle \
+  --db ./state.sqlite \
+  --host 127.0.0.1 \
+  --port 8000 \
+  --reload
+```
+
+Use one source or both:
+- bundle-only: `--state-dir ./state_bundle`
+- db-only: `--db ./state.sqlite`
+- mixed: pass both flags
+
+If SQLite is corrupt but the bundle is readable, the dashboard still starts and shows a warning banner.
+
+### Integrity checks and backups
+```bash
+research-orchestrator db-check --db ./state.sqlite
+research-orchestrator db-backup --db ./state.sqlite --output ./backups/state.sqlite
+```
+
+`sync-github-state` now prefers the readable bundle and only pulls a SQLite snapshot when explicitly asked:
+```bash
+research-orchestrator sync-github-state \
+  --repo <repo> \
+  --ref <branch> \
+  --state-dir ./synced_state \
+  --include-sqlite
+```
 
 ## Core commands
 
@@ -148,6 +253,16 @@ research-orchestrator run-cycle   --db ./state.sqlite   --project mono-001   --p
 ### Preview prompts for the next planned experiment
 ```bash
 research-orchestrator preview-next   --db ./state.sqlite   --project mono-001
+```
+
+### Render the structured campaign brief
+```bash
+research-orchestrator campaign-brief   --db ./state.sqlite   --project mono-001
+```
+
+### Summarize LLM-assisted manager behavior
+```bash
+research-orchestrator manager-llm-report   --db ./state.sqlite   --project mono-001
 ```
 
 ### Generate a research report
@@ -203,6 +318,64 @@ This checks:
 - lemma normalization
 - manager behavior
 - demo orchestration flow
+
+## LLM-assisted manager layer
+
+The research manager now supports a feature-flagged LLM assistance layer that sits between frontier generation and deterministic candidate selection.
+
+Deterministic guardrails still remain the final authority:
+- budget and capacity caps run first
+- duplicate active signatures are rejected first
+- repeated no-signal branches are still pruned deterministically
+- move families must already exist in the registry
+- synthesized parameters must match the registered parameter schema
+- execution, Lean interaction, and result ingestion still use the existing deterministic pipeline
+
+### Progressive feature flags
+
+All new LLM-assisted behavior is off by default except local brief generation.
+
+```bash
+export RESEARCH_ORCHESTRATOR_LLM_BRIEF_GENERATION=1
+export RESEARCH_ORCHESTRATOR_LLM_INTERPRETATION=0
+export RESEARCH_ORCHESTRATOR_LLM_CANDIDATE_ANNOTATION=0
+export RESEARCH_ORCHESTRATOR_LLM_PARAMETER_SYNTHESIS=0
+export RESEARCH_ORCHESTRATOR_LLM_BRIDGE_HYPOTHESES=0
+export RESEARCH_ORCHESTRATOR_LLM_MANAGER_COMMAND="python path/to/manager_llm.py"
+export RESEARCH_ORCHESTRATOR_LLM_MANAGER_MODEL="your-model-name"
+```
+
+Recommended rollout:
+- start with `RESEARCH_ORCHESTRATOR_LLM_BRIEF_GENERATION=1`
+- then enable `RESEARCH_ORCHESTRATOR_LLM_INTERPRETATION=1`
+- then enable `RESEARCH_ORCHESTRATOR_LLM_CANDIDATE_ANNOTATION=1`
+- only after that turn on parameter synthesis and bridge hypotheses
+
+### Stored manager artifacts
+
+LLM-assisted manager artifacts are persisted in SQLite so they can be audited and replayed:
+- `campaign_interpretations`
+- `bridge_hypotheses`
+- `manager_candidate_audits` now include baseline score, LLM adjustments, and final score breakdowns
+
+Accepted parameter syntheses and candidate annotations are also embedded into candidate metadata and audit records so historical rankings can be compared without a separate execution path.
+
+### Replay and evaluation
+
+Use these commands to inspect and compare decisions:
+
+```bash
+research-orchestrator audit-run   --db ./state.sqlite   --run-id <manager-run-id>
+research-orchestrator replay-run   --db ./state.sqlite   --experiment-id <experiment-id>   --include-manifest
+research-orchestrator manager-llm-report   --db ./state.sqlite   --project mono-001
+```
+
+The aggregated LLM report summarizes:
+- divergence frequency between baseline and LLM-assisted ordering
+- average accepted LLM delta
+- interpretation validity rate
+- parameter synthesis acceptance rate
+- downstream signal by policy path when measurable
 
 ## Using the live Aristotle CLI
 
@@ -271,10 +444,11 @@ For live Aristotle campaigns, treat GitHub as the source of truth:
 - the `campaign-state` branch is the canonical live state
 - local inspection should begin by syncing those artifacts down before reading reports or the DB
 
+### Monitoring the live campaign
 Sync the canonical state locally with:
 ```bash
 research-orchestrator sync-github-state \
-  --repo abdulrahimiqbal/aristotle_autoresearch \
+  --repo <your-github-username>/aristotle_autoresearch \
   --ref campaign-state \
   --state-dir outputs/erdos_live_async
 ```
@@ -288,6 +462,26 @@ Recommended practice:
 - do not run local `manager-tick` against a live campaign unless you intentionally want a separate campaign
 - run `sync-github-state` before inspecting live status locally
 - use the local DB for mock runs or for read-only inspection of the GitHub-managed live campaign
+
+Read the latest report:
+```bash
+cat outputs/erdos_live_async/report.md
+```
+
+Inspect the latest experiment activity:
+```bash
+sqlite3 outputs/erdos_live_async/state.sqlite "SELECT experiment_id, conjecture_id, move, status, proof_outcome, new_signal_count FROM experiments ORDER BY created_at DESC LIMIT 20"
+```
+
+Check discovery graph growth:
+```bash
+sqlite3 outputs/erdos_live_async/state.sqlite "SELECT node_type, COUNT(*) FROM discovery_graph_nodes GROUP BY node_type"
+```
+
+Check for incidents:
+```bash
+sqlite3 outputs/erdos_live_async/state.sqlite "SELECT * FROM incidents WHERE status='open'"
+```
 
 ## Suggested development path
 

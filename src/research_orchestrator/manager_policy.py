@@ -10,15 +10,15 @@ from research_orchestrator.schema_versions import MANAGER_POLICY_VERSION
 
 
 MOVE_PRIORITY = {
-    "underspecify": 0,
-    "perturb_assumption": 1,
-    "promote_lemma": 2,
-    "promote_subgoal": 3,
-    "promote_trace": 4,
-    "reformulate": 5,
-    "boundary_map_from_witness": 6,
-    "boundary_map_from_missing_assumption": 7,
-    "counterexample_mode": 8,
+    "boundary_map_from_missing_assumption": 0,
+    "boundary_map_from_witness": 1,
+    "counterexample_mode": 2,
+    "underspecify": 3,
+    "perturb_assumption": 4,
+    "promote_lemma": 5,
+    "promote_subgoal": 6,
+    "promote_trace": 7,
+    "reformulate": 8,
 }
 
 
@@ -66,7 +66,11 @@ def build_manager_tick_prompt(
     recurring_subgoals: List[Dict[str, Any]],
     assumption_sensitivity: List[Dict[str, Any]],
     capacity: Dict[str, int],
+    route_context: Dict[str, Any] | None = None,
 ) -> str:
+    route_section = ""
+    if route_context:
+        route_section = f"\nRoute selection context:\n{json.dumps(route_context, indent=2)}\n"
     return f"""
 {build_project_constitution(charter)}
 
@@ -93,6 +97,7 @@ Frontier candidates:
 
 Capacity:
 {json.dumps(capacity, indent=2)}
+{route_section}
 
 Return valid JSON with this exact shape:
 {{
@@ -290,7 +295,14 @@ def choose_candidates_for_submission(
     frontier: List[Dict[str, Any]],
     max_count: int,
     llm_manager_mode: str,
+    route_id: str | None = None,
+    route_context: Dict[str, Any] | None = None,
 ) -> PolicyDecision:
+    filtered_frontier = frontier
+    if route_id:
+        filtered_frontier = [item for item in frontier if item.get("route_id") == route_id]
+    if route_id and not filtered_frontier:
+        filtered_frontier = frontier
     charter = db.get_charter(project_id)
     spec = db.get_campaign_spec(project_id)
     active = db.list_active_experiments(project_id)
@@ -306,11 +318,12 @@ def choose_candidates_for_submission(
         state_summary=summary,
         active_experiments=active,
         completed_experiments=completed,
-        frontier=frontier,
+        frontier=filtered_frontier,
         recurring_lemmas=recurring,
         recurring_subgoals=recurring_subgoals,
         assumption_sensitivity=sensitivity,
         capacity=capacity,
+        route_context=route_context,
     )
 
     branch_prune_after_no_signal = spec.budget_policy.branch_prune_after_no_signal if spec is not None else 3
@@ -326,7 +339,7 @@ def choose_candidates_for_submission(
         if motif:
             active_motif_counts[motif] = active_motif_counts.get(motif, 0) + 1
     motif_signal_map: Dict[str, float] = {}
-    for candidate in frontier:
+    for candidate in filtered_frontier:
         motif_id = candidate.get("motif_id") or ""
         if not motif_id:
             continue
@@ -342,7 +355,7 @@ def choose_candidates_for_submission(
     eligible: List[Dict[str, Any]] = []
     skipped: List[Dict[str, Any]] = []
     family_counts: Dict[tuple[str, str], int] = {}
-    for candidate in frontier:
+    for candidate in filtered_frontier:
         candidate = dict(candidate)
         motif_id = candidate.get("motif_id") or ""
         dominant_motif_bonus = 0.0
@@ -431,5 +444,5 @@ def choose_candidates_for_submission(
             if using_llm_annotations
             else "Fallback policy ranked candidates by motif reuse, recent signal velocity, boundary evidence, and an exploration floor."
         ),
-        candidate_audits=build_candidate_audits(frontier, selected_ids, skipped, final_ranking=selected_pool),
+        candidate_audits=build_candidate_audits(filtered_frontier, selected_ids, skipped, final_ranking=selected_pool),
     )

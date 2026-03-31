@@ -62,6 +62,11 @@ mkdir -p "$(dirname "$DB_PATH")" "$WORKSPACE_PATH"
   --report-output "$REPORT_PATH" \
   --llm-manager "$LLM_MANAGER"
 
+# Ensure live projections are fresh before state is committed
+"$RO_BIN" db-refresh-projections \
+  --db "$DB_PATH" \
+  --project "erdos-combo-001"
+
 echo
 echo "Manager-tick report written to: $REPORT_PATH"
 echo

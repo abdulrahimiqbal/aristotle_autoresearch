@@ -178,7 +178,7 @@ class DashboardLoader:
         )
         active_queue = bundle["active_queue"] or db["active_queue"]
         incidents = bundle["incidents"] or db["incidents"]
-        manager_snapshot = bundle["manager_snapshot"] or db["manager_snapshot"]
+        manager_snapshot = self._merge_manager_snapshot(bundle["manager_snapshot"], db["manager_snapshot"])
 
         snapshot = self._build_campaign_snapshot(
             project_id=project_id,
@@ -243,6 +243,22 @@ class DashboardLoader:
             provenance=provenance,
             health=health,
         )
+
+    def _merge_manager_snapshot(self, bundle_snapshot: dict[str, Any], db_snapshot: dict[str, Any]) -> dict[str, Any]:
+        if not bundle_snapshot:
+            return db_snapshot
+        if not db_snapshot:
+            return bundle_snapshot
+        merged = dict(db_snapshot)
+        merged.update(bundle_snapshot)
+        for key in ("campaign_interpretations", "bridge_hypotheses", "candidate_audits"):
+            bundle_value = bundle_snapshot.get(key)
+            db_value = db_snapshot.get(key)
+            if bundle_value:
+                merged[key] = bundle_value
+            elif db_value:
+                merged[key] = db_value
+        return merged
 
     def _source_mode(self, bundle: dict[str, Any], db: dict[str, Any]) -> str:
         if bundle["available"] and db["available"]:

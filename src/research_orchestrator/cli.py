@@ -21,6 +21,7 @@ from research_orchestrator.orchestrator import (
 from research_orchestrator.replay import manager_llm_report, replay_experiment, replay_manager_run, reconstruct_manifest
 from research_orchestrator.reporter import build_report, write_report
 from research_orchestrator.manager import choose_next_experiment
+from research_orchestrator.live_projections import refresh_live_projections
 
 
 def cmd_start_campaign(args):
@@ -56,23 +57,77 @@ def cmd_start_campaign(args):
 
 
 def cmd_campaign_status(args):
+    db = Database(args.db)
+    db.initialize()
+    project_id = args.project
+    
     try:
-        db = Database(args.db)
-        db.initialize()
-        summary = db.project_summary(args.project)
-        spec = db.get_campaign_spec(args.project)
+        # Source materials for legacy fallback
+        summary = db.project_summary(project_id)
+        spec = db.get_campaign_spec(project_id)
+        
+        # 1. Attempt to gather data from projections (Control Plane source of truth)
+        health_current = None
+        try:
+            health_row = db.conn.execute(
+                "SELECT payload_json, manager_status, last_event_at, last_projection_at FROM system_health_current WHERE project_id = ?",
+                (project_id,),
+            ).fetchone()
+            if health_row:
+                health_current = {
+                    "manager_status": health_row["manager_status"],
+                    "last_event_at": health_row["last_event_at"],
+                    "last_projection_at": health_row["last_projection_at"],
+                    **json.loads(health_row["payload_json"]),
+                }
+        except Exception:
+            pass
+
+        active_current = []
+        try:
+            active_current = [
+                json.loads(row["payload_json"])
+                for row in db.conn.execute(
+                    "SELECT payload_json FROM active_experiments_current WHERE project_id = ?",
+                    (project_id,),
+                ).fetchall()
+            ]
+        except Exception:
+            pass
+
+        incidents_current = []
+        try:
+            incidents_current = [
+                json.loads(row["payload_json"])
+                for row in db.conn.execute(
+                    "SELECT payload_json FROM incidents_current WHERE project_id = ? AND status = 'open'",
+                    (project_id,),
+                ).fetchall()
+            ]
+        except Exception:
+            pass
+
+        timeline_check = db.check_event_timeline_integrity()
+
         payload = {
-            "project_id": args.project,
+            "project_id": project_id,
             "title": summary["campaign_title"],
             "campaign_version": summary.get("campaign_version", ""),
             "raw_prompt": spec.raw_prompt if spec is not None else "",
             "summary": summary,
-            "open_questions": db.list_discovery_questions(args.project, status="open"),
-            "discovery_nodes": db.list_discovery_nodes(args.project)[:20],
-            "recent_audit_events": db.list_audit_events(args.project, limit=10),
-            "open_incidents": db.list_incidents(args.project, status="open"),
-            "health": db.campaign_health(args.project),
-            "version_drift": db.version_drift_summary(args.project),
+            "control_plane": {
+                "manager_status": health_current["manager_status"] if health_current else "unknown",
+                "last_event_at": health_current["last_event_at"] if health_current else "n/a",
+                "last_projection_at": health_current["last_projection_at"] if health_current else "n/a",
+                "timeline_ok": timeline_check.get("ok", False),
+                "timeline_gaps": timeline_check.get("gaps", 0),
+                "source_mode": "projection" if health_current else "legacy_fallback",
+            },
+            "open_questions": db.list_discovery_questions(project_id, status="open"),
+            "open_incidents": incidents_current if health_current else db.list_incidents(project_id, status="open"),
+            "active_experiments": active_current if active_current else db.list_active_experiments(project_id),
+            "health": health_current if health_current else db.campaign_health(project_id),
+            "version_drift": db.version_drift_summary(project_id),
             "source": "sqlite",
         }
     except Exception:
@@ -80,7 +135,7 @@ def cmd_campaign_status(args):
             raise
         state_root = Path(args.state_dir)
         payload = {
-            "project_id": args.project,
+            "project_id": project_id,
             "summary": json.loads((state_root / "campaign_summary.json").read_text(encoding="utf-8")),
             "conjecture_scoreboard": json.loads((state_root / "conjecture_scoreboard.json").read_text(encoding="utf-8")),
             "open_incidents": json.loads((state_root / "incidents.json").read_text(encoding="utf-8")),
@@ -333,10 +388,13 @@ def cmd_sync_github_state(args):
 def cmd_db_check(args):
     db = Database(args.db)
     db.initialize()
+    timeline_check = db.check_event_timeline_integrity()
     payload = {
         "quick_check": db.quick_check(),
         "integrity_check": db.integrity_check(),
         "wal_checkpoint": db.checkpoint_wal(),
+        "event_timeline_gaps": timeline_check.get("gaps", 0),
+        "event_timeline_ok": timeline_check.get("ok", False),
     }
     print(json.dumps(payload, indent=2))
 
@@ -353,6 +411,19 @@ def cmd_db_export(args):
     db.initialize()
     written = db.export_readable_state(args.project, args.output_dir)
     print(json.dumps({"written": written}, indent=2))
+
+
+def cmd_db_refresh_projections(args):
+    db = Database(args.db)
+    db.initialize()
+    project_id = args.project
+    if not project_id:
+        row = db.conn.execute("SELECT project_id FROM projects ORDER BY created_at DESC LIMIT 1").fetchone()
+        project_id = row[0] if row else None
+    if not project_id:
+        raise SystemExit("No project found in database.")
+    refresh_live_projections(db, project_id)
+    print(f"Refreshed live projections for project {project_id}")
 
 
 def cmd_publish_state_bundle(args):
@@ -541,12 +612,17 @@ def build_parser():
 
     dashboard = sub.add_parser("dashboard", help="Launch a local, live dashboard from readable bundle and/or SQLite.")
     dashboard.add_argument("--state-dir")
-    dashboard.add_argument("--db")
-    dashboard.add_argument("--project")
+    dashboard.add_argument("--db", default="outputs/erdos_live_async/state.sqlite")
+    dashboard.add_argument("--project", default="erdos-combo-001")
     dashboard.add_argument("--host", default="127.0.0.1")
     dashboard.add_argument("--port", type=int, default=8000)
     dashboard.add_argument("--reload", action="store_true")
     dashboard.set_defaults(func=cmd_dashboard)
+
+    db_refresh = sub.add_parser("db-refresh-projections", help="Refresh live timeline projections from the manager event log.")
+    db_refresh.add_argument("--db", required=True)
+    db_refresh.add_argument("--project", default="")
+    db_refresh.set_defaults(func=cmd_db_refresh_projections)
 
     lint = sub.add_parser("lint-prompts", help="Generate prompts for the next cycle and lint them.")
     lint.add_argument("--db", required=True)
@@ -565,4 +641,11 @@ def build_parser():
 def main():
     parser = build_parser()
     args = parser.parse_args()
-    args.func(args)
+    if hasattr(args, "func"):
+        args.func(args)
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()

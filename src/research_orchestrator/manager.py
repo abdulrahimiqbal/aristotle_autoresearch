@@ -20,18 +20,19 @@ from research_orchestrator.llm_manager import (
 )
 from research_orchestrator.move_registry import MoveCandidate
 from research_orchestrator.prompts import build_manager_prompt
+from research_orchestrator.route_planner import assign_routes_to_frontier, select_route
 
 
 MOVE_PRIORITY = {
-    "underspecify": 0,
-    "perturb_assumption": 1,
-    "promote_lemma": 2,
-    "promote_subgoal": 3,
-    "promote_trace": 4,
-    "reformulate": 5,
-    "boundary_map_from_witness": 6,
-    "boundary_map_from_missing_assumption": 7,
-    "counterexample_mode": 8,
+    "boundary_map_from_missing_assumption": 0,
+    "boundary_map_from_witness": 1,
+    "counterexample_mode": 2,
+    "underspecify": 3,
+    "perturb_assumption": 4,
+    "promote_lemma": 5,
+    "promote_subgoal": 6,
+    "promote_trace": 7,
+    "reformulate": 8,
 }
 
 
@@ -365,6 +366,12 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
 
     frontier, llm_artifacts = _apply_llm_enrichment(db, project_id, workspace_root, frontier, runtime)
     cleaned_frontier = _strip_frontier_internal_fields(frontier)
+    cleaned_frontier, route_scores = assign_routes_to_frontier(db, project_id, cleaned_frontier)
+    route_by_experiment = {item["experiment_id"]: item.get("route_id") for item in cleaned_frontier}
+    for payload in frontier:
+        route_id = route_by_experiment.get(payload["experiment_id"])
+        if route_id:
+            payload["route_id"] = route_id
     for item in cleaned_frontier:
         shutil.rmtree(item["workspace_dir"], ignore_errors=True)
 
@@ -375,7 +382,14 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
     )
     if llm_artifacts["brief"] is not None:
         manager_prompt = manager_prompt + "\n\nCampaign brief:\n" + json.dumps(llm_artifacts["brief"], indent=2)
-    chosen_payload = min(cleaned_frontier, key=_frontier_sort_key)
+    selected_route, _ = select_route(route_scores)
+    if selected_route is not None:
+        route_candidates = [item for item in cleaned_frontier if item.get("route_id") == selected_route.route_id]
+    else:
+        route_candidates = cleaned_frontier
+    if not route_candidates:
+        route_candidates = cleaned_frontier
+    chosen_payload = min(route_candidates, key=_frontier_sort_key)
     chosen_conjecture = next(item for item in runtime["conjectures"] if item.conjecture_id == chosen_payload["conjecture_id"])
     chosen_move_candidate = next(item["_frontier_candidate"]["move_candidate"] for item in frontier if item["experiment_id"] == chosen_payload["experiment_id"])
     chosen = materialize_candidate(
@@ -386,6 +400,7 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
         candidate=chosen_move_candidate,
         discovery_questions=runtime["questions_by_conjecture"].get(chosen_conjecture.conjecture_id, []),
     )
+    chosen.route_id = chosen_payload.get("route_id", "")
     return chosen, manager_prompt, cleaned_frontier
 
 
@@ -413,4 +428,6 @@ def generate_frontier(db: Database, project_id: str, workspace_root: str) -> Lis
     active_counts = _counts_by_conjecture(runtime["conjectures"], active)
     no_signal = {(item["conjecture_id"], item["move"]): item["observations"] for item in db.no_signal_branches(project_id)}
     _annotate_runtime_fields(frontier, active, no_signal, active_counts)
-    return sorted(_strip_frontier_internal_fields(frontier), key=_frontier_sort_key)
+    cleaned = _strip_frontier_internal_fields(frontier)
+    cleaned, _ = assign_routes_to_frontier(db, project_id, cleaned)
+    return sorted(cleaned, key=_frontier_sort_key)
