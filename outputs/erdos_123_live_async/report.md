@@ -1831,8 +1831,8 @@ The sorry here represents the core open mathematical co`
 ## Incidents
 
 - `warning` `repeated_provider_failures`: Provider-side failures reached 15 in recent completed experiments.
-- `warning` `retry_budget_exhausted`: Experiment 5646d012-e09a-4f34-9968-cf102ffacf97 reached retry budget (15 attempts).
-- `warning` `retry_budget_exhausted`: Experiment dd1125b5-8d98-43f7-ae5b-4d8334b53522 reached retry budget (15 attempts).
+- `warning` `retry_budget_exhausted`: Experiment 5646d012-e09a-4f34-9968-cf102ffacf97 reached retry budget (16 attempts).
+- `warning` `retry_budget_exhausted`: Experiment dd1125b5-8d98-43f7-ae5b-4d8334b53522 reached retry budget (16 attempts).
 - `warning` `retry_budget_exhausted`: Experiment 2af6662f-930d-4743-b852-8aef0ed7417a reached retry budget (13 attempts).
 - `warning` `retry_budget_exhausted`: Experiment 9ba22b23-e3fe-4bc2-95f5-268b1add4af8 reached retry budget (13 attempts).
 - `warning` `retry_budget_exhausted`: Experiment 9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0 reached retry budget (25 attempts).
@@ -1867,12 +1867,12 @@ The sorry here represents the core open mathematical co`
 - recurring structures considered: lemmas=10, subgoals=1, traces=10
 - synced `dd1125b5-8d98-43f7-ae5b-4d8334b53522` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `5646d012-e09a-4f34-9968-cf102ffacf97` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- considered `58b550a9-3535-40a5-9e61-7b8e613b23f8` rank=1 score=15.8784
-- considered `7f94a7ae-375d-41c9-a98a-9cedc7de9591` rank=2 score=16.1636
-- considered `46668eec-ff9f-4412-9c4a-ae012f82f6ec` rank=3 score=12.9837
-- skipped `58b550a9-3535-40a5-9e61-7b8e613b23f8` for `erdos-123` (duplicate active experiment signature)
-- skipped `7f94a7ae-375d-41c9-a98a-9cedc7de9591` for `erdos-123` (duplicate active experiment signature)
-- skipped `46668eec-ff9f-4412-9c4a-ae012f82f6ec` for `erdos-123` (conjecture active cap reached)
+- considered `b00e1ac9-8276-48b6-b781-df2a0d8ba458` rank=1 score=15.8784
+- considered `1e770ac1-fc91-42d2-9679-392c131ab112` rank=2 score=16.1636
+- considered `72146914-0791-49fa-8ca5-1640eda6e273` rank=3 score=12.9837
+- skipped `b00e1ac9-8276-48b6-b781-df2a0d8ba458` for `erdos-123` (duplicate active experiment signature)
+- skipped `1e770ac1-fc91-42d2-9679-392c131ab112` for `erdos-123` (duplicate active experiment signature)
+- skipped `72146914-0791-49fa-8ca5-1640eda6e273` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
