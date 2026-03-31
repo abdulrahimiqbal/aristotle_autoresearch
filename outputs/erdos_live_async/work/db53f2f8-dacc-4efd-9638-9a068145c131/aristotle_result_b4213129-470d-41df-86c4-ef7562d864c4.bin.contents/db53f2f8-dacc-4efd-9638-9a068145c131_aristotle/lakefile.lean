@@ -1,0 +1,10 @@
+import Lake
+open Lake DSL
+
+package «AristotleWorkspace» where
+  leanOptions := #[⟨`autoImplicit, false⟩]
+
+@[default_target]
+lean_lib «Main» where
+
+require "leanprover-community" / "mathlib"
