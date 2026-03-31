@@ -10,34 +10,39 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 - Experiments: 4
 - Succeeded: 0
-- Stalled: 1
+- Stalled: 2
 - Failed: 0
-- Pending: 3
+- Pending: 2
 
 ## Campaign Health
 
-- active=3 pending=3 running=3 completed=1 failed=0
+- active=2 pending=2 running=2 completed=2 failed=0
 - structured ingestion success rate: 1.0
-- semantic reuse rate: 0.0
-- transfer usage rate: 1.0
+- semantic reuse rate: 0.333
+- transfer usage rate: 0.5
 - reusable structure rate: 1.0
-- obstruction discovery rate: 1.0
+- obstruction discovery rate: 0.5
 - high-priority frontier share: 0.5
 - repeated no-signal streak: 0
-- duplicate frontier pressure: 2
-- move-family diversity: frontier=9 completed=1
+- duplicate frontier pressure: 1
+- move-family diversity: frontier=9 completed=2
 - open incidents: 2
 
 ## Version Drift
 
-- No manifest version drift detected.
+- `manifest_version` historical=`2026.03.phase6` current=`2026.03.phase7` count=26
+- `prompt_version` historical=`2026.03.phase6` current=`2026.03.phase7` count=26
+- `policy_version` historical=`2026.03.phase6` current=`2026.03.phase7` count=26
+- `move_registry_version` historical=`2026.03.phase4` current=`2026.03.phase7` count=26
+- `runtime_policy_version` historical=`2026.03.phase6` current=`2026.03.phase7` count=26
 
 ## Discovery Graph
 
-- nodes: 3
-- edges: 2
+- nodes: 4
+- edges: 3
 - verified-like nodes: 0
 - `experiment` `9941d619-a8ab-4ac9-ab9c-1503088b4e65` confidence=1.0 provenance=execution
+- `experiment` `ddb1aae2-1b93-438c-9165-39a34b6f05c6` confidence=1.0 provenance=execution
 - `reproducible_candidate_lemma` `bridge_interval_coverage : True` confidence=0.75 provenance=artifact
 - `reproducible_candidate_lemma` `promoted_lemma : True` confidence=0.75 provenance=artifact
 
@@ -57,16 +62,17 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `IN_PROGRESS`: 3
+- `IN_PROGRESS`: 2
 
 ## Recently completed
 
+- `ddb1aae2-1b93-438c-9165-39a34b6f05c6` on `erdos-123` -> `stalled`
 - `9941d619-a8ab-4ac9-ab9c-1503088b4e65` on `erdos-123` -> `stalled`
 
 ## Recurring lemmas
 
+- `promoted_lemma : True` — reuse=4
 - `bridge_interval_coverage : True` — reuse=2
-- `promoted_lemma : True` — reuse=2
 
 ## Space Search Progress
 
@@ -80,6 +86,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - recurring lemmas are beginning to cluster across runs
 - no repeated subgoals captured yet
 - no blocker patterns aggregated yet
+- move `promote_lemma` repeatedly yields blocker `unknown` / `partial` (2 runs)
 
 ## Assumption sensitivity
 
@@ -194,31 +201,57 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - move family: `legacy.promote_lemma`
 - theorem family: `erdos_problem`
 - phase: `stress_testing`
-- status: `in_progress`
-- proof outcome: `unknown`
+- status: `stalled`
+- proof outcome: `partial`
 - blocker: `unknown`
 - external job id: `111c2eb8-0247-4974-8ea6-64a151b5af34`
-- external status: `IN_PROGRESS`
+- external status: `COMPLETE`
 - objective: Fill in all sorries. This lemma was promoted from a recurring intermediate result. Prove it as a standalone theorem. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?
 - rationale: Recurring lemma 'bridge_interval_coverage : True' crossed the promotion threshold.
-- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- learned summary: remote_status=COMPLETE; verification_status=partial; theorem_status=partially_verified; blocker=unknown; generated=1
 - new signal count: 0
-- reused signal count: 0
+- reused signal count: 1
+- generated lemmas:
+  - `promoted_lemma : True`
+- candidate lemmas:
+  - `promoted_lemma : True`
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_list_stderr.txt` (58 bytes)
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_list_stdout.txt` (8756 bytes)
+  - `bin` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin` (2532 bytes)
+  - `md` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin.contents/ddb1aae2-1b93-438c-9165-39a34b6f05c6_aristotle/ARISTOTLE_SUMMARY_111c2eb8-0247-4974-8ea6-64a151b5af34.md` (2170 bytes)
+  - `lean` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin.contents/ddb1aae2-1b93-438c-9165-39a34b6f05c6_aristotle/AristotleWorkspace.lean` (332 bytes)
+  - `lean` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin.contents/ddb1aae2-1b93-438c-9165-39a34b6f05c6_aristotle/Main.lean` (332 bytes)
+  - `md` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin.contents/ddb1aae2-1b93-438c-9165-39a34b6f05c6_aristotle/README.md` (248 bytes)
+  - `json` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin.contents/ddb1aae2-1b93-438c-9165-39a34b6f05c6_aristotle/lake-manifest.json` (3109 bytes)
+  - `toml` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin.contents/ddb1aae2-1b93-438c-9165-39a34b6f05c6_aristotle/lakefile.toml` (206 bytes)
+  - `file` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin.contents/ddb1aae2-1b93-438c-9165-39a34b6f05c6_aristotle/lean-toolchain` (25 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_list_stderr.txt`
-- notes: Aristotle job 111c2eb8-0247-4974-8ea6-64a151b5af34 is still in progress.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_stderr.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin.contents/ddb1aae2-1b93-438c-9165-39a34b6f05c6_aristotle/lake-manifest.json`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin.contents/ddb1aae2-1b93-438c-9165-39a34b6f05c6_aristotle/Main.lean`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin.contents/ddb1aae2-1b93-438c-9165-39a34b6f05c6_aristotle/lean-toolchain`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin.contents/ddb1aae2-1b93-438c-9165-39a34b6f05c6_aristotle/ARISTOTLE_SUMMARY_111c2eb8-0247-4974-8ea6-64a151b5af34.md`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin.contents/ddb1aae2-1b93-438c-9165-39a34b6f05c6_aristotle/AristotleWorkspace.lean`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin.contents/ddb1aae2-1b93-438c-9165-39a34b6f05c6_aristotle/lakefile.toml`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ddb1aae2-1b93-438c-9165-39a34b6f05c6/aristotle_result_111c2eb8-0247-4974-8ea6-64a151b5af34.bin.contents/ddb1aae2-1b93-438c-9165-39a34b6f05c6_aristotle/README.md`
+- evaluation total: 4.75
+- notes: Aristotle result downloaded successfully. Customize result ingestion to extract generated Lean artifacts and intermediate lemmas.
 
 ## Incidents
 
-- `warning` `retry_budget_exhausted`: Experiment b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21 reached retry budget (7 attempts).
-- `warning` `retry_budget_exhausted`: Experiment bff4c05f-d103-47ac-83f8-1164972a1bca reached retry budget (8 attempts).
+- `warning` `retry_budget_exhausted`: Experiment b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21 reached retry budget (8 attempts).
+- `warning` `retry_budget_exhausted`: Experiment bff4c05f-d103-47ac-83f8-1164972a1bca reached retry budget (9 attempts).
 
 ## Audit Trail
 
+- `experiment_finalized` at `2026-03-31T00:34:30.555919+00:00`
+- `result_ingested` at `2026-03-31T00:34:30.550974+00:00`
 - `experiment_finalized` at `2026-03-30T23:56:33.332007+00:00`
 - `result_ingested` at `2026-03-30T23:56:33.322940+00:00`
 
@@ -229,23 +262,32 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - jobs synced: 3
 - jobs submitted: 0
 - active before: 3
-- active after: 3
+- active after: 2
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=2, subgoals=0, traces=0
 - synced `bff4c05f-d103-47ac-83f8-1164972a1bca` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- synced `ddb1aae2-1b93-438c-9165-39a34b6f05c6` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- considered `7ef8eb27-b4ed-4fa9-948a-597e3972f46d` rank=1 score=-5.3675
-- considered `d0b8b453-544c-4328-9f2a-c80713b91d67` rank=2 score=-10.68
-- selected `0538346a-8f8c-4565-b8b1-7ed47ff63d0e` rank=3 score=-7.79
-- considered `c85dcfab-b6b4-4146-8335-8ba20f3090c9` rank=4 score=-7.79
-- considered `45da5d2d-4c1e-47cc-8f44-24c2572d4eed` rank=5 score=-7.79
-- skipped `45da5d2d-4c1e-47cc-8f44-24c2572d4eed` for `erdos-123` (frontier throttled for duplicate move-family pressure)
-- skipped `7a3b0382-f929-4c5d-8f2c-b14f3b917eba` for `erdos-123` (frontier throttled for duplicate move-family pressure)
-- skipped `218ac445-c783-41fd-901e-c22eb32e2802` for `erdos-123` (frontier throttled for duplicate move-family pressure)
-- skipped `7ef8eb27-b4ed-4fa9-948a-597e3972f46d` for `erdos-123` (duplicate active experiment signature)
-- skipped `d0b8b453-544c-4328-9f2a-c80713b91d67` for `erdos-123` (duplicate active experiment signature)
+- synced `ddb1aae2-1b93-438c-9165-39a34b6f05c6` with proof_outcome=`partial` new_signal=1 reused_signal=0
+- considered `06a1c1c2-b313-490a-8581-718e07ad5559` rank=1 score=179.4144
+- considered `2155d333-72dc-4a25-8c77-b7286e65108f` rank=2 score=179.4144
+- considered `4812c537-69e4-4249-9ba3-4861e87a02b5` rank=3 score=179.4144
+- considered `24c18b88-589b-476f-be9d-4b004085522c` rank=4 score=178.9144
+- considered `8d030c8b-6e48-483c-a478-e3e57ec245f0` rank=5 score=178.9144
+- skipped `663c42d4-8870-42a8-ba2a-5698e789e62a` for `erdos-123` (duplicate active experiment signature)
+- skipped `cd27e6e1-9218-4fcd-adc0-dbebb92522b9` for `erdos-123` (conjecture active cap reached)
+- skipped `d23be54a-3289-4834-8e8d-5cea9e4294e8` for `erdos-123` (conjecture active cap reached)
+- skipped `98906f2b-5fcf-4d81-8f55-e63b86f0ca28` for `erdos-123` (conjecture active cap reached)
+- skipped `89beab61-07b9-411d-ac39-3b8f5c18669c` for `erdos-123` (conjecture active cap reached)
+- skipped `3ebfd1bb-fda0-45ee-ad80-40b2890ae7f2` for `erdos-123` (conjecture active cap reached)
+- skipped `1695be73-cb72-4846-a5e3-7d4569298594` for `erdos-123` (conjecture active cap reached)
+- skipped `e0cfc37e-42db-4422-92d6-3d4d156bf595` for `erdos-123` (conjecture active cap reached)
+- skipped `06a1c1c2-b313-490a-8581-718e07ad5559` for `erdos-123` (conjecture active cap reached)
+- skipped `2155d333-72dc-4a25-8c77-b7286e65108f` for `erdos-123` (conjecture active cap reached)
+- skipped `4812c537-69e4-4249-9ba3-4861e87a02b5` for `erdos-123` (conjecture active cap reached)
+- skipped `24c18b88-589b-476f-be9d-4b004085522c` for `erdos-123` (conjecture active cap reached)
+- skipped `8d030c8b-6e48-483c-a478-e3e57ec245f0` for `erdos-123` (conjecture active cap reached)
+- skipped `d0f37c82-1c2f-4ad4-a8a1-1d1d2d447236` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
