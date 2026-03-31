@@ -26,7 +26,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - repeated no-signal streak: 0
 - duplicate frontier pressure: 0
 - move-family diversity: frontier=1 completed=11
-- open incidents: 13
+- open incidents: 14
 
 ## Version Drift
 
@@ -2277,7 +2277,8 @@ The sorry here represents the core open mathematical co`
 ## Incidents
 
 - `warning` `repeated_provider_failures`: Provider-side failures reached 18 in recent completed experiments.
-- `warning` `retry_budget_exhausted`: Experiment ab8dcd05-af04-4f0b-9155-59b46bea632e reached retry budget (9 attempts).
+- `warning` `retry_budget_exhausted`: Experiment e6aeafa2-d8b7-4492-b6e3-757eecdb7bfb reached retry budget (6 attempts).
+- `warning` `retry_budget_exhausted`: Experiment ab8dcd05-af04-4f0b-9155-59b46bea632e reached retry budget (10 attempts).
 - `warning` `retry_budget_exhausted`: Experiment a6e053f4-7da8-4eb4-bcd0-bb8727ce257b reached retry budget (9 attempts).
 - `warning` `retry_budget_exhausted`: Experiment 5646d012-e09a-4f34-9968-cf102ffacf97 reached retry budget (17 attempts).
 - `warning` `retry_budget_exhausted`: Experiment dd1125b5-8d98-43f7-ae5b-4d8334b53522 reached retry budget (21 attempts).
@@ -2285,7 +2286,6 @@ The sorry here represents the core open mathematical co`
 - `warning` `retry_budget_exhausted`: Experiment 9ba22b23-e3fe-4bc2-95f5-268b1add4af8 reached retry budget (13 attempts).
 - `warning` `retry_budget_exhausted`: Experiment 9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0 reached retry budget (25 attempts).
 - `warning` `retry_budget_exhausted`: Experiment 5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13 reached retry budget (21 attempts).
-- `warning` `retry_budget_exhausted`: Experiment abd99d04-1751-4f5c-a802-c4d16072db93 reached retry budget (8 attempts).
 
 ## Audit Trail
 
@@ -2313,8 +2313,8 @@ The sorry here represents the core open mathematical co`
 - recurring structures considered: lemmas=10, subgoals=1, traces=10
 - synced `ab8dcd05-af04-4f0b-9155-59b46bea632e` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `e6aeafa2-d8b7-4492-b6e3-757eecdb7bfb` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- considered `88023903-ec9d-4cbe-9bfa-0ef19f23f27c` rank=1 score=24.3591
-- skipped `88023903-ec9d-4cbe-9bfa-0ef19f23f27c` for `erdos-123` (conjecture active cap reached)
+- considered `00db5955-d43f-48f5-a89d-740a9fea081b` rank=1 score=24.3591
+- skipped `00db5955-d43f-48f5-a89d-740a9fea081b` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 

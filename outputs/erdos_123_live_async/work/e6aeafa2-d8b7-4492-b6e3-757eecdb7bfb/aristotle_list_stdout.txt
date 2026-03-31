@@ -1,13 +1,13 @@
 ID                                   STATUS          CREATED              PROGRESS  
 -------------------------------------------------------------------------------------
-87ed61cc-0b85-4e82-b714-06ddb6103888 IN_PROGRESS     44 mins ago          15%       
-459e4d95-9ffc-4932-8e78-e69b89d21fdb COMPLETE        44 mins ago          100%      
-ebf60aa1-e9b0-4085-8d5f-86083f4e4c58 IN_PROGRESS     44 mins ago          15%       
-904598b4-a54c-4456-8f34-f206521f7dcc IN_PROGRESS     48 mins ago          11%       
+87ed61cc-0b85-4e82-b714-06ddb6103888 IN_PROGRESS     45 mins ago          15%       
+459e4d95-9ffc-4932-8e78-e69b89d21fdb COMPLETE        45 mins ago          100%      
+ebf60aa1-e9b0-4085-8d5f-86083f4e4c58 IN_PROGRESS     45 mins ago          15%       
+904598b4-a54c-4456-8f34-f206521f7dcc IN_PROGRESS     49 mins ago          11%       
 c7b558dd-f064-4a45-936c-54e9015ab34e COMPLETE        1 hour ago           100%      
 b4213129-470d-41df-86c4-ef7562d864c4 IN_PROGRESS     1 hour ago           21%       
 1ac4dc85-b946-493a-97b7-a6d8127cdc6f COMPLETE_WITH_ERRORS 1 hour ago           100%      
-06c3fbef-db57-4499-a70c-a769df042a02 IN_PROGRESS     1 hour ago           25%       
+06c3fbef-db57-4499-a70c-a769df042a02 IN_PROGRESS     1 hour ago           26%       
 1c01990b-d43b-44d2-b009-11cb5cb186fa COMPLETE_WITH_ERRORS 2 hours ago          100%      
 a8f3148c-3efe-4769-a5c0-c83610f2cb91 COMPLETE_WITH_ERRORS 2 hours ago          100%      
 6d14acae-959d-428b-b235-e20c4305e463 COMPLETE        2 hours ago          100%      
