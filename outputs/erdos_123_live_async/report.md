@@ -16,7 +16,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Campaign Health
 
-- active=2 pending=2 running=0 completed=20 failed=0
+- active=2 pending=2 running=1 completed=20 failed=0
 - structured ingestion success rate: 1.0
 - semantic reuse rate: 0.27
 - transfer usage rate: 0.45
@@ -24,7 +24,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - obstruction discovery rate: 0.65
 - high-priority frontier share: 0.667
 - repeated no-signal streak: 0
-- duplicate frontier pressure: 0
+- duplicate frontier pressure: 2
 - move-family diversity: frontier=3 completed=11
 - open incidents: 14
 
@@ -72,7 +72,8 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `QUEUED`: 2
+- `IN_PROGRESS`: 1
+- `QUEUED`: 1
 
 ## Recently completed
 
@@ -2504,12 +2505,12 @@ The sorry here represents the core open mathematical co`
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/997b8c14-54cd-44d3-b724-7b4397ebb34f/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/997b8c14-54cd-44d3-b724-7b4397ebb34f/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/997b8c14-54cd-44d3-b724-7b4397ebb34f/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/997b8c14-54cd-44d3-b724-7b4397ebb34f/aristotle_list_stdout.txt` (8841 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/997b8c14-54cd-44d3-b724-7b4397ebb34f/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/997b8c14-54cd-44d3-b724-7b4397ebb34f/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/997b8c14-54cd-44d3-b724-7b4397ebb34f/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/997b8c14-54cd-44d3-b724-7b4397ebb34f/aristotle_list_stderr.txt`
+- notes: Aristotle job 0e58a7bb-49fb-4e7a-ad4b-95eba5384643 is still queued.
 
 ### bb2a0ac5-79ad-4a78-b2c5-629894e0e115
 
@@ -2517,25 +2518,25 @@ The sorry here represents the core open mathematical co`
 - move family: `adversarial_counterexample`
 - theorem family: `erdos_problem`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `769fbf45-c46f-4e20-9736-119e3b9cd4ff`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. Construct an adversarial witness that sharpens or refutes the blocker pattern 'above (`PowTripleSet 2 2 2`) shows the coprimality hypotheses'. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Observed witness/blocker 'above (`PowTripleSet 2 2 2`) shows the coprimality hypotheses' can be sharpened with a targeted adversarial run.
 - campaign priority: 1.65
 - transfer score: 0.2875
-- learned summary: remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bb2a0ac5-79ad-4a78-b2c5-629894e0e115/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bb2a0ac5-79ad-4a78-b2c5-629894e0e115/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bb2a0ac5-79ad-4a78-b2c5-629894e0e115/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bb2a0ac5-79ad-4a78-b2c5-629894e0e115/aristotle_list_stdout.txt` (8841 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bb2a0ac5-79ad-4a78-b2c5-629894e0e115/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bb2a0ac5-79ad-4a78-b2c5-629894e0e115/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bb2a0ac5-79ad-4a78-b2c5-629894e0e115/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bb2a0ac5-79ad-4a78-b2c5-629894e0e115/aristotle_list_stderr.txt`
+- notes: Aristotle job 769fbf45-c46f-4e20-9736-119e3b9cd4ff is still in progress.
 
 ## Incidents
 
@@ -2568,20 +2569,21 @@ The sorry here represents the core open mathematical co`
 - policy path: `fallback`
 - policy candidate audits: 3
 - jobs synced: 2
-- jobs submitted: 2
+- jobs submitted: 0
 - active before: 2
 - active after: 2
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=10, subgoals=1, traces=10
-- synced `ab8dcd05-af04-4f0b-9155-59b46bea632e` with proof_outcome=`partial` new_signal=37 reused_signal=0
-- synced `e6aeafa2-d8b7-4492-b6e3-757eecdb7bfb` with proof_outcome=`partial` new_signal=52 reused_signal=0
-- queued `997b8c14-54cd-44d3-b724-7b4397ebb34f` for `erdos-123` via `counterexample_mode` / `witness_minimization` (chosen by deterministic fallback policy; move_family=witness_minimization; rationale=Witness 'above (`PowTripleSet 2 2 2`) shows the coprimality hypotheses' should be minimized before treating it as a decisive obstruction.)
-- queued `bb2a0ac5-79ad-4a78-b2c5-629894e0e115` for `erdos-123` via `counterexample_mode` / `adversarial_counterexample` (chosen by deterministic fallback policy; move_family=adversarial_counterexample; rationale=Observed witness/blocker 'above (`PowTripleSet 2 2 2`) shows the coprimality hypotheses' can be sharpened with a targeted adversarial run.)
-- selected `997b8c14-54cd-44d3-b724-7b4397ebb34f` rank=1 score=39.8438
-- selected `bb2a0ac5-79ad-4a78-b2c5-629894e0e115` rank=2 score=40.264
-- considered `166707d3-fea9-4748-9091-696e11239ffe` rank=3 score=32.0841
+- synced `997b8c14-54cd-44d3-b724-7b4397ebb34f` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- synced `bb2a0ac5-79ad-4a78-b2c5-629894e0e115` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- considered `7b36c5a3-9301-4348-982d-5f6f6cbb945b` rank=1 score=28.0438
+- considered `98e97dfe-6484-4844-901f-f7dd207159b2` rank=2 score=28.464
+- considered `0152ff0f-6abe-4183-ac4e-8c6abab5cd4c` rank=3 score=25.2841
+- skipped `7b36c5a3-9301-4348-982d-5f6f6cbb945b` for `erdos-123` (duplicate active experiment signature)
+- skipped `98e97dfe-6484-4844-901f-f7dd207159b2` for `erdos-123` (duplicate active experiment signature)
+- skipped `0152ff0f-6abe-4183-ac4e-8c6abab5cd4c` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
-- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
+- Promote the top recurring lemma into a standalone theorem if not already tested.
