@@ -16,7 +16,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Campaign Health
 
-- active=3 pending=3 running=1 completed=8 failed=0
+- active=3 pending=3 running=3 completed=8 failed=0
 - structured ingestion success rate: 1.0
 - semantic reuse rate: 0.14
 - transfer usage rate: 0.25
@@ -24,7 +24,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - obstruction discovery rate: 0.625
 - high-priority frontier share: 0.7
 - repeated no-signal streak: 0
-- duplicate frontier pressure: 1
+- duplicate frontier pressure: 3
 - move-family diversity: frontier=9 completed=5
 - open incidents: 4
 
@@ -68,8 +68,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `IN_PROGRESS`: 1
-- `QUEUED`: 2
+- `IN_PROGRESS`: 3
 
 ## Recently completed
 
@@ -959,25 +958,25 @@ The sorry here represents the core open mathematical co`
 - move family: `decompose_subclaim`
 - theorem family: `erdos_problem`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `72ebb2f3-61d4-4895-992b-c95cdc1b8462`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. Split the current theorem into a bridge lemma and a remaining reduction built around the recurring subgoal. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Recurring subgoal 'erdos_123_d_complete_sequences: pairwisecoprime3 v v v → isdcomplete (powtripleset v v v) := by sorry' is ready to be isolated as its own bridge claim.
 - campaign priority: 1.7
 - transfer score: 0.3
-- learned summary: remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e3d8383c-3e6e-4996-b4e4-f0354432fc76/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e3d8383c-3e6e-4996-b4e4-f0354432fc76/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e3d8383c-3e6e-4996-b4e4-f0354432fc76/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e3d8383c-3e6e-4996-b4e4-f0354432fc76/aristotle_list_stdout.txt` (8771 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e3d8383c-3e6e-4996-b4e4-f0354432fc76/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e3d8383c-3e6e-4996-b4e4-f0354432fc76/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e3d8383c-3e6e-4996-b4e4-f0354432fc76/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e3d8383c-3e6e-4996-b4e4-f0354432fc76/aristotle_list_stderr.txt`
+- notes: Aristotle job 72ebb2f3-61d4-4895-992b-c95cdc1b8462 is still in progress.
 
 ### 5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13
 
@@ -985,25 +984,25 @@ The sorry here represents the core open mathematical co`
 - move family: `transfer_reformulation`
 - theorem family: `erdos_problem`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `e40f70d0-7196-479d-a916-b6b75a8f67b4`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. Reformulate the current conjecture using the transferable artifact 'special-case covering lemmas can often be transferred by isolating the divisibility obstruction' from additive number theory. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Reusable signal from erdos-44 suggests a cross-family transfer opportunity.
 - campaign priority: 1.5
 - transfer score: 1.75
-- learned summary: remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_list_stdout.txt` (8771 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_list_stderr.txt`
+- notes: Aristotle job e40f70d0-7196-479d-a916-b6b75a8f67b4 is still in progress.
 
 ## Incidents
 
@@ -1029,24 +1028,32 @@ The sorry here represents the core open mathematical co`
 
 - policy path: `fallback`
 - policy candidate audits: 10
-- jobs synced: 2
-- jobs submitted: 2
-- active before: 2
+- jobs synced: 3
+- jobs submitted: 0
+- active before: 3
 - active after: 3
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=10, subgoals=1, traces=0
-- synced `e09e11d5-cf0f-4033-a866-668dd1a6cdff` with proof_outcome=`partial` new_signal=19 reused_signal=0
 - synced `abd99d04-1751-4f5c-a802-c4d16072db93` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- queued `e3d8383c-3e6e-4996-b4e4-f0354432fc76` for `erdos-123` via `promote_lemma` / `decompose_subclaim` (chosen by deterministic fallback policy; move_family=decompose_subclaim; rationale=Recurring subgoal 'erdos_123_d_complete_sequences: pairwisecoprime3 v v v → isdcomplete (powtripleset v v v) := by sorry' is ready to be isolated as its own bridge claim.)
-- queued `5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13` for `erdos-123` via `reformulate` / `transfer_reformulation` (chosen by deterministic fallback policy; move_family=transfer_reformulation; rationale=Reusable signal from erdos-44 suggests a cross-family transfer opportunity.)
-- considered `933c8203-1bf1-4dea-820d-b6e638b9ff7e` rank=1 score=194.9275
-- selected `e3d8383c-3e6e-4996-b4e4-f0354432fc76` rank=2 score=209.3745
-- selected `5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13` rank=3 score=203.9525
-- considered `1517e126-0368-4813-8397-e79fa288ef0d` rank=4 score=204.0975
-- considered `105514d0-c1e3-4760-ba19-8c63dd7ecaf8` rank=5 score=200.9066
-- skipped `933c8203-1bf1-4dea-820d-b6e638b9ff7e` for `erdos-123` (duplicate active experiment signature)
+- synced `e3d8383c-3e6e-4996-b4e4-f0354432fc76` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- synced `5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- considered `b936d333-1b33-43d3-a75f-e82f56c35e73` rank=1 score=188.1275
+- considered `c8b8b482-8341-462e-8d34-ee36dff5f739` rank=2 score=197.5745
+- considered `f2d49f37-005a-47cc-9bb8-b104485245a6` rank=3 score=192.1525
+- considered `bb3bd61b-7b8f-491f-afe5-447913f425eb` rank=4 score=197.2975
+- considered `3057adbc-db6d-4408-a8e5-1a34ad22fe3e` rank=5 score=194.1066
+- skipped `c8b8b482-8341-462e-8d34-ee36dff5f739` for `erdos-123` (duplicate active experiment signature)
+- skipped `f2d49f37-005a-47cc-9bb8-b104485245a6` for `erdos-123` (duplicate active experiment signature)
+- skipped `bb3bd61b-7b8f-491f-afe5-447913f425eb` for `erdos-123` (conjecture active cap reached)
+- skipped `3057adbc-db6d-4408-a8e5-1a34ad22fe3e` for `erdos-123` (conjecture active cap reached)
+- skipped `7125e10a-0a6b-4a1c-ad97-de9eaa358a28` for `erdos-123` (conjecture active cap reached)
+- skipped `b1f8a72a-81c3-4b7a-bb47-aa31f8a8a83c` for `erdos-123` (conjecture active cap reached)
+- skipped `384e9c14-0bd3-4143-b0f9-a7c7cbbf8651` for `erdos-123` (conjecture active cap reached)
+- skipped `b2289b43-9faf-43cf-a8db-2b376e36e7eb` for `erdos-123` (conjecture active cap reached)
+- skipped `b936d333-1b33-43d3-a75f-e82f56c35e73` for `erdos-123` (duplicate active experiment signature)
+- skipped `08bde9ff-97fc-4fe0-871c-0d5455a261ef` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
-- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
+- Promote the top recurring lemma into a standalone theorem if not already tested.
