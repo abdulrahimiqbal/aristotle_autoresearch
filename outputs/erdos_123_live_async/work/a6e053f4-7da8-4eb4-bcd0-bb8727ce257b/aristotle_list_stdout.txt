@@ -1,10 +1,13 @@
 ID                                   STATUS          CREATED              PROGRESS  
 -------------------------------------------------------------------------------------
-06c3fbef-db57-4499-a70c-a769df042a02 IN_PROGRESS     1 min ago            1%        
-1c01990b-d43b-44d2-b009-11cb5cb186fa COMPLETE_WITH_ERRORS 44 mins ago          100%      
-a8f3148c-3efe-4769-a5c0-c83610f2cb91 COMPLETE_WITH_ERRORS 44 mins ago          100%      
-6d14acae-959d-428b-b235-e20c4305e463 COMPLETE        44 mins ago          100%      
-d8764bb9-5bdc-4529-b85f-5b429602eb1f IN_PROGRESS     47 mins ago          21%       
+c7b558dd-f064-4a45-936c-54e9015ab34e QUEUED          17 secs ago          -         
+b4213129-470d-41df-86c4-ef7562d864c4 QUEUED          18 secs ago          -         
+1ac4dc85-b946-493a-97b7-a6d8127cdc6f QUEUED          19 secs ago          -         
+06c3fbef-db57-4499-a70c-a769df042a02 IN_PROGRESS     2 mins ago           5%        
+1c01990b-d43b-44d2-b009-11cb5cb186fa COMPLETE_WITH_ERRORS 45 mins ago          100%      
+a8f3148c-3efe-4769-a5c0-c83610f2cb91 COMPLETE_WITH_ERRORS 45 mins ago          100%      
+6d14acae-959d-428b-b235-e20c4305e463 COMPLETE        45 mins ago          100%      
+d8764bb9-5bdc-4529-b85f-5b429602eb1f IN_PROGRESS     48 mins ago          21%       
 8c89b0d6-4d39-4801-8e9a-a550bc6112f8 COMPLETE        1 hour ago           100%      
 725dfc92-6a16-4aa5-a1b0-2401d11eba7f COMPLETE        1 hour ago           100%      
 a9364975-0c8a-4ee5-8804-1d58404ecb99 COMPLETE_WITH_ERRORS 1 hour ago           100%      
@@ -97,6 +100,3 @@ fdf51e7b-e252-4ecb-a3af-f45543123e32 COMPLETE_WITH_ERRORS 1 day ago            1
 2288f2cf-a45b-4bac-9d06-fffc7d459a46 COMPLETE        1 day ago            100%      
 730c2564-2d9f-40d4-b545-1f8dec1ccd76 COMPLETE        1 day ago            100%      
 916781cd-368a-4395-810a-613f5ab85845 COMPLETE        1 day ago            100%      
-1fb8c364-c2fb-49fb-8250-3ebd8c0de5d1 COMPLETE_WITH_ERRORS 1 day ago            100%      
-0d29e58a-bebf-40ff-a3f6-da48f49377d7 COMPLETE        1 day ago            100%      
-d51b43f5-a73f-43c5-84cd-c6c62dbb2822 COMPLETE        1 day ago            100%      
