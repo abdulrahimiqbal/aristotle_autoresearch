@@ -16,7 +16,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Campaign Health
 
-- active=2 pending=2 running=1 completed=11 failed=0
+- active=2 pending=2 running=2 completed=11 failed=0
 - structured ingestion success rate: 1.0
 - semantic reuse rate: 0.175
 - transfer usage rate: 0.273
@@ -24,7 +24,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - obstruction discovery rate: 0.545
 - high-priority frontier share: 0.857
 - repeated no-signal streak: 0
-- duplicate frontier pressure: 1
+- duplicate frontier pressure: 2
 - move-family diversity: frontier=6 completed=5
 - open incidents: 6
 
@@ -68,8 +68,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `IN_PROGRESS`: 1
-- `QUEUED`: 1
+- `IN_PROGRESS`: 2
 
 ## Recently completed
 
@@ -1160,7 +1159,7 @@ The sorry here represents the core open mathematical co`
 - reused signal count: 0
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_list_stdout.txt` (8781 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_list_stdout.txt` (8776 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_list_stderr.txt`
@@ -1219,30 +1218,30 @@ The sorry here represents the core open mathematical co`
 - move family: `equivalent_view`
 - theorem family: `erdos_problem`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `46b495cf-4123-4142-b310-90875d1ce7e9`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. This is a reformulation as every sufficiently large integer has an antichain sum representation drawn from the triple-power semigroup. Determine whether this form is easier or harder to prove and report intermediate progress. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Equivalent form 'every sufficiently large integer has an antichain sum representation drawn from the triple-power semigroup' may expose different proof obligations.
 - campaign priority: 1.45
 - transfer score: 0.2375
-- learned summary: remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0/aristotle_list_stdout.txt` (8776 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0/aristotle_list_stderr.txt`
+- notes: Aristotle job 46b495cf-4123-4142-b310-90875d1ce7e9 is still in progress.
 
 ## Incidents
 
 - `warning` `repeated_provider_failures`: Provider-side failures reached 11 in recent completed experiments.
-- `warning` `retry_budget_exhausted`: Experiment 5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13 reached retry budget (9 attempts).
+- `warning` `retry_budget_exhausted`: Experiment 5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13 reached retry budget (10 attempts).
 - `warning` `retry_budget_exhausted`: Experiment abd99d04-1751-4f5c-a802-c4d16072db93 reached retry budget (8 attempts).
 - `warning` `retry_budget_exhausted`: Experiment e7ffb40d-1e42-444e-8ffd-4d486f55a51e reached retry budget (6 attempts).
 - `warning` `retry_budget_exhausted`: Experiment b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21 reached retry budget (12 attempts).
@@ -1266,22 +1265,27 @@ The sorry here represents the core open mathematical co`
 - policy path: `fallback`
 - policy candidate audits: 7
 - jobs synced: 2
-- jobs submitted: 1
+- jobs submitted: 0
 - active before: 2
 - active after: 2
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=10, subgoals=1, traces=1
 - synced `5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- synced `bea30dbc-a8e9-4042-895b-51e6ee2e7105` with proof_outcome=`proved` new_signal=1 reused_signal=0
-- queued `9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0` for `erdos-123` via `reformulate` / `equivalent_view` (chosen by deterministic fallback policy; move_family=equivalent_view; rationale=Equivalent form 'every sufficiently large integer has an antichain sum representation drawn from the triple-power semigroup' may expose different proof obligations.)
-- considered `5433f114-1b7a-4244-9eaf-687a4d53fbe1` rank=1 score=185.3575
-- selected `9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0` rank=2 score=187.3116
-- considered `c3aefa38-5488-4a9d-99df-00a5ccd0c591` rank=3 score=187.3116
-- considered `b32a18e0-5bb0-4f71-aa00-d71230c16a5a` rank=4 score=188.6985
-- considered `da0ffcfa-9e6f-4d3d-9419-28825d8c6639` rank=5 score=187.3184
-- skipped `5433f114-1b7a-4244-9eaf-687a4d53fbe1` for `erdos-123` (duplicate active experiment signature)
+- synced `9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- considered `6d56da76-20a3-449e-8254-9d5130782124` rank=1 score=181.9575
+- considered `d6b57dce-d4e3-423a-96e6-91526851ec30` rank=2 score=183.9116
+- considered `4794dfca-31fb-47fb-8739-9082bc1621e0` rank=3 score=178.9116
+- considered `690d1565-d11d-47c6-874a-cd6d5e2be44d` rank=4 score=185.2985
+- considered `dcd8e544-af5b-4fff-a45e-4552531de4a0` rank=5 score=183.9184
+- skipped `6d56da76-20a3-449e-8254-9d5130782124` for `erdos-123` (duplicate active experiment signature)
+- skipped `4794dfca-31fb-47fb-8739-9082bc1621e0` for `erdos-123` (duplicate active experiment signature)
+- skipped `d6b57dce-d4e3-423a-96e6-91526851ec30` for `erdos-123` (conjecture active cap reached)
+- skipped `690d1565-d11d-47c6-874a-cd6d5e2be44d` for `erdos-123` (conjecture active cap reached)
+- skipped `dcd8e544-af5b-4fff-a45e-4552531de4a0` for `erdos-123` (conjecture active cap reached)
+- skipped `b6436411-2749-463a-9613-b86e52b368ca` for `erdos-123` (conjecture active cap reached)
+- skipped `2188bc0d-f829-48c0-ab08-0c1bc564714f` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
-- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
+- Promote the top recurring lemma into a standalone theorem if not already tested.
