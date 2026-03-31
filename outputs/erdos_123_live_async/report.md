@@ -1974,18 +1974,18 @@ The sorry here represents the core open mathematical co`
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_list_stdout.txt` (8846 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_list_stderr.txt`
+- notes: Aristotle job d8764bb9-5bdc-4529-b85f-5b429602eb1f is still queued.
 
 ## Incidents
 
 - `warning` `repeated_provider_failures`: Provider-side failures reached 16 in recent completed experiments.
 - `warning` `retry_budget_exhausted`: Experiment 5646d012-e09a-4f34-9968-cf102ffacf97 reached retry budget (17 attempts).
-- `warning` `retry_budget_exhausted`: Experiment dd1125b5-8d98-43f7-ae5b-4d8334b53522 reached retry budget (17 attempts).
+- `warning` `retry_budget_exhausted`: Experiment dd1125b5-8d98-43f7-ae5b-4d8334b53522 reached retry budget (18 attempts).
 - `warning` `retry_budget_exhausted`: Experiment 2af6662f-930d-4743-b852-8aef0ed7417a reached retry budget (13 attempts).
 - `warning` `retry_budget_exhausted`: Experiment 9ba22b23-e3fe-4bc2-95f5-268b1add4af8 reached retry budget (13 attempts).
 - `warning` `retry_budget_exhausted`: Experiment 9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0 reached retry budget (25 attempts).
@@ -2012,19 +2012,19 @@ The sorry here represents the core open mathematical co`
 - policy path: `fallback`
 - policy candidate audits: 2
 - jobs synced: 2
-- jobs submitted: 1
+- jobs submitted: 0
 - active before: 2
 - active after: 2
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=10, subgoals=1, traces=10
 - synced `dd1125b5-8d98-43f7-ae5b-4d8334b53522` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- synced `5646d012-e09a-4f34-9968-cf102ffacf97` with proof_outcome=`partial` new_signal=62 reused_signal=0
-- queued `a6e053f4-7da8-4eb4-bcd0-bb8727ce257b` for `erdos-123` via `counterexample_mode` / `legacy.counterexample_mode` (chosen by deterministic fallback policy; move_family=legacy.counterexample_mode; rationale=A targeted counterexample pass helps separate true obstruction from solver drift.)
-- considered `510344af-51b8-4e60-8fd3-3f3943e89d5f` rank=1 score=25.9809
-- selected `a6e053f4-7da8-4eb4-bcd0-bb8727ce257b` rank=2 score=23.0862
-- skipped `510344af-51b8-4e60-8fd3-3f3943e89d5f` for `erdos-123` (duplicate active experiment signature)
+- synced `a6e053f4-7da8-4eb4-bcd0-bb8727ce257b` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- considered `09561727-7b34-4b73-b5c5-8e1c9fd39cee` rank=1 score=22.5809
+- considered `8c2decbd-ec74-4ba4-860e-244ad2434602` rank=2 score=19.6862
+- skipped `09561727-7b34-4b73-b5c5-8e1c9fd39cee` for `erdos-123` (duplicate active experiment signature)
+- skipped `8c2decbd-ec74-4ba4-860e-244ad2434602` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
-- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
+- Promote the top recurring lemma into a standalone theorem if not already tested.
