@@ -16,7 +16,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Campaign Health
 
-- active=2 pending=2 running=1 completed=20 failed=0
+- active=2 pending=2 running=2 completed=20 failed=0
 - structured ingestion success rate: 1.0
 - semantic reuse rate: 0.27
 - transfer usage rate: 0.45
@@ -72,8 +72,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `IN_PROGRESS`: 1
-- `QUEUED`: 1
+- `IN_PROGRESS`: 2
 
 ## Recently completed
 
@@ -2492,16 +2491,16 @@ The sorry here represents the core open mathematical co`
 - move family: `witness_minimization`
 - theorem family: `erdos_problem`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `0e58a7bb-49fb-4e7a-ad4b-95eba5384643`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. Minimize the witness or blocker around 'above (`PowTripleSet 2 2 2`) shows the coprimality hypotheses' to identify the sharp boundary case. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Witness 'above (`PowTripleSet 2 2 2`) shows the coprimality hypotheses' should be minimized before treating it as a decisive obstruction.
 - campaign priority: 1.55
 - transfer score: 0.2625
-- learned summary: remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
@@ -2510,7 +2509,7 @@ The sorry here represents the core open mathematical co`
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/997b8c14-54cd-44d3-b724-7b4397ebb34f/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/997b8c14-54cd-44d3-b724-7b4397ebb34f/aristotle_list_stderr.txt`
-- notes: Aristotle job 0e58a7bb-49fb-4e7a-ad4b-95eba5384643 is still queued.
+- notes: Aristotle job 0e58a7bb-49fb-4e7a-ad4b-95eba5384643 is still in progress.
 
 ### bb2a0ac5-79ad-4a78-b2c5-629894e0e115
 
@@ -2577,12 +2576,12 @@ The sorry here represents the core open mathematical co`
 - recurring structures considered: lemmas=10, subgoals=1, traces=10
 - synced `997b8c14-54cd-44d3-b724-7b4397ebb34f` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `bb2a0ac5-79ad-4a78-b2c5-629894e0e115` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- considered `3671580b-5d98-4576-8c0c-ffe814af590e` rank=1 score=28.0438
-- considered `3e61e7e3-5ba6-4522-9dbf-db4570e6f054` rank=2 score=28.464
-- considered `3a5d90ea-1c75-4764-9033-cce7d2d4f5e8` rank=3 score=25.2841
-- skipped `3671580b-5d98-4576-8c0c-ffe814af590e` for `erdos-123` (duplicate active experiment signature)
-- skipped `3e61e7e3-5ba6-4522-9dbf-db4570e6f054` for `erdos-123` (duplicate active experiment signature)
-- skipped `3a5d90ea-1c75-4764-9033-cce7d2d4f5e8` for `erdos-123` (conjecture active cap reached)
+- considered `dc4ecdcf-1657-463d-83f8-1bf6c09d7d15` rank=1 score=28.0438
+- considered `f96e56b2-545b-4b0b-9689-fad27e051cd4` rank=2 score=28.464
+- considered `a9fb54c1-a90a-49dc-8cce-1e6df878fbe2` rank=3 score=25.2841
+- skipped `dc4ecdcf-1657-463d-83f8-1bf6c09d7d15` for `erdos-123` (duplicate active experiment signature)
+- skipped `f96e56b2-545b-4b0b-9689-fad27e051cd4` for `erdos-123` (duplicate active experiment signature)
+- skipped `a9fb54c1-a90a-49dc-8cce-1e6df878fbe2` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
