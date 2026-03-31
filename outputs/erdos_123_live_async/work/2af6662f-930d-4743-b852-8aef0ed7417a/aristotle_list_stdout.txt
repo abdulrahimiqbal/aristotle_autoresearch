@@ -1,10 +1,10 @@
 ID                                   STATUS          CREATED              PROGRESS  
 -------------------------------------------------------------------------------------
-dff6daf1-8238-46bf-8cc8-bc7d91bf32bf IN_PROGRESS     1 min ago            1%        
-e042be8c-9387-48a5-a2d0-1679e92f28ba IN_PROGRESS     1 min ago            1%        
-78b50ca6-24da-4a09-8bb5-7e1b3a575644 IN_PROGRESS     33 mins ago          15%       
-bcbbca66-836b-479c-88aa-3779f9238d70 COMPLETE        33 mins ago          100%      
-3354fec4-d810-4a3e-87ae-6bca5784bbb3 IN_PROGRESS     33 mins ago          16%       
+dff6daf1-8238-46bf-8cc8-bc7d91bf32bf IN_PROGRESS     2 mins ago           1%        
+e042be8c-9387-48a5-a2d0-1679e92f28ba IN_PROGRESS     2 mins ago           4%        
+78b50ca6-24da-4a09-8bb5-7e1b3a575644 IN_PROGRESS     34 mins ago          15%       
+bcbbca66-836b-479c-88aa-3779f9238d70 COMPLETE        34 mins ago          100%      
+3354fec4-d810-4a3e-87ae-6bca5784bbb3 IN_PROGRESS     34 mins ago          16%       
 d90f2c03-0ed3-4cfd-ad1b-4548e9560c54 COMPLETE_WITH_ERRORS 1 hour ago           100%      
 add8fba4-9484-4954-afa0-5ad32b4f294d COMPLETE        1 hour ago           100%      
 47673564-a189-4141-8aaf-84a202de8202 COMPLETE        2 hours ago          100%      
@@ -55,8 +55,8 @@ b7f48b31-e966-4a43-b680-42bfc010cf5b COMPLETE_WITH_ERRORS 15 hours ago         1
 cebfd555-a08e-4a77-8a9c-b0097c724f23 COMPLETE_WITH_ERRORS 16 hours ago         100%      
 fe85085a-bb56-405b-ab22-970ab303bfc0 COMPLETE        16 hours ago         100%      
 69122251-600a-4ea9-868a-85bb10ab4964 COMPLETE        16 hours ago         100%      
-feac341e-5852-49c7-ae86-7b3572870704 COMPLETE        16 hours ago         100%      
-53a930ae-4ad4-4336-81ce-66439e298bb2 COMPLETE        16 hours ago         100%      
+feac341e-5852-49c7-ae86-7b3572870704 COMPLETE        17 hours ago         100%      
+53a930ae-4ad4-4336-81ce-66439e298bb2 COMPLETE        17 hours ago         100%      
 55d5d8b4-f94f-4427-8287-c842809162de COMPLETE        17 hours ago         100%      
 3e717cbc-810b-44bc-99b4-e728c1854f37 COMPLETE        17 hours ago         100%      
 88cd333b-166e-49eb-bb74-276d737eb79e COMPLETE        17 hours ago         100%      
