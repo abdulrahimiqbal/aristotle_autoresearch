@@ -72,15 +72,11 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `IN_PROGRESS`: 2
+- None active.
 
 ## Recently completed
 
-- `bb2a0ac5-79ad-4a78-b2c5-629894e0e115` on `erdos-123` -> `stalled`
-- `e6aeafa2-d8b7-4492-b6e3-757eecdb7bfb` on `erdos-123` -> `stalled`
-- `ab8dcd05-af04-4f0b-9155-59b46bea632e` on `erdos-123` -> `stalled`
-- `a6e053f4-7da8-4eb4-bcd0-bb8727ce257b` on `erdos-123` -> `stalled`
-- `dd1125b5-8d98-43f7-ae5b-4d8334b53522` on `erdos-123` -> `stalled`
+- None yet.
 
 ## Recurring lemmas
 
@@ -2676,23 +2672,25 @@ The sorry here represents the core open mathematical co`
 - `experiment_finalized` at `2026-03-31T20:27:08.898655+00:00`
 - `result_ingested` at `2026-03-31T20:27:08.869886+00:00`
 
+## Control Plane Status
+
+- Control plane projections not yet initialized. Run `db-refresh-projections` to populate.
+
 ## Latest manager decision
 
 - policy path: `fallback`
 - policy candidate audits: 2
-- jobs synced: 2
+- jobs synced: 0
 - jobs submitted: 0
-- active before: 2
-- active after: 2
+- active before: 0
+- active after: 0
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=10, subgoals=1, traces=10
-- synced `997b8c14-54cd-44d3-b724-7b4397ebb34f` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- synced `6804e070-3e39-4139-94ef-60653d908d2f` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- considered `fbeb8bc7-f396-452c-a262-1dad216f501e` rank=1 score=22.473
-- considered `09fef7d3-1d93-45b3-9d8e-81a0eb4081f5` rank=2 score=19.7133
-- skipped `fbeb8bc7-f396-452c-a262-1dad216f501e` for `erdos-123` (duplicate active experiment signature)
-- skipped `09fef7d3-1d93-45b3-9d8e-81a0eb4081f5` for `erdos-123` (conjecture active cap reached)
+- considered `ee5e4e7d-8f6d-41ca-a494-290ff230ff22` rank=1 score=25.473
+- considered `0a6f596d-f798-415c-a333-0088eb778b33` rank=2 score=22.7133
+- skipped `ee5e4e7d-8f6d-41ca-a494-290ff230ff22` for `erdos-123` (duplicate active experiment signature)
+- skipped `0a6f596d-f798-415c-a333-0088eb778b33` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
