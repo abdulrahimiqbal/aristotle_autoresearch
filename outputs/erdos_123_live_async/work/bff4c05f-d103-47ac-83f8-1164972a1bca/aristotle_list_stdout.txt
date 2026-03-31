@@ -1,11 +1,11 @@
 ID                                   STATUS          CREATED              PROGRESS  
 -------------------------------------------------------------------------------------
-6e4f7b4f-1c44-4c63-b747-55c2cee9157a IN_PROGRESS     2 mins ago           1%        
-aebcb1b1-213b-4adc-815c-e0f531ffdd66 QUEUED          2 mins ago           -         
-81d0ded0-2034-479a-bb2e-88acec303558 IN_PROGRESS     37 mins ago          11%       
-102f20c6-85c1-4737-888e-df37b9be062e COMPLETE        37 mins ago          100%      
-4730a277-d6cd-4385-aaa7-62d5e22230fa COMPLETE        37 mins ago          100%      
-111c2eb8-0247-4974-8ea6-64a151b5af34 COMPLETE        40 mins ago          100%      
+6e4f7b4f-1c44-4c63-b747-55c2cee9157a IN_PROGRESS     3 mins ago           6%        
+aebcb1b1-213b-4adc-815c-e0f531ffdd66 IN_PROGRESS     3 mins ago           1%        
+81d0ded0-2034-479a-bb2e-88acec303558 IN_PROGRESS     38 mins ago          11%       
+102f20c6-85c1-4737-888e-df37b9be062e COMPLETE        38 mins ago          100%      
+4730a277-d6cd-4385-aaa7-62d5e22230fa COMPLETE        38 mins ago          100%      
+111c2eb8-0247-4974-8ea6-64a151b5af34 COMPLETE        41 mins ago          100%      
 e2dbf36b-e460-4152-b353-53e229a92373 COMPLETE        1 hour ago           100%      
 51be99fa-6b9b-4c6c-9df5-898433246f61 COMPLETE        1 hour ago           100%      
 67636ee5-eb7b-461b-9fcd-0f9d100ddba0 IN_PROGRESS     1 hour ago           14%       
