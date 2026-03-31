@@ -16,7 +16,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Campaign Health
 
-- active=2 pending=2 running=0 completed=15 failed=0
+- active=2 pending=2 running=2 completed=15 failed=0
 - structured ingestion success rate: 1.0
 - semantic reuse rate: 0.238
 - transfer usage rate: 0.467
@@ -24,7 +24,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - obstruction discovery rate: 0.533
 - high-priority frontier share: 0.667
 - repeated no-signal streak: 0
-- duplicate frontier pressure: 0
+- duplicate frontier pressure: 2
 - move-family diversity: frontier=3 completed=8
 - open incidents: 9
 
@@ -72,7 +72,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `QUEUED`: 2
+- `IN_PROGRESS`: 2
 
 ## Recently completed
 
@@ -1782,25 +1782,25 @@ The sorry here represents the core open mathematical co`
 - move family: `witness_minimization`
 - theorem family: `erdos_problem`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `4cca2bac-93a0-44bb-8545-1f6f61e12bb6`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. Minimize the witness or blocker around 'least uncovered large integer for a special parameter triple' to identify the sharp boundary case. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Campaign seed 'least uncovered large integer for a special parameter triple' should be sharpened into the smallest meaningful obstruction.
 - campaign priority: 1.55
 - transfer score: 0.2625
-- learned summary: remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/dd1125b5-8d98-43f7-ae5b-4d8334b53522/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/dd1125b5-8d98-43f7-ae5b-4d8334b53522/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/dd1125b5-8d98-43f7-ae5b-4d8334b53522/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/dd1125b5-8d98-43f7-ae5b-4d8334b53522/aristotle_list_stdout.txt` (8816 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/dd1125b5-8d98-43f7-ae5b-4d8334b53522/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/dd1125b5-8d98-43f7-ae5b-4d8334b53522/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/dd1125b5-8d98-43f7-ae5b-4d8334b53522/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/dd1125b5-8d98-43f7-ae5b-4d8334b53522/aristotle_list_stderr.txt`
+- notes: Aristotle job 4cca2bac-93a0-44bb-8545-1f6f61e12bb6 is still in progress.
 
 ### 5646d012-e09a-4f34-9968-cf102ffacf97
 
@@ -1808,25 +1808,25 @@ The sorry here represents the core open mathematical co`
 - move family: `adversarial_counterexample`
 - theorem family: `erdos_problem`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `fbc0c3e4-4029-42be-94ad-693f511fe3a8`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. Construct an adversarial witness that sharpens or refutes the blocker pattern 'unknown'. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Observed witness/blocker 'unknown' can be sharpened with a targeted adversarial run.
 - campaign priority: 1.65
 - transfer score: 0.2875
-- learned summary: remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5646d012-e09a-4f34-9968-cf102ffacf97/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5646d012-e09a-4f34-9968-cf102ffacf97/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5646d012-e09a-4f34-9968-cf102ffacf97/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5646d012-e09a-4f34-9968-cf102ffacf97/aristotle_list_stdout.txt` (8816 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5646d012-e09a-4f34-9968-cf102ffacf97/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5646d012-e09a-4f34-9968-cf102ffacf97/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5646d012-e09a-4f34-9968-cf102ffacf97/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5646d012-e09a-4f34-9968-cf102ffacf97/aristotle_list_stderr.txt`
+- notes: Aristotle job fbc0c3e4-4029-42be-94ad-693f511fe3a8 is still in progress.
 
 ## Incidents
 
@@ -1857,22 +1857,22 @@ The sorry here represents the core open mathematical co`
 
 - policy path: `fallback`
 - policy candidate audits: 3
-- jobs synced: 3
-- jobs submitted: 2
-- active before: 3
+- jobs synced: 2
+- jobs submitted: 0
+- active before: 2
 - active after: 2
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=10, subgoals=1, traces=10
-- synced `9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0` with proof_outcome=`partial` new_signal=41 reused_signal=0
-- synced `9ba22b23-e3fe-4bc2-95f5-268b1add4af8` with proof_outcome=`partial` new_signal=41 reused_signal=0
-- synced `2af6662f-930d-4743-b852-8aef0ed7417a` with proof_outcome=`partial` new_signal=53 reused_signal=0
-- queued `dd1125b5-8d98-43f7-ae5b-4d8334b53522` for `erdos-123` via `counterexample_mode` / `witness_minimization` (chosen by deterministic fallback policy; move_family=witness_minimization; rationale=Campaign seed 'least uncovered large integer for a special parameter triple' should be sharpened into the smallest meaningful obstruction.)
-- queued `5646d012-e09a-4f34-9968-cf102ffacf97` for `erdos-123` via `counterexample_mode` / `adversarial_counterexample` (chosen by deterministic fallback policy; move_family=adversarial_counterexample; rationale=Observed witness/blocker 'unknown' can be sharpened with a targeted adversarial run.)
-- selected `dd1125b5-8d98-43f7-ae5b-4d8334b53522` rank=1 score=27.6784
-- selected `5646d012-e09a-4f34-9968-cf102ffacf97` rank=2 score=27.9636
-- considered `b287d19a-74b5-451b-bb03-be414a543ad3` rank=3 score=19.7837
+- synced `dd1125b5-8d98-43f7-ae5b-4d8334b53522` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- synced `5646d012-e09a-4f34-9968-cf102ffacf97` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- considered `91515785-dcb7-4d55-be0e-d5ab77c71cae` rank=1 score=15.8784
+- considered `16fdf812-7203-4ed6-a433-782c07c875b9` rank=2 score=16.1636
+- considered `381d0958-07fc-4e41-8ab0-41cc65f9b166` rank=3 score=12.9837
+- skipped `91515785-dcb7-4d55-be0e-d5ab77c71cae` for `erdos-123` (duplicate active experiment signature)
+- skipped `16fdf812-7203-4ed6-a433-782c07c875b9` for `erdos-123` (duplicate active experiment signature)
+- skipped `381d0958-07fc-4e41-8ab0-41cc65f9b166` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
-- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
+- Promote the top recurring lemma into a standalone theorem if not already tested.
