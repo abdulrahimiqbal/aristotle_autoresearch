@@ -431,6 +431,9 @@ def summarize_boundary_map(record: VerificationRecord) -> Dict[str, Any]:
 
 
 def prepare_ingested_result(result: ProviderResult) -> PreparedIngestion:
+    from research_orchestrator.enhanced_ingestion import upgrade_provider_result
+
+    result = upgrade_provider_result(result)
     record = result.verification_record if isinstance(result.verification_record, VerificationRecord) else parse_provider_result(result)
     if isinstance(result.verification_record, dict):
         try:
