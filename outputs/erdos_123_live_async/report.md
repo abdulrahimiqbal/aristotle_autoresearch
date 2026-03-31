@@ -648,24 +648,24 @@ The sorry here represents the core open mathematical co`
 - recurring structures considered: lemmas=10, subgoals=1, traces=0
 - synced `e7ffb40d-1e42-444e-8ffd-4d486f55a51e` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `b1167253-8940-4176-b5b6-fc4968f3735f` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- considered `506ed338-67ae-4123-a368-03c0953a6a27` rank=1 score=181.6921
-- considered `5c9d6158-1646-4e1c-9386-2a1f3c2587c9` rank=2 score=181.6921
-- considered `df1f4898-225b-4006-a093-3f4ae90e1bcb` rank=3 score=186.1921
-- considered `82c4af76-19fa-4506-8ee9-a910c9bf8290` rank=4 score=186.1921
-- considered `7cdd6b26-7d97-4dac-baa5-e700ef2abe63` rank=5 score=195.6391
-- skipped `7cdd6b26-7d97-4dac-baa5-e700ef2abe63` for `erdos-123` (conjecture active cap reached)
-- skipped `a98ae23e-f212-4899-92b9-7145a28bae29` for `erdos-123` (conjecture active cap reached)
-- skipped `404c0682-1e4e-4c09-800d-a38f38003196` for `erdos-123` (conjecture active cap reached)
-- skipped `8d5e4905-623a-4f8c-ade0-3a9aecc5ab2e` for `erdos-123` (conjecture active cap reached)
-- skipped `586d0b87-dd66-45cc-8090-7da2299d891c` for `erdos-123` (conjecture active cap reached)
-- skipped `664aabcc-390c-4983-bdd8-631a27c82ca9` for `erdos-123` (conjecture active cap reached)
-- skipped `b805302c-1ca2-4caa-87f2-9dd7527cf1a8` for `erdos-123` (conjecture active cap reached)
-- skipped `ea8c8f32-5e08-4229-af3f-b9d69cce0f12` for `erdos-123` (conjecture active cap reached)
-- skipped `506ed338-67ae-4123-a368-03c0953a6a27` for `erdos-123` (duplicate active experiment signature)
-- skipped `5c9d6158-1646-4e1c-9386-2a1f3c2587c9` for `erdos-123` (duplicate active experiment signature)
-- skipped `df1f4898-225b-4006-a093-3f4ae90e1bcb` for `erdos-123` (conjecture active cap reached)
-- skipped `82c4af76-19fa-4506-8ee9-a910c9bf8290` for `erdos-123` (conjecture active cap reached)
-- skipped `0d46973a-d6ce-427c-9d64-9b0620adcd22` for `erdos-123` (conjecture active cap reached)
+- considered `89a6a132-a1a1-46c1-997f-474907b1e563` rank=1 score=181.6921
+- considered `d13e8af6-e69b-4ee4-bc36-8c6fae885e75` rank=2 score=181.6921
+- considered `60023e3d-4aff-481f-8ad4-e6cacb7ae3e2` rank=3 score=186.1921
+- considered `7e910218-71f9-4395-bcc8-3d19ff8490b8` rank=4 score=186.1921
+- considered `cca25aaa-8d0c-4f7f-ae25-fae806f93420` rank=5 score=195.6391
+- skipped `cca25aaa-8d0c-4f7f-ae25-fae806f93420` for `erdos-123` (conjecture active cap reached)
+- skipped `9e50483e-6959-43d5-bfd6-a6f5e3ba6c8d` for `erdos-123` (conjecture active cap reached)
+- skipped `0657843f-75c9-4c24-ae46-f7f97b4b7c29` for `erdos-123` (conjecture active cap reached)
+- skipped `3981a981-9a90-4303-b193-22e9be5f22f1` for `erdos-123` (conjecture active cap reached)
+- skipped `87292f02-7c65-4118-94ce-b313a7110dd8` for `erdos-123` (conjecture active cap reached)
+- skipped `da4245a5-8342-4c8d-92b4-8bef8f9a83ef` for `erdos-123` (conjecture active cap reached)
+- skipped `031a9b9b-770b-4aa0-bdca-8c1ac207281e` for `erdos-123` (conjecture active cap reached)
+- skipped `78d68c9e-aa38-4f79-b7f2-1e7102ea77f2` for `erdos-123` (conjecture active cap reached)
+- skipped `89a6a132-a1a1-46c1-997f-474907b1e563` for `erdos-123` (duplicate active experiment signature)
+- skipped `d13e8af6-e69b-4ee4-bc36-8c6fae885e75` for `erdos-123` (duplicate active experiment signature)
+- skipped `60023e3d-4aff-481f-8ad4-e6cacb7ae3e2` for `erdos-123` (conjecture active cap reached)
+- skipped `7e910218-71f9-4395-bcc8-3d19ff8490b8` for `erdos-123` (conjecture active cap reached)
+- skipped `859d88a5-9ae8-404e-a0e5-ad1705e7ed68` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
