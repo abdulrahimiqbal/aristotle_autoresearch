@@ -382,6 +382,54 @@ def _apply_semantic_ids(record: VerificationRecord, summary: SemanticMemorySumma
             observation.cluster_id = artifact.cluster_id
 
 
+def build_followup_hints(record: VerificationRecord) -> Dict[str, list[dict[str, Any]]]:
+    def _pack(items: list[VerificationObservation], kind: str) -> list[dict[str, Any]]:
+        packed: list[dict[str, Any]] = []
+        for item in items:
+            packed.append(
+                {
+                    "kind": kind,
+                    "text": item.text,
+                    "normalized_text": item.normalized_text,
+                    "canonical_id": item.canonical_id,
+                    "cluster_id": item.cluster_id,
+                    "confidence": item.confidence,
+                }
+            )
+        return packed
+
+    return {
+        "proof_trace_fragments": _pack(record.proof_traces, "proof_trace"),
+        "counterexample_witnesses": _pack(record.counterexamples, "counterexample"),
+        "unresolved_goals": _pack(record.unsolved_goals, "goal"),
+        "blocked_on": _pack(record.blocker_observations, "blocker"),
+        "missing_assumptions": _pack(record.missing_assumptions, "assumption"),
+    }
+
+
+def summarize_boundary_map(record: VerificationRecord) -> Dict[str, Any]:
+    fragile_variant = bool(record.counterexamples) and record.verification_status in {VerificationStatus.DISPROVED.value, VerificationStatus.PARTIAL.value}
+    witness_backed_false_region = [item.text for item in record.counterexamples[:3]]
+    assumption_repairs = [item.text for item in record.missing_assumptions[:3]]
+    recurring_obstructions = [item.text for item in record.blocker_observations[:3]]
+    summary_bits: list[str] = []
+    if fragile_variant:
+        summary_bits.append("fragile_variant")
+    if witness_backed_false_region:
+        summary_bits.append("witness-backed false region")
+    if assumption_repairs:
+        summary_bits.append("likely salvageable with assumption repair")
+    if recurring_obstructions:
+        summary_bits.append("recurring obstruction")
+    return {
+        "fragile_variant": fragile_variant,
+        "witness_backed_false_region": witness_backed_false_region,
+        "likely_salvageable_with_assumption_repair": assumption_repairs,
+        "recurring_obstruction": recurring_obstructions,
+        "summary": ", ".join(summary_bits) if summary_bits else "no sharp boundary signal",
+    }
+
+
 def prepare_ingested_result(result: ProviderResult) -> PreparedIngestion:
     record = result.verification_record if isinstance(result.verification_record, VerificationRecord) else parse_provider_result(result)
     if isinstance(result.verification_record, dict):
@@ -422,6 +470,8 @@ def prepare_ingested_result(result: ProviderResult) -> PreparedIngestion:
     enriched.metadata = dict(enriched.metadata)
     enriched.metadata["verification_record"] = asdict(record)
     enriched.metadata["semantic_summary"] = asdict(semantic_summary)
+    enriched.metadata["followup_hints"] = build_followup_hints(record)
+    enriched.metadata["boundary_map"] = summarize_boundary_map(record)
     if issues:
         enriched.metadata["validation_issues"] = [asdict(item) for item in issues]
     enriched.new_signal_count = sum(1 for item in semantic_summary.artifacts if item.canonical_text)

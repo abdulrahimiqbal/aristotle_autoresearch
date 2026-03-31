@@ -5,15 +5,19 @@ import shutil
 from typing import Dict, List
 
 from research_orchestrator.db import Database
-from research_orchestrator.experiment_generator import generate_move_candidates, materialize_candidate
+from research_orchestrator.experiment_generator import generate_move_candidates, materialize_candidate, select_discovery_question
 from research_orchestrator.prompts import build_manager_prompt
 
 MOVE_PRIORITY = {
     "underspecify": 0,
     "perturb_assumption": 1,
     "promote_lemma": 2,
-    "reformulate": 3,
-    "counterexample_mode": 4,
+    "promote_subgoal": 3,
+    "promote_trace": 4,
+    "reformulate": 5,
+    "boundary_map_from_witness": 6,
+    "boundary_map_from_missing_assumption": 7,
+    "counterexample_mode": 8,
 }
 
 
@@ -26,7 +30,54 @@ def _counts_by_conjecture(conjectures, experiments):
     return counts
 
 
+def _has_seeded_structure(conjecture) -> bool:
+    return any(
+        conjecture.family_metadata.get(key)
+        for key in (
+            "seed_invariants",
+            "seed_subclaims",
+            "seed_extremal_targets",
+            "seed_adversarial_targets",
+            "seed_witness_targets",
+            "seed_transfer_hints",
+            "seed_discovery_questions",
+        )
+    )
+
+
+def _manager_candidate_slice(conjecture, experiments, move_candidates):
+    conjecture_experiments = [item for item in experiments if item["conjecture_id"] == conjecture.conjecture_id]
+    effective_moves = {
+        item["move"]
+        for item in conjecture_experiments
+        if item.get("proof_outcome") not in {"unknown", "auth_failure", "infra_failure", "malformed"}
+        or (item.get("new_signal_count") or 0) > 0
+    }
+    tested_assumptions = {
+        item["modification"].get("assumption")
+        for item in conjecture_experiments
+        if item["move"] == "perturb_assumption" and item.get("modification", {}).get("assumption")
+    }
+    if not conjecture_experiments and not _has_seeded_structure(conjecture):
+        initial = [candidate for candidate in move_candidates if candidate.legacy_move == "underspecify"]
+        return initial[:1] if initial else move_candidates
+    if "underspecify" in effective_moves and not tested_assumptions:
+        high_value_nonperturb = [
+            candidate
+            for candidate in move_candidates
+            if candidate.legacy_move != "perturb_assumption"
+            and candidate.transfer_score > 0
+        ]
+        if high_value_nonperturb:
+            return move_candidates
+        perturb = [candidate for candidate in move_candidates if candidate.legacy_move == "perturb_assumption"]
+        if perturb:
+            return perturb
+    return move_candidates
+
+
 def _candidate_payload(candidate, conjecture_id, project_id, existing_experiments, discovery_priority):
+    metadata = candidate.candidate_metadata
     return {
         "experiment_id": candidate.experiment_id,
         "project_id": project_id,
@@ -43,10 +94,18 @@ def _candidate_payload(candidate, conjecture_id, project_id, existing_experiment
         "workspace_dir": candidate.workspace_dir,
         "lean_file": candidate.lean_file,
         "rationale": candidate.rationale,
-        "candidate_metadata": candidate.candidate_metadata,
+        "candidate_metadata": metadata,
         "discovery_question_id": candidate.discovery_question_id,
         "discovery_question": candidate.discovery_question,
         "discovery_priority": discovery_priority,
+        "motif_id": metadata.get("motif_id", ""),
+        "motif_signature": metadata.get("motif_signature", ""),
+        "motif_reuse_count": metadata.get("motif_reuse_count", 0),
+        "signal_support": metadata.get("signal_support", 0),
+        "blocker_support": metadata.get("blocker_support", 0),
+        "witness_support": metadata.get("witness_support", 0),
+        "assumption_boundary_support": metadata.get("assumption_boundary_support", 0),
+        "recent_signal_velocity": metadata.get("recent_signal_velocity", 0),
     }
 
 
@@ -55,12 +114,15 @@ def _frontier_sort_key(item: Dict[str, object]):
     return (
         item.get("existing_experiments", 0),
         -item.get("discovery_priority", 0),
+        -item.get("recent_signal_velocity", 0),
+        -item.get("motif_reuse_count", 0),
         MOVE_PRIORITY.get(item.get("move", ""), 99),
         -metadata.get("campaign_priority", 0),
         -metadata.get("transfer_score", 0),
         -metadata.get("reuse_potential", 0),
         -metadata.get("obstruction_targeting", 0),
         -metadata.get("novelty_score", 0),
+        -item.get("signal_support", 0),
         item.get("conjecture_id", ""),
         item.get("move_family", ""),
     )
@@ -75,6 +137,7 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
     recurring_proof_traces = db.recurring_proof_traces(project_id)
     no_signal_branches = db.no_signal_branches(project_id)
     open_questions = db.list_discovery_questions(project_id, status="open")
+    blocker_signals = [item["blocker_type"] for item in db.recurring_blockers_by_move(project_id)]
     questions_by_conjecture = {}
     for question in open_questions:
         questions_by_conjecture.setdefault(question["conjecture_id"], []).append(question)
@@ -94,8 +157,17 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
             discovery_questions=questions_by_conjecture.get(conjecture.conjecture_id, []),
             all_conjectures=conjectures,
         )
+        move_candidates = _manager_candidate_slice(conjecture, experiments, move_candidates)
         generated_candidates[conjecture.conjecture_id] = move_candidates
         for move_candidate in move_candidates:
+            selected_question = select_discovery_question(
+                conjecture=conjecture,
+                discovery_questions=questions_by_conjecture.get(conjecture.conjecture_id, []),
+                recurring_lemmas=recurring,
+                recurring_subgoals=recurring_subgoals,
+                recurring_proof_traces=recurring_proof_traces,
+                blocker_signals=blocker_signals,
+            )
             brief = materialize_candidate(
                 charter=charter,
                 conjecture=conjecture,
@@ -110,7 +182,7 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
                     conjecture.conjecture_id,
                     project_id,
                     counts.get(conjecture.conjecture_id, 0),
-                    (questions_by_conjecture.get(conjecture.conjecture_id) or [{}])[0].get("priority", 0),
+                    (selected_question or {}).get("priority", 0),
                 )
             )
             shutil.rmtree(brief.workspace_dir, ignore_errors=True)
@@ -148,6 +220,7 @@ def generate_frontier(db: Database, project_id: str, workspace_root: str) -> Lis
     recurring_subgoals = db.recurring_subgoals(project_id)
     recurring_proof_traces = db.recurring_proof_traces(project_id)
     open_questions = db.list_discovery_questions(project_id, status="open")
+    blocker_signals = [item["blocker_type"] for item in db.recurring_blockers_by_move(project_id)]
     questions_by_conjecture = {}
     for question in open_questions:
         questions_by_conjecture.setdefault(question["conjecture_id"], []).append(question)
@@ -177,7 +250,16 @@ def generate_frontier(db: Database, project_id: str, workspace_root: str) -> Lis
             discovery_questions=questions_by_conjecture.get(conjecture.conjecture_id, []),
             all_conjectures=conjectures,
         )
+        move_candidates = _manager_candidate_slice(conjecture, experiments, move_candidates)
         for move_candidate in move_candidates:
+            selected_question = select_discovery_question(
+                conjecture=conjecture,
+                discovery_questions=questions_by_conjecture.get(conjecture.conjecture_id, []),
+                recurring_lemmas=recurring,
+                recurring_subgoals=recurring_subgoals,
+                recurring_proof_traces=recurring_proof_traces,
+                blocker_signals=blocker_signals,
+            )
             brief = materialize_candidate(
                 charter=charter,
                 conjecture=conjecture,
@@ -191,7 +273,7 @@ def generate_frontier(db: Database, project_id: str, workspace_root: str) -> Lis
                 conjecture.conjecture_id,
                 project_id,
                 counts.get(conjecture.conjecture_id, 0),
-                (questions_by_conjecture.get(conjecture.conjecture_id) or [{}])[0].get("priority", 0),
+                (selected_question or {}).get("priority", 0),
             )
             signature = (
                 conjecture.conjecture_id,
@@ -210,6 +292,13 @@ def generate_frontier(db: Database, project_id: str, workspace_root: str) -> Lis
                     "obstruction_targeting": brief.candidate_metadata.get("obstruction_targeting", 0),
                     "transfer_opportunity": brief.candidate_metadata.get("transfer_score", 0),
                     "campaign_priority": brief.candidate_metadata.get("campaign_priority", 0),
+                    "motif_id": brief.candidate_metadata.get("motif_id", ""),
+                    "motif_reuse_count": brief.candidate_metadata.get("motif_reuse_count", 0),
+                    "signal_support": brief.candidate_metadata.get("signal_support", 0),
+                    "blocker_support": brief.candidate_metadata.get("blocker_support", 0),
+                    "witness_support": brief.candidate_metadata.get("witness_support", 0),
+                    "assumption_boundary_support": brief.candidate_metadata.get("assumption_boundary_support", 0),
+                    "recent_signal_velocity": brief.candidate_metadata.get("recent_signal_velocity", 0),
                 }
             )
             frontier.append(payload)

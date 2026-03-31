@@ -8,7 +8,7 @@ from pathlib import Path
 from research_orchestrator.campaign_planner import synthesize_campaign
 from research_orchestrator.charter import load_charter, load_conjecture
 from research_orchestrator.db import Database
-from research_orchestrator.github_state import sync_github_state
+from research_orchestrator.github_state import publish_state_bundle, sync_github_state, sync_state_bundle
 from research_orchestrator.orchestrator import (
     backfill_provider_results,
     manager_tick,
@@ -54,23 +54,36 @@ def cmd_start_campaign(args):
 
 
 def cmd_campaign_status(args):
-    db = Database(args.db)
-    db.initialize()
-    summary = db.project_summary(args.project)
-    spec = db.get_campaign_spec(args.project)
-    payload = {
-        "project_id": args.project,
-        "title": summary["campaign_title"],
-        "campaign_version": summary.get("campaign_version", ""),
-        "raw_prompt": spec.raw_prompt if spec is not None else "",
-        "summary": summary,
-        "open_questions": db.list_discovery_questions(args.project, status="open"),
-        "discovery_nodes": db.list_discovery_nodes(args.project)[:20],
-        "recent_audit_events": db.list_audit_events(args.project, limit=10),
-        "open_incidents": db.list_incidents(args.project, status="open"),
-        "health": db.campaign_health(args.project),
-        "version_drift": db.version_drift_summary(args.project),
-    }
+    try:
+        db = Database(args.db)
+        db.initialize()
+        summary = db.project_summary(args.project)
+        spec = db.get_campaign_spec(args.project)
+        payload = {
+            "project_id": args.project,
+            "title": summary["campaign_title"],
+            "campaign_version": summary.get("campaign_version", ""),
+            "raw_prompt": spec.raw_prompt if spec is not None else "",
+            "summary": summary,
+            "open_questions": db.list_discovery_questions(args.project, status="open"),
+            "discovery_nodes": db.list_discovery_nodes(args.project)[:20],
+            "recent_audit_events": db.list_audit_events(args.project, limit=10),
+            "open_incidents": db.list_incidents(args.project, status="open"),
+            "health": db.campaign_health(args.project),
+            "version_drift": db.version_drift_summary(args.project),
+            "source": "sqlite",
+        }
+    except Exception:
+        if not args.state_dir:
+            raise
+        state_root = Path(args.state_dir)
+        payload = {
+            "project_id": args.project,
+            "summary": json.loads((state_root / "campaign_summary.json").read_text(encoding="utf-8")),
+            "conjecture_scoreboard": json.loads((state_root / "conjecture_scoreboard.json").read_text(encoding="utf-8")),
+            "open_incidents": json.loads((state_root / "incidents.json").read_text(encoding="utf-8")),
+            "source": "readable_bundle",
+        }
     print(json.dumps(payload, indent=2))
 
 
@@ -287,14 +300,57 @@ def cmd_demo(args):
 
 
 def cmd_sync_github_state(args):
-    written = sync_github_state(
+    result = sync_state_bundle(
         repo=args.repo,
         ref=args.ref,
         state_dir=args.state_dir,
+        include_sqlite_snapshot=args.include_sqlite,
     )
-    print(f"Synced {len(written)} canonical state files from {args.repo}@{args.ref}")
-    for path in written:
+    print(f"Synced {len(result.written_files)} readable state files from {args.repo}@{args.ref}")
+    print(f"Integrity: {result.integrity_status}")
+    print(f"Authoritative artifact: {result.authoritative_artifact}")
+    print(f"SQLite snapshot: {result.sqlite_status}")
+    for path in result.written_files:
         print(path)
+
+
+def cmd_db_check(args):
+    db = Database(args.db)
+    db.initialize()
+    payload = {
+        "quick_check": db.quick_check(),
+        "integrity_check": db.integrity_check(),
+        "wal_checkpoint": db.checkpoint_wal(),
+    }
+    print(json.dumps(payload, indent=2))
+
+
+def cmd_db_backup(args):
+    db = Database(args.db)
+    db.initialize()
+    destination = db.backup_to(args.output)
+    print(json.dumps({"backup": destination}, indent=2))
+
+
+def cmd_db_export(args):
+    db = Database(args.db)
+    db.initialize()
+    written = db.export_readable_state(args.project, args.output_dir)
+    print(json.dumps({"written": written}, indent=2))
+
+
+def cmd_publish_state_bundle(args):
+    db = Database(args.db)
+    db.initialize()
+    written = publish_state_bundle(
+        db=db,
+        project_id=args.project,
+        state_dir=args.output_dir,
+        report_path=args.report if args.report else None,
+        manager_snapshot_path=args.manager_snapshot if args.manager_snapshot else None,
+        include_sqlite_snapshot=args.include_sqlite,
+    )
+    print(json.dumps({"written": written, "authoritative_artifact": "readable_bundle"}, indent=2))
 
 
 def build_parser():
@@ -309,6 +365,7 @@ def build_parser():
     campaign_status = sub.add_parser("campaign-status", help="Inspect campaign state, discovery graph, and incidents.")
     campaign_status.add_argument("--db", required=True)
     campaign_status.add_argument("--project", required=True)
+    campaign_status.add_argument("--state-dir")
     campaign_status.set_defaults(func=cmd_campaign_status)
 
     campaign_health = sub.add_parser("campaign-health", help="Inspect machine-readable campaign health and runtime signals.")
@@ -397,7 +454,32 @@ def build_parser():
     sync_github.add_argument("--repo", default="abdulrahimiqbal/aristotle_autoresearch")
     sync_github.add_argument("--ref", default="campaign-state")
     sync_github.add_argument("--state-dir", default="outputs/erdos_live_async")
+    sync_github.add_argument("--include-sqlite", action="store_true")
     sync_github.set_defaults(func=cmd_sync_github_state)
+
+    db_check = sub.add_parser("db-check", help="Run SQLite integrity checks.")
+    db_check.add_argument("--db", required=True)
+    db_check.set_defaults(func=cmd_db_check)
+
+    db_backup = sub.add_parser("db-backup", help="Create a SQLite backup.")
+    db_backup.add_argument("--db", required=True)
+    db_backup.add_argument("--output", required=True)
+    db_backup.set_defaults(func=cmd_db_backup)
+
+    db_export = sub.add_parser("db-export", help="Export human-readable campaign state files.")
+    db_export.add_argument("--db", required=True)
+    db_export.add_argument("--project", required=True)
+    db_export.add_argument("--output-dir", required=True)
+    db_export.set_defaults(func=cmd_db_export)
+
+    publish_bundle = sub.add_parser("publish-state-bundle", help="Publish a readable state bundle with optional SQLite snapshot.")
+    publish_bundle.add_argument("--db", required=True)
+    publish_bundle.add_argument("--project", required=True)
+    publish_bundle.add_argument("--output-dir", required=True)
+    publish_bundle.add_argument("--report")
+    publish_bundle.add_argument("--manager-snapshot")
+    publish_bundle.add_argument("--include-sqlite", action="store_true")
+    publish_bundle.set_defaults(func=cmd_publish_state_bundle)
 
     lint = sub.add_parser("lint-prompts", help="Generate prompts for the next cycle and lint them.")
     lint.add_argument("--db", required=True)

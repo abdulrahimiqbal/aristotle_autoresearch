@@ -112,6 +112,8 @@ class ResultIngestionTest(unittest.TestCase):
         self.assertEqual(result.proof_outcome, "disproved")
         self.assertEqual(result.status, "failed")
         self.assertTrue(result.counterexample_witnesses)
+        self.assertIn("boundary_map", result.metadata)
+        self.assertIn("followup_hints", result.metadata)
 
     def test_counterexample_hint_can_remain_partial_when_artifacts_show_ongoing_formalization(self):
         lean_file = self.tempdir / "PartialMain.lean"

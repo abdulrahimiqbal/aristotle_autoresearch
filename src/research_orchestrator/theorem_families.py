@@ -77,6 +77,14 @@ class WeightedMonotoneFamilyAdapter(BaseFamilyAdapter):
             prefix.append(f"-- mine invariant: {modification.get('invariant_hint', 'chain monotonicity')}")
         elif move_family == "decompose_subclaim":
             prefix.append(f"-- bridge lemma target: {modification.get('subclaim', 'chain decomposition bridge')}")
+        elif move_family == "promote_subgoal":
+            prefix.append(f"-- promoted subgoal: {modification.get('subgoal_statement', 'chain decomposition bridge')}")
+        elif move_family == "promote_trace":
+            prefix.append(f"-- promoted proof trace: {modification.get('trace_fragment', 'critical tactic bottleneck')}")
+        elif move_family == "boundary_map_from_witness":
+            prefix.append(f"-- witness boundary map: {modification.get('witness', 'threshold obstruction')}")
+        elif move_family == "boundary_map_from_missing_assumption":
+            prefix.append(f"-- assumption repair boundary map: {modification.get('missing_assumption', 'missing closure assumption')}")
         elif move_family == "witness_minimization":
             prefix.append(f"-- minimize witness around blocker: {modification.get('witness_target', 'threshold obstruction')}")
         return "\n".join(header + prefix + [body])
@@ -107,10 +115,18 @@ class ErdosFamilyAdapter(BaseFamilyAdapter):
             prefix.append(f"-- invariant target: {modification.get('invariant_hint', 'covering-to-antichain upgrade')}")
         elif move_family == "decompose_subclaim":
             prefix.append(f"-- bridge lemma target: {modification.get('subclaim', 'covering or antichain extraction lemma')}")
+        elif move_family == "promote_subgoal":
+            prefix.append(f"-- promoted subgoal: {modification.get('subgoal_statement', 'covering or antichain extraction lemma')}")
+        elif move_family == "promote_trace":
+            prefix.append(f"-- promoted proof trace: {modification.get('trace_fragment', 'critical additive bottleneck')}")
         elif move_family == "equivalent_view":
             prefix.append(f"-- equivalent view: {modification.get('form', 'antichain-friendly reformulation')}")
         elif move_family == "adversarial_counterexample":
             prefix.append(f"-- adversarial target: {modification.get('target', 'small counterexample')}")
+        elif move_family == "boundary_map_from_witness":
+            prefix.append(f"-- witness boundary map: {modification.get('witness', 'sharp boundary witness')}")
+        elif move_family == "boundary_map_from_missing_assumption":
+            prefix.append(f"-- missing-assumption boundary map: {modification.get('missing_assumption', 'missing extremal hypothesis')}")
         elif move_family == "witness_minimization":
             prefix.append(f"-- witness minimization target: {modification.get('witness_target', 'sharp boundary witness')}")
         elif move_family == "transfer_reformulation":

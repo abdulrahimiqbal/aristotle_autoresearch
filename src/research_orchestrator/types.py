@@ -68,6 +68,9 @@ class CampaignBudgetPolicy:
     max_attempts_per_experiment: int = 6
     branch_prune_after_no_signal: int = 3
     duplicate_frontier_family_limit: int = 2
+    per_conjecture_active_cap: int = 2
+    per_motif_active_cap: int = 2
+    exploration_floor: int = 1
 
 
 @dataclass

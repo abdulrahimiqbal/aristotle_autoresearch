@@ -31,6 +31,10 @@ def _effective_experiments(experiments: Sequence[Dict[str, Any]]) -> List[Dict[s
     ]
 
 
+def _normalized_signal(text: str) -> str:
+    return " ".join(str(text).strip().lower().split())
+
+
 def _semantic_kinds(experiments: Sequence[Dict[str, Any]], kind: str) -> Counter[str]:
     counts: Counter[str] = Counter()
     for item in experiments:
@@ -214,6 +218,63 @@ class MoveGenerationContext:
 
     def seed_items(self, key: str) -> List[Any]:
         return _family_metadata_list(self.conjecture, key)
+
+    def recent_experiments(self, limit: int = 6) -> List[Dict[str, Any]]:
+        items = sorted(
+            self.conjecture_experiments,
+            key=lambda item: (
+                item.get("completed_at") or "",
+                item.get("created_at") or "",
+                item.get("experiment_id") or "",
+            ),
+        )
+        return items[-limit:]
+
+    def recent_signal_velocity(self, limit: int = 6) -> float:
+        recent = self.recent_experiments(limit=limit)
+        if not recent:
+            return 0.0
+        total = sum((item.get("new_signal_count") or 0) + 0.35 * (item.get("reused_signal_count") or 0) for item in recent)
+        return round(total / max(1, len(recent)), 3)
+
+    def recent_signal_counter(self) -> Counter[str]:
+        counter: Counter[str] = Counter()
+        for item in self.recent_experiments():
+            ingestion = item.get("ingestion") or {}
+            for key in (
+                "unresolved_goals",
+                "proof_trace_fragments",
+                "counterexample_witnesses",
+                "missing_assumptions",
+                "blocked_on",
+            ):
+                for value in ingestion.get(key, []):
+                    normalized = _normalized_signal(value)
+                    if normalized:
+                        counter[normalized] += 1
+        return counter
+
+    def boundary_hints(self) -> List[Dict[str, Any]]:
+        hints: List[Dict[str, Any]] = []
+        for item in self.recent_experiments(limit=10):
+            ingestion = item.get("ingestion") or {}
+            boundary_map = ingestion.get("boundary_map") or {}
+            if not isinstance(boundary_map, dict):
+                continue
+            hints.append(
+                {
+                    "experiment_id": item.get("experiment_id", ""),
+                    "move": item.get("move", ""),
+                    "proof_outcome": item.get("proof_outcome", ""),
+                    "boundary_map": boundary_map,
+                    "counterexample_witnesses": ingestion.get("counterexample_witnesses", []),
+                    "missing_assumptions": ingestion.get("missing_assumptions", []),
+                    "blocked_on": ingestion.get("blocked_on", []),
+                    "unresolved_goals": ingestion.get("unresolved_goals", []),
+                    "proof_trace_fragments": ingestion.get("proof_trace_fragments", []),
+                }
+            )
+        return hints
 
 
 Generator = Callable[[MoveGenerationContext], List[MoveCandidate]]
@@ -524,6 +585,152 @@ def _decompose_subclaim(context: MoveGenerationContext) -> List[MoveCandidate]:
     ]
 
 
+def _promote_subgoal(context: MoveGenerationContext) -> List[MoveCandidate]:
+    candidates: List[MoveCandidate] = []
+    recent_support = context.recent_signal_counter()
+    for item in context.recurring_subgoals[:3]:
+        statement = item.get("statement", "")
+        observations = int(item.get("observations", 0))
+        if not statement:
+            continue
+        normalized = _normalized_signal(statement)
+        candidates.append(
+            MoveCandidate(
+                move_family="promote_subgoal",
+                legacy_move="promote_subgoal",
+                parameters={"subgoal_statement": statement},
+                objective="Fill in all sorries. Promote the recurring unresolved goal into a standalone theorem or bridge target.",
+                expected_signal="Test whether the recurring unresolved goal is the reusable bottleneck driving multiple branches.",
+                rationale=f"Recurring unresolved goal '{statement}' is appearing often enough to deserve direct theorem-level pressure.",
+                novelty_score=0.95,
+                reuse_potential=1.45 + 0.08 * observations,
+                obstruction_targeting=1.0,
+                diversity_group="motif-subgoal",
+                generation_metadata={
+                    "signal_support": observations + recent_support.get(normalized, 0),
+                    "motif_signature": f"subgoal:{normalized}",
+                    "motif_id": f"subgoal:{normalized}",
+                },
+            )
+        )
+    return candidates
+
+
+def _promote_trace(context: MoveGenerationContext) -> List[MoveCandidate]:
+    candidates: List[MoveCandidate] = []
+    recent_support = context.recent_signal_counter()
+    for item in context.recurring_proof_traces[:3]:
+        fragment = item.get("fragment", "")
+        observations = int(item.get("observations", 0))
+        if not fragment:
+            continue
+        normalized = _normalized_signal(fragment)
+        candidates.append(
+            MoveCandidate(
+                move_family="promote_trace",
+                legacy_move="promote_trace",
+                parameters={"trace_fragment": fragment},
+                objective="Fill in all sorries. Build a lemma or proof objective that isolates the recurring proof-trace fragment or tactic bottleneck.",
+                expected_signal="Turn a recurring proof fragment into a reusable trace-level lemma or tactic bottleneck diagnosis.",
+                rationale=f"Recurring proof trace '{fragment}' is a strong motif that should be exploited directly.",
+                novelty_score=0.9,
+                reuse_potential=1.25 + 0.05 * observations,
+                obstruction_targeting=1.1,
+                diversity_group="motif-trace",
+                generation_metadata={
+                    "signal_support": observations + recent_support.get(normalized, 0),
+                    "motif_signature": f"trace:{normalized}",
+                    "motif_id": f"trace:{normalized}",
+                },
+            )
+        )
+    return candidates
+
+
+def _boundary_map_from_witness(context: MoveGenerationContext) -> List[MoveCandidate]:
+    candidates: List[MoveCandidate] = []
+    recent_support = context.recent_signal_counter()
+    for hint in context.boundary_hints():
+        witnesses = hint.get("counterexample_witnesses", [])
+        if not witnesses:
+            continue
+        witness = str(witnesses[0])
+        normalized = _normalized_signal(witness)
+        blocked_on = list(hint.get("blocked_on", []))
+        unresolved_goals = list(hint.get("unresolved_goals", []))
+        candidates.append(
+            MoveCandidate(
+                move_family="boundary_map_from_witness",
+                legacy_move="boundary_map_from_witness",
+                parameters={
+                    "witness": witness,
+                    "source_experiment_id": hint.get("experiment_id", ""),
+                    "blocked_on": blocked_on[:2],
+                    "unresolved_goals": unresolved_goals[:2],
+                    "delta_mode": "single_assumption_or_target_shift",
+                },
+                objective="Fill in all sorries. Starting from the witness-backed false region, perform one controlled delta to map the nearby salvageable boundary.",
+                expected_signal="Refine the false region around a concrete witness and identify the next boundary repair to test.",
+                rationale=f"Witness '{witness}' should generate a controlled local boundary-map follow-up rather than end the branch.",
+                novelty_score=0.85,
+                reuse_potential=0.95,
+                obstruction_targeting=1.6,
+                diversity_group="boundary-witness",
+                generation_metadata={
+                    "witness_support": 1 + recent_support.get(normalized, 0),
+                    "signal_support": 1 + recent_support.get(normalized, 0),
+                    "blocker_support": len(blocked_on),
+                    "motif_signature": f"witness:{normalized}",
+                    "motif_id": f"witness:{normalized}",
+                    "boundary_source": "counterexample_witness",
+                },
+            )
+        )
+    return candidates[:2]
+
+
+def _boundary_map_from_missing_assumption(context: MoveGenerationContext) -> List[MoveCandidate]:
+    candidates: List[MoveCandidate] = []
+    recent_support = context.recent_signal_counter()
+    for hint in context.boundary_hints():
+        assumptions = hint.get("missing_assumptions", [])
+        if not assumptions:
+            continue
+        assumption = str(assumptions[0])
+        normalized = _normalized_signal(assumption)
+        blocked_on = list(hint.get("blocked_on", []))
+        boundary_map = hint.get("boundary_map", {})
+        candidates.append(
+            MoveCandidate(
+                move_family="boundary_map_from_missing_assumption",
+                legacy_move="boundary_map_from_missing_assumption",
+                parameters={
+                    "missing_assumption": assumption,
+                    "source_experiment_id": hint.get("experiment_id", ""),
+                    "blocked_on": blocked_on[:2],
+                    "salvage_mode": "minimal_assumption_repair",
+                    "boundary_hint": boundary_map.get("summary", ""),
+                },
+                objective="Fill in all sorries. Apply exactly one minimal assumption repair suggested by the fragile falsification and measure whether the branch becomes salvageable.",
+                expected_signal="Map the nearest viable assumption repair rather than abandoning the weakened branch.",
+                rationale=f"Missing assumption '{assumption}' suggests a branch-local assumption-boundary map follow-up.",
+                novelty_score=0.85,
+                reuse_potential=1.05,
+                obstruction_targeting=1.45,
+                diversity_group="boundary-assumption",
+                generation_metadata={
+                    "assumption_boundary_support": 1 + recent_support.get(normalized, 0),
+                    "signal_support": 1 + recent_support.get(normalized, 0),
+                    "blocker_support": len(blocked_on),
+                    "motif_signature": f"assumption:{normalized}",
+                    "motif_id": f"assumption:{normalized}",
+                    "boundary_source": "missing_assumption",
+                },
+            )
+        )
+    return candidates[:2]
+
+
 def _adversarial_counterexample(context: MoveGenerationContext) -> List[MoveCandidate]:
     witnesses = context.semantic_counter("counterexample")
     blockers = context.semantic_counter("blocker")
@@ -624,6 +831,8 @@ def _transfer_reformulation(context: MoveGenerationContext) -> List[MoveCandidat
 
 def default_move_registry() -> MoveRegistry:
     registry = MoveRegistry()
+    registry.register(MoveFamilySpec("boundary_map_from_missing_assumption", "boundary_map_from_missing_assumption", "Minimal assumption repair around a fragile falsification", ["missing_assumption", "source_experiment_id", "blocked_on", "salvage_mode"], _boundary_map_from_missing_assumption))
+    registry.register(MoveFamilySpec("boundary_map_from_witness", "boundary_map_from_witness", "Boundary-map follow-up around a counterexample witness", ["witness", "source_experiment_id", "blocked_on", "delta_mode"], _boundary_map_from_witness))
     registry.register(MoveFamilySpec("legacy.counterexample_mode", "counterexample_mode", "Legacy counterexample search", ["target", "attempt"], _counterexample_search))
     registry.register(MoveFamilySpec("legacy.promote_lemma", "promote_lemma", "Legacy lemma promotion", ["lemma_statement"], _promote_lemma))
     registry.register(MoveFamilySpec("legacy.perturb_assumption", "perturb_assumption", "Legacy perturb assumption", ["assumption", "operation"], _assumption_perturbations))
@@ -634,6 +843,8 @@ def default_move_registry() -> MoveRegistry:
     registry.register(MoveFamilySpec("equivalent_view", "reformulate", "Alternative equivalent view generation", ["form"], _reformulations))
     registry.register(MoveFamilySpec("extremal_case", "reformulate", "Extremal-case exploration", ["extremal_target"], _extremal_case))
     registry.register(MoveFamilySpec("invariant_mining", "promote_lemma", "Mine reusable invariants", ["invariant_hint"], _invariant_mining))
+    registry.register(MoveFamilySpec("promote_subgoal", "promote_subgoal", "Promote recurring unresolved subgoal into a standalone target", ["subgoal_statement"], _promote_subgoal))
+    registry.register(MoveFamilySpec("promote_trace", "promote_trace", "Promote recurring proof-trace fragment into a direct target", ["trace_fragment"], _promote_trace))
     registry.register(MoveFamilySpec("transfer_reformulation", "reformulate", "Cross-family transfer-aware reformulation", ["source_conjecture_id", "source_domain", "artifact"], _transfer_reformulation))
     registry.register(MoveFamilySpec("witness_minimization", "counterexample_mode", "Minimize boundary witnesses", ["witness_target", "mode"], _witness_minimization))
     return registry

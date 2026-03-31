@@ -14,9 +14,13 @@ from research_orchestrator.schema_versions import MANAGER_POLICY_VERSION
 MOVE_PRIORITY = {
     "underspecify": 0,
     "perturb_assumption": 1,
-    "reformulate": 2,
-    "promote_lemma": 3,
-    "counterexample_mode": 4,
+    "promote_lemma": 2,
+    "promote_subgoal": 3,
+    "promote_trace": 4,
+    "reformulate": 5,
+    "boundary_map_from_witness": 6,
+    "boundary_map_from_missing_assumption": 7,
+    "counterexample_mode": 8,
 }
 
 
@@ -101,10 +105,10 @@ Return valid JSON with this exact shape:
 Hard constraints:
 - rank only experiment ids that appear in the frontier candidates
 - prefer candidates with explicit high-priority discovery questions
-- prefer cross-problem diversity before deepening one branch
+- preserve exploration, but allow deeper exploitation when a motif is clearly producing more reusable signal
 - avoid duplicate active runs for the same conjecture, move, and modification
 - favor information gain and reusability
-- prefer candidates that attack recurring lemmas or recurring subgoals
+- prefer candidates that attack recurring lemmas, recurring subgoals, recurring proof traces, or boundary maps from witnesses/missing assumptions
 - de-prioritize branches with repeated no-signal outcomes
 - prefer unexplored move types when otherwise similar
 """.strip()
@@ -112,25 +116,28 @@ Hard constraints:
 
 def _heuristic_key(candidate: Dict[str, Any]) -> Tuple[int, int, int, int, str]:
     move_priority = MOVE_PRIORITY.get(candidate["move"], 99)
-    if candidate["existing_experiments"] == 0:
-        stage_priority = move_priority
-    elif candidate.get("targets_recurring_structure"):
-        stage_priority = -1
-    else:
-        stage_priority = move_priority
+    stage_priority = move_priority if candidate["existing_experiments"] == 0 else (-1 if candidate.get("targets_recurring_structure") else move_priority)
     return (
-        candidate["active_count_for_conjecture"],
+        0 if candidate["existing_experiments"] == 0 and candidate["move"] == "underspecify" else 1,
+        0 if candidate["existing_experiments"] > 0 and candidate["move"] == "perturb_assumption" else 1,
+        0 if candidate.get("dominant_motif_bonus", 0) > 0 else candidate["active_count_for_conjecture"],
         -candidate.get("discovery_priority", 0),
-        candidate["existing_experiments"],
-        stage_priority,
+        -candidate.get("dominant_motif_bonus", 0),
+        -candidate.get("recent_signal_velocity", 0),
+        -candidate.get("motif_reuse_count", 0),
+        -candidate.get("signal_support", 0),
+        -candidate.get("witness_support", 0),
+        -candidate.get("assumption_boundary_support", 0),
         -candidate.get("campaign_priority", 0),
         -candidate.get("transfer_opportunity", 0),
         -candidate.get("reuse_potential", 0),
         -candidate.get("obstruction_targeting", 0),
         -candidate.get("semantic_novelty", 0),
+        candidate["existing_experiments"],
         0 if candidate.get("targets_recurring_structure") else 1,
         candidate.get("no_signal_penalty", 0),
         -candidate.get("signal_priority", 0),
+        stage_priority,
         0 if not candidate["duplicate_active_signature"] else 1,
         candidate.get("move_family", candidate["move"]),
         candidate["conjecture_id"],
@@ -139,8 +146,8 @@ def _heuristic_key(candidate: Dict[str, Any]) -> Tuple[int, int, int, int, str]:
 
 def candidate_score_breakdown(candidate: Dict[str, Any]) -> Dict[str, Any]:
     penalties = {
-        "active_load": float(candidate.get("active_count_for_conjecture", 0) * 3.0),
-        "existing_coverage": float(candidate.get("existing_experiments", 0) * 1.4),
+        "active_load": float(candidate.get("active_count_for_conjecture", 0) * 2.4),
+        "existing_coverage": float(candidate.get("existing_experiments", 0) * 1.0),
         "no_signal_penalty": float(candidate.get("no_signal_penalty", 0) * 2.2),
         "duplicate_active_signature": 5.0 if candidate.get("duplicate_active_signature") else 0.0,
     }
@@ -153,6 +160,13 @@ def candidate_score_breakdown(candidate: Dict[str, Any]) -> Dict[str, Any]:
         "obstruction_targeting": float(candidate.get("obstruction_targeting", 0) * 1.0),
         "semantic_novelty": float(candidate.get("semantic_novelty", 0) * 0.9),
         "targets_recurring_structure": 1.5 if candidate.get("targets_recurring_structure") else 0.0,
+        "motif_reuse_count": float(candidate.get("motif_reuse_count", 0) * 0.8),
+        "signal_support": float(candidate.get("signal_support", 0) * 0.7),
+        "blocker_support": float(candidate.get("blocker_support", 0) * 0.45),
+        "witness_support": float(candidate.get("witness_support", 0) * 0.6),
+        "assumption_boundary_support": float(candidate.get("assumption_boundary_support", 0) * 0.6),
+        "recent_signal_velocity": float(candidate.get("recent_signal_velocity", 0) * 1.3),
+        "dominant_motif_bonus": float(candidate.get("dominant_motif_bonus", 0)),
     }
     move_bonus = max(0.0, float(5 - MOVE_PRIORITY.get(candidate["move"], 5)))
     bonuses["move_family_priority"] = move_bonus
@@ -170,17 +184,35 @@ def _heuristic_rank(frontier: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return sorted(frontier, key=_heuristic_key)
 
 
-def _diversify_candidates(ranked: List[Dict[str, Any]], max_count: int) -> List[Dict[str, Any]]:
-    chosen: List[Dict[str, Any]] = []
-    seen_conjectures: set[str] = set()
-    for candidate in ranked:
-        if candidate["conjecture_id"] in seen_conjectures:
+def _diversify_candidates(ranked: List[Dict[str, Any]], max_count: int, exploration_floor: int) -> List[Dict[str, Any]]:
+    if not ranked or max_count <= 0:
+        return []
+    unique_conjectures = {candidate["conjecture_id"] for candidate in ranked}
+    chosen: List[Dict[str, Any]] = [ranked[0]]
+    seen_conjectures: set[str] = {ranked[0]["conjecture_id"]}
+    minimum_unique = min(max_count, max(1, exploration_floor))
+    while len(chosen) < max_count:
+        remaining = [candidate for candidate in ranked if candidate not in chosen]
+        if not remaining:
+            break
+        if len(seen_conjectures) < minimum_unique:
+            unseen = [candidate for candidate in remaining if candidate["conjecture_id"] not in seen_conjectures]
+            if unseen:
+                chosen.append(unseen[0])
+                seen_conjectures.add(unseen[0]["conjecture_id"])
+                continue
+        unseen = [candidate for candidate in remaining if candidate["conjecture_id"] not in seen_conjectures]
+        if unseen:
+            chosen.append(unseen[0])
+            seen_conjectures.add(unseen[0]["conjecture_id"])
             continue
-        chosen.append(candidate)
-        seen_conjectures.add(candidate["conjecture_id"])
-        if len(chosen) >= max_count:
-            return chosen
-    return chosen
+        if len(seen_conjectures) >= len(unique_conjectures):
+            if len(unique_conjectures) > 1:
+                break
+            if not any(item.get("dominant_motif_bonus", 0) > 0 for item in chosen):
+                break
+        chosen.append(remaining[0])
+    return chosen[:max_count]
 
 
 def _llm_command() -> List[str]:
@@ -317,16 +349,64 @@ def choose_candidates_for_submission(
 
     branch_prune_after_no_signal = spec.budget_policy.branch_prune_after_no_signal if spec is not None else 3
     duplicate_family_limit = spec.budget_policy.duplicate_frontier_family_limit if spec is not None else 2
+    per_conjecture_active_cap = spec.budget_policy.per_conjecture_active_cap if spec is not None else 2
+    per_motif_active_cap = spec.budget_policy.per_motif_active_cap if spec is not None else 2
+    exploration_floor = spec.budget_policy.exploration_floor if spec is not None else 1
+    active_conjecture_counts: Dict[str, int] = {}
+    active_motif_counts: Dict[str, int] = {}
+    for item in active:
+        active_conjecture_counts[item["conjecture_id"]] = active_conjecture_counts.get(item["conjecture_id"], 0) + 1
+        motif = item.get("candidate_metadata", {}).get("motif_id") if isinstance(item.get("candidate_metadata"), dict) else ""
+        if motif:
+            active_motif_counts[motif] = active_motif_counts.get(motif, 0) + 1
+    motif_signal_map: Dict[str, float] = {}
+    for candidate in frontier:
+        motif_id = candidate.get("motif_id") or ""
+        if not motif_id:
+            continue
+        score = (
+            float(candidate.get("motif_reuse_count", 0))
+            + float(candidate.get("recent_signal_velocity", 0)) * 1.4
+            + float(candidate.get("signal_support", 0))
+            + float(candidate.get("witness_support", 0)) * 0.5
+            + float(candidate.get("assumption_boundary_support", 0)) * 0.5
+        )
+        motif_signal_map[motif_id] = max(motif_signal_map.get(motif_id, 0.0), score)
+    dominant_motif_score = max(motif_signal_map.values(), default=0.0)
     eligible: List[Dict[str, Any]] = []
     skipped: List[Dict[str, Any]] = []
     family_counts: Dict[tuple[str, str], int] = {}
     for candidate in frontier:
+        candidate = dict(candidate)
+        motif_id = candidate.get("motif_id") or ""
+        dominant_motif_bonus = 0.0
+        if motif_id and motif_signal_map.get(motif_id, 0.0) >= dominant_motif_score and dominant_motif_score >= 3.5 and not candidate["duplicate_active_signature"]:
+            dominant_motif_bonus = 2.5
+        candidate["dominant_motif_bonus"] = dominant_motif_bonus
         if candidate["duplicate_active_signature"]:
             skipped.append(
                 {
                     "experiment_id": candidate["experiment_id"],
                     "conjecture_id": candidate["conjecture_id"],
                     "reason": "duplicate active experiment signature",
+                }
+            )
+            continue
+        if active_conjecture_counts.get(candidate["conjecture_id"], 0) >= per_conjecture_active_cap:
+            skipped.append(
+                {
+                    "experiment_id": candidate["experiment_id"],
+                    "conjecture_id": candidate["conjecture_id"],
+                    "reason": "conjecture active cap reached",
+                }
+            )
+            continue
+        if motif_id and active_motif_counts.get(motif_id, 0) >= per_motif_active_cap:
+            skipped.append(
+                {
+                    "experiment_id": candidate["experiment_id"],
+                    "conjecture_id": candidate["conjecture_id"],
+                    "reason": "motif active cap reached",
                 }
             )
             continue
@@ -379,7 +459,7 @@ def choose_candidates_for_submission(
 
     chosen = [
         _candidate_decision(candidate, "chosen by deterministic fallback policy")
-        for candidate in _diversify_candidates(heuristic_ranked, max_count)
+        for candidate in _diversify_candidates(heuristic_ranked, max_count, exploration_floor)
     ]
     return PolicyDecision(
         chosen=chosen,
@@ -387,6 +467,6 @@ def choose_candidates_for_submission(
         policy_path="fallback",
         manager_prompt=prompt,
         raw_response="",
-        rationale="Fallback policy ranked candidates by diversity, existing coverage, and move priority.",
+        rationale="Fallback policy ranked candidates by motif reuse, recent signal velocity, boundary evidence, and an exploration floor.",
         candidate_audits=build_candidate_audits(frontier, [item.experiment_id for item in chosen], skipped),
     )

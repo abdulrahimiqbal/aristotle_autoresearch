@@ -19,6 +19,10 @@ DEFAULT_ALLOWED_MOVES = [
     "perturb_assumption",
     "reformulate",
     "promote_lemma",
+    "promote_subgoal",
+    "promote_trace",
+    "boundary_map_from_witness",
+    "boundary_map_from_missing_assumption",
     "counterexample_mode",
 ]
 

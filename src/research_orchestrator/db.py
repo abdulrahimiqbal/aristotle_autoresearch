@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import csv
+from contextlib import contextmanager
 from dataclasses import asdict
 import json
+import os
 import sqlite3
 import subprocess
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
@@ -447,17 +451,133 @@ SCHEMA = [
     """,
 ]
 
+VIEWS = [
+    """
+    CREATE VIEW IF NOT EXISTS readable_experiments AS
+    SELECT
+        e.experiment_id,
+        e.project_id,
+        e.conjecture_id,
+        e.phase,
+        e.move,
+        COALESCE(e.move_family, e.move) AS move_family,
+        e.status,
+        e.proof_outcome,
+        e.blocker_type,
+        e.objective,
+        e.expected_signal,
+        e.modification_json,
+        COALESCE(e.new_signal_count, 0) AS new_signal_count,
+        COALESCE(e.reused_signal_count, 0) AS reused_signal_count,
+        COALESCE(json_extract(e.ingestion_json, '$.boundary_map.summary'), '') AS boundary_summary,
+        COALESCE(json_extract(e.candidate_metadata_json, '$.motif_id'), '') AS motif_id,
+        COALESCE(json_extract(e.candidate_metadata_json, '$.motif_signature'), '') AS motif_signature,
+        COALESCE(json_extract(e.candidate_metadata_json, '$.campaign_priority'), 0) AS campaign_priority,
+        COALESCE(json_extract(e.candidate_metadata_json, '$.signal_support'), 0) AS signal_support,
+        e.discovery_question_id,
+        e.created_at,
+        e.completed_at
+    FROM experiments e
+    """,
+    """
+    CREATE VIEW IF NOT EXISTS conjecture_scoreboard AS
+    SELECT
+        c.project_id,
+        c.conjecture_id,
+        c.name,
+        c.domain,
+        COUNT(e.experiment_id) AS experiments_total,
+        SUM(CASE WHEN e.status = 'succeeded' THEN 1 ELSE 0 END) AS succeeded,
+        SUM(CASE WHEN e.status = 'stalled' THEN 1 ELSE 0 END) AS stalled,
+        SUM(CASE WHEN e.status = 'failed' THEN 1 ELSE 0 END) AS failed,
+        SUM(COALESCE(e.new_signal_count, 0)) AS new_signal_count,
+        SUM(COALESCE(e.reused_signal_count, 0)) AS reused_signal_count,
+        MAX(COALESCE(json_extract(e.candidate_metadata_json, '$.motif_reuse_count'), 0)) AS top_motif_reuse,
+        MAX(COALESCE(json_extract(e.candidate_metadata_json, '$.recent_signal_velocity'), 0)) AS recent_signal_velocity
+    FROM conjectures c
+    LEFT JOIN experiments e ON e.conjecture_id = c.conjecture_id
+    GROUP BY c.project_id, c.conjecture_id, c.name, c.domain
+    """,
+    """
+    CREATE VIEW IF NOT EXISTS recurring_structure_summary AS
+    SELECT c.project_id, 'lemma' AS structure_kind, l.representative_statement AS summary_text, l.reuse_count AS observations
+    FROM lemmas l
+    JOIN lemma_occurrences lo ON lo.lemma_id = l.lemma_id
+    JOIN conjectures c ON c.conjecture_id = lo.conjecture_id
+    GROUP BY c.project_id, l.lemma_id, l.representative_statement, l.reuse_count
+    UNION ALL
+    SELECT project_id, 'subgoal' AS structure_kind, canonical_text AS summary_text, occurrence_count AS observations
+    FROM semantic_objects
+    WHERE kind = 'goal'
+    UNION ALL
+    SELECT project_id, 'proof_trace' AS structure_kind, canonical_text AS summary_text, occurrence_count AS observations
+    FROM semantic_objects
+    WHERE kind = 'proof_trace'
+    UNION ALL
+    SELECT project_id, 'counterexample' AS structure_kind, canonical_text AS summary_text, occurrence_count AS observations
+    FROM semantic_objects
+    WHERE kind = 'counterexample'
+    """,
+    """
+    CREATE VIEW IF NOT EXISTS active_queue_summary AS
+    SELECT
+        project_id,
+        conjecture_id,
+        move,
+        COALESCE(move_family, move) AS move_family,
+        status,
+        COUNT(*) AS active_count,
+        MAX(COALESCE(json_extract(candidate_metadata_json, '$.motif_reuse_count'), 0)) AS motif_reuse_count,
+        MAX(COALESCE(json_extract(candidate_metadata_json, '$.recent_signal_velocity'), 0)) AS recent_signal_velocity
+    FROM experiments
+    WHERE status IN ('planned', 'submitted', 'in_progress')
+    GROUP BY project_id, conjecture_id, move, COALESCE(move_family, move), status
+    """,
+    """
+    CREATE VIEW IF NOT EXISTS incident_summary AS
+    SELECT
+        project_id,
+        incident_type,
+        severity,
+        status,
+        COUNT(*) AS incident_count,
+        MAX(updated_at) AS last_updated_at
+    FROM incidents
+    GROUP BY project_id, incident_type, severity, status
+    """,
+]
+
 
 class Database:
     def __init__(self, path: str | Path):
         self.path = str(path)
-        self.conn = sqlite3.connect(self.path)
+        self.conn = sqlite3.connect(self.path, timeout=30.0)
         self.conn.row_factory = sqlite3.Row
+        self._configure_connection()
+
+    def _configure_connection(self) -> None:
+        self.conn.execute("PRAGMA foreign_keys = ON")
+        self.conn.execute("PRAGMA busy_timeout = 30000")
+        self.conn.execute("PRAGMA journal_mode = WAL")
+        self.conn.execute("PRAGMA synchronous = NORMAL")
+
+    @contextmanager
+    def transaction(self, immediate: bool = False):
+        self.conn.execute("BEGIN IMMEDIATE" if immediate else "BEGIN")
+        try:
+            yield self.conn
+        except Exception:
+            self.conn.rollback()
+            raise
+        else:
+            self.conn.commit()
 
     def initialize(self) -> None:
         for statement in SCHEMA:
             self.conn.execute(statement)
         self._ensure_experiment_columns()
+        for statement in VIEWS:
+            self.conn.execute(statement)
         self.conn.commit()
 
     def _decode_experiment_row(self, row: sqlite3.Row | Dict[str, Any]) -> Dict[str, Any]:
@@ -514,6 +634,54 @@ class Database:
 
     def close(self) -> None:
         self.conn.close()
+
+    def integrity_check(self) -> List[str]:
+        return [row[0] for row in self.conn.execute("PRAGMA integrity_check").fetchall()]
+
+    def quick_check(self) -> List[str]:
+        return [row[0] for row in self.conn.execute("PRAGMA quick_check").fetchall()]
+
+    def checkpoint_wal(self) -> Dict[str, int]:
+        row = self.conn.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
+        return {
+            "busy": int(row[0]) if row is not None else 0,
+            "log": int(row[1]) if row is not None else 0,
+            "checkpointed": int(row[2]) if row is not None else 0,
+        }
+
+    def backup_to(self, path: str | Path) -> str:
+        destination = Path(path)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        self.checkpoint_wal()
+        backup_conn = sqlite3.connect(str(destination), timeout=30.0)
+        try:
+            self.conn.backup(backup_conn)
+            backup_conn.commit()
+        finally:
+            backup_conn.close()
+        return str(destination)
+
+    def atomic_snapshot_to(self, path: str | Path) -> str:
+        destination = Path(path)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(prefix=destination.name, suffix=".tmp", delete=False, dir=destination.parent) as handle:
+            temp_path = Path(handle.name)
+        try:
+            self.backup_to(temp_path)
+            with temp_path.open("rb") as stream:
+                os.fsync(stream.fileno())
+            os.replace(temp_path, destination)
+        finally:
+            if temp_path.exists():
+                temp_path.unlink(missing_ok=True)
+        return str(destination)
+
+    def query_view(self, view_name: str, project_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        if project_id is None:
+            rows = self.conn.execute(f"SELECT * FROM {view_name}").fetchall()
+        else:
+            rows = self.conn.execute(f"SELECT * FROM {view_name} WHERE project_id = ?", (project_id,)).fetchall()
+        return [dict(row) for row in rows]
 
     def save_project(self, charter: ProjectCharter) -> None:
         self.conn.execute(
@@ -919,6 +1087,8 @@ class Database:
             "evaluator_version": result.verification_record.run.evaluator_version if result.verification_record else EVALUATOR_VERSION,
             "verification_record": asdict(result.verification_record) if result.verification_record else None,
             "semantic_summary": asdict(result.semantic_summary) if result.semantic_summary else None,
+            "followup_hints": result.metadata.get("followup_hints", {}),
+            "boundary_map": result.metadata.get("boundary_map", {}),
         }
         if evaluation is not None:
             outcome_json["evaluation"] = evaluation
@@ -2417,3 +2587,58 @@ class Database:
             },
             "open_incidents": incidents,
         }
+
+    def export_readable_state(self, project_id: str, output_dir: str | Path) -> Dict[str, str]:
+        destination = Path(output_dir)
+        destination.mkdir(parents=True, exist_ok=True)
+
+        payloads = {
+            "campaign_summary.json": self.project_summary(project_id),
+            "conjecture_scoreboard.json": self.query_view("conjecture_scoreboard", project_id=project_id),
+            "recurring_structures.json": sorted(
+                self.query_view("recurring_structure_summary", project_id=project_id),
+                key=lambda item: (-int(item.get("observations", 0)), item.get("structure_kind", ""), item.get("summary_text", "")),
+            ),
+            "active_queue.json": self.query_view("active_queue_summary", project_id=project_id),
+            "incidents.json": self.query_view("incident_summary", project_id=project_id),
+        }
+
+        written: Dict[str, str] = {}
+        for filename, payload in payloads.items():
+            path = destination / filename
+            path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+            written[filename] = str(path)
+
+        experiments_csv = destination / "experiments.csv"
+        experiment_rows = self.query_view("readable_experiments", project_id=project_id)
+        fieldnames = [
+            "experiment_id",
+            "project_id",
+            "conjecture_id",
+            "phase",
+            "move",
+            "move_family",
+            "status",
+            "proof_outcome",
+            "blocker_type",
+            "objective",
+            "expected_signal",
+            "modification_json",
+            "new_signal_count",
+            "reused_signal_count",
+            "boundary_summary",
+            "motif_id",
+            "motif_signature",
+            "campaign_priority",
+            "signal_support",
+            "discovery_question_id",
+            "created_at",
+            "completed_at",
+        ]
+        with experiments_csv.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=fieldnames)
+            writer.writeheader()
+            for row in experiment_rows:
+                writer.writerow({key: row.get(key, "") for key in fieldnames})
+        written["experiments.csv"] = str(experiments_csv)
+        return written

@@ -55,13 +55,18 @@ Choose exactly one next experiment.
 
 You must optimize for:
 1. information gain
-2. recurring lemma discovery
-3. assumption sensitivity mapping
+2. recurring lemma discovery, recurring subgoal discovery, and proof-trace discovery
+3. assumption sensitivity and boundary-map exploitation
 
 You must avoid:
 - duplicate low-value runs
 - overfitting to one formalization
 - treating search failure as theorem falsity
+
+Move-family reminders:
+- `promote_subgoal` and `promote_trace` isolate recurring mathematical bottlenecks
+- `boundary_map_from_witness` and `boundary_map_from_missing_assumption` should treat fragile falsifications as local boundary evidence
+- strong motifs may justify multiple differentiated candidates if they are producing reusable signal
 
 Return:
 - chosen move

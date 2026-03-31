@@ -142,6 +142,67 @@ research-orchestrator audit-run \
   --run-id <manager-run-id>
 ```
 
+## Readable state bundles and motif-centric search
+
+The manager is now more motif-centric than linear. Strong recurring lemmas, unresolved subgoals, proof-trace fragments, witnesses, and missing assumptions can all spawn multiple related candidates in the same tick. In particular:
+- `promote_subgoal` promotes a recurring unresolved goal into its own target
+- `promote_trace` isolates a recurring proof fragment or tactic bottleneck
+- `boundary_map_from_witness` treats a falsifying witness as a local map of the false region
+- `boundary_map_from_missing_assumption` turns a fragile falsification into a minimal assumption-repair experiment
+
+The campaign also publishes a readable state bundle so humans do not need SQLite tooling just to inspect progress. The bundle is designed to be the primary inspection surface and can include:
+- `report.md`
+- `report.manager_snapshot.json`
+- `campaign_summary.json`
+- `conjecture_scoreboard.json`
+- `recurring_structures.json`
+- `active_queue.json`
+- `experiments.csv`
+- `incidents.json`
+- `integrity.json`
+- optional `state.snapshot.sqlite`
+
+### Export and inspect readable state
+```bash
+research-orchestrator db-export \
+  --db ./state.sqlite \
+  --project <project-id> \
+  --output-dir ./state_bundle
+```
+
+```bash
+research-orchestrator publish-state-bundle \
+  --db ./state.sqlite \
+  --project <project-id> \
+  --output-dir ./state_bundle \
+  --report ./report.md \
+  --manager-snapshot ./report.manager_snapshot.json \
+  --include-sqlite
+```
+
+If the SQLite file is unavailable, `campaign-status` can read the exported bundle:
+```bash
+research-orchestrator campaign-status \
+  --db ./missing-or-corrupt.sqlite \
+  --project <project-id> \
+  --state-dir ./state_bundle
+```
+
+### Integrity checks and backups
+```bash
+research-orchestrator db-check --db ./state.sqlite
+research-orchestrator db-backup --db ./state.sqlite --output ./backups/state.sqlite
+```
+
+`sync-github-state` now prefers the readable bundle and only pulls a SQLite snapshot when explicitly asked:
+```bash
+research-orchestrator sync-github-state \
+  --repo <repo> \
+  --ref <branch> \
+  --state-dir ./synced_state \
+  --include-sqlite
+```
+
 ## Core commands
 
 ### Initialize a project
