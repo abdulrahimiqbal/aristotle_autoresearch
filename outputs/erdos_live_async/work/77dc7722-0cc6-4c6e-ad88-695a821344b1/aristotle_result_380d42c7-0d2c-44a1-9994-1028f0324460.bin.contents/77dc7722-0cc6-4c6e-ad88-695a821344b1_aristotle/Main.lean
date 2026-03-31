@@ -1,0 +1,2 @@
+-- This file is not the main workspace. See AristotleWorkspace.lean for the
+-- Erdős Problem 123 formalization.
