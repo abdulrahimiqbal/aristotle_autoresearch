@@ -1822,7 +1822,7 @@ The sorry here represents the core open mathematical co`
 - reused signal count: 0
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/dd1125b5-8d98-43f7-ae5b-4d8334b53522/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/dd1125b5-8d98-43f7-ae5b-4d8334b53522/aristotle_list_stdout.txt` (8846 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/dd1125b5-8d98-43f7-ae5b-4d8334b53522/aristotle_list_stdout.txt` (8836 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/dd1125b5-8d98-43f7-ae5b-4d8334b53522/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/dd1125b5-8d98-43f7-ae5b-4d8334b53522/aristotle_list_stderr.txt`
@@ -1975,7 +1975,7 @@ The sorry here represents the core open mathematical co`
 - reused signal count: 0
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_list_stdout.txt` (8846 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_list_stdout.txt` (8836 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_list_stderr.txt`
@@ -1985,7 +1985,7 @@ The sorry here represents the core open mathematical co`
 
 - `warning` `repeated_provider_failures`: Provider-side failures reached 16 in recent completed experiments.
 - `warning` `retry_budget_exhausted`: Experiment 5646d012-e09a-4f34-9968-cf102ffacf97 reached retry budget (17 attempts).
-- `warning` `retry_budget_exhausted`: Experiment dd1125b5-8d98-43f7-ae5b-4d8334b53522 reached retry budget (19 attempts).
+- `warning` `retry_budget_exhausted`: Experiment dd1125b5-8d98-43f7-ae5b-4d8334b53522 reached retry budget (20 attempts).
 - `warning` `retry_budget_exhausted`: Experiment 2af6662f-930d-4743-b852-8aef0ed7417a reached retry budget (13 attempts).
 - `warning` `retry_budget_exhausted`: Experiment 9ba22b23-e3fe-4bc2-95f5-268b1add4af8 reached retry budget (13 attempts).
 - `warning` `retry_budget_exhausted`: Experiment 9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0 reached retry budget (25 attempts).
@@ -2020,10 +2020,10 @@ The sorry here represents the core open mathematical co`
 - recurring structures considered: lemmas=10, subgoals=1, traces=10
 - synced `dd1125b5-8d98-43f7-ae5b-4d8334b53522` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `a6e053f4-7da8-4eb4-bcd0-bb8727ce257b` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- considered `297009b9-3c96-4691-814c-e783a6837cee` rank=1 score=22.5809
-- considered `6d89879a-e21c-462a-bb7c-92180f62a256` rank=2 score=19.6862
-- skipped `297009b9-3c96-4691-814c-e783a6837cee` for `erdos-123` (duplicate active experiment signature)
-- skipped `6d89879a-e21c-462a-bb7c-92180f62a256` for `erdos-123` (conjecture active cap reached)
+- considered `245a602f-bc03-4f4f-ab08-8a2e381427ed` rank=1 score=22.5809
+- considered `a66969ab-f3d6-4c72-8b30-ecf58b0765f5` rank=2 score=19.6862
+- skipped `245a602f-bc03-4f4f-ab08-8a2e381427ed` for `erdos-123` (duplicate active experiment signature)
+- skipped `a66969ab-f3d6-4c72-8b30-ecf58b0765f5` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
