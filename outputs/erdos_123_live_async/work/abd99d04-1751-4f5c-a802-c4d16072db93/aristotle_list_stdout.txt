@@ -1,7 +1,7 @@
 ID                                   STATUS          CREATED              PROGRESS  
 -------------------------------------------------------------------------------------
-e40f70d0-7196-479d-a916-b6b75a8f67b4 IN_PROGRESS     2 mins ago           1%        
-72ebb2f3-61d4-4895-992b-c95cdc1b8462 IN_PROGRESS     2 mins ago           1%        
+e40f70d0-7196-479d-a916-b6b75a8f67b4 IN_PROGRESS     3 mins ago           3%        
+72ebb2f3-61d4-4895-992b-c95cdc1b8462 IN_PROGRESS     3 mins ago           1%        
 df33f645-2b53-4865-8b01-b586fbd4cc2b COMPLETE_WITH_ERRORS 1 hour ago           100%      
 b9db0a35-8221-450d-8240-28693cfc6306 IN_PROGRESS     1 hour ago           15%       
 5a7d453b-42e0-4afb-a7da-8f2e3d7547c0 IN_PROGRESS     1 hour ago           12%       
@@ -47,8 +47,8 @@ feac341e-5852-49c7-ae86-7b3572870704 COMPLETE        11 hours ago         100%
 fc6c7c37-fce0-4aad-84ed-21c7a077683f OUT_OF_BUDGET   12 hours ago         100%      
 2edc1e85-a72f-4c4d-9653-13c09f1548e6 COMPLETE        13 hours ago         100%      
 23e7fc8e-a912-4a40-938b-95d04291e2bb COMPLETE_WITH_ERRORS 13 hours ago         100%      
-be5e3c03-db41-4cbc-a750-db57c6a3d1ac COMPLETE        14 hours ago         100%      
-28ce129f-49f2-4598-8f6f-6ee0507ea5c2 COMPLETE_WITH_ERRORS 14 hours ago         100%      
+be5e3c03-db41-4cbc-a750-db57c6a3d1ac COMPLETE        15 hours ago         100%      
+28ce129f-49f2-4598-8f6f-6ee0507ea5c2 COMPLETE_WITH_ERRORS 15 hours ago         100%      
 8791bd2b-5262-49e9-a8bb-4086726fe6c6 COMPLETE_WITH_ERRORS 16 hours ago         100%      
 cdad2d05-d720-41fd-b99d-40d782c3182d COMPLETE        16 hours ago         100%      
 4fabcbad-64d0-4445-ac05-989aa1487752 COMPLETE        16 hours ago         100%      
