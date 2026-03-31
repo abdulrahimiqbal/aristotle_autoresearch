@@ -1159,7 +1159,7 @@ The sorry here represents the core open mathematical co`
 - reused signal count: 0
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_list_stdout.txt` (8776 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_list_stdout.txt` (8786 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_list_stderr.txt`
@@ -1232,7 +1232,7 @@ The sorry here represents the core open mathematical co`
 - reused signal count: 0
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0/aristotle_list_stdout.txt` (8776 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0/aristotle_list_stdout.txt` (8786 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0/aristotle_list_stderr.txt`
@@ -1241,8 +1241,8 @@ The sorry here represents the core open mathematical co`
 ## Incidents
 
 - `warning` `repeated_provider_failures`: Provider-side failures reached 11 in recent completed experiments.
-- `warning` `retry_budget_exhausted`: Experiment 9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0 reached retry budget (8 attempts).
-- `warning` `retry_budget_exhausted`: Experiment 5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13 reached retry budget (16 attempts).
+- `warning` `retry_budget_exhausted`: Experiment 9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0 reached retry budget (9 attempts).
+- `warning` `retry_budget_exhausted`: Experiment 5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13 reached retry budget (17 attempts).
 - `warning` `retry_budget_exhausted`: Experiment abd99d04-1751-4f5c-a802-c4d16072db93 reached retry budget (8 attempts).
 - `warning` `retry_budget_exhausted`: Experiment e7ffb40d-1e42-444e-8ffd-4d486f55a51e reached retry budget (6 attempts).
 - `warning` `retry_budget_exhausted`: Experiment b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21 reached retry budget (12 attempts).
@@ -1274,18 +1274,18 @@ The sorry here represents the core open mathematical co`
 - recurring structures considered: lemmas=10, subgoals=1, traces=1
 - synced `5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- considered `59c2f4cd-a82b-478e-8bda-d0f39317468a` rank=1 score=181.9575
-- considered `be6d76fd-6ed5-4e61-a6e5-84ff1e0ab6b0` rank=2 score=183.9116
-- considered `ad0e8584-aacc-44cf-b26d-6b3c92c84f42` rank=3 score=178.9116
-- considered `8ff8f195-9883-49d3-b3b8-a2d095af85ba` rank=4 score=185.2985
-- considered `57eb4b3d-5af3-4977-a896-cc7d29603ffd` rank=5 score=183.9184
-- skipped `59c2f4cd-a82b-478e-8bda-d0f39317468a` for `erdos-123` (duplicate active experiment signature)
-- skipped `ad0e8584-aacc-44cf-b26d-6b3c92c84f42` for `erdos-123` (duplicate active experiment signature)
-- skipped `be6d76fd-6ed5-4e61-a6e5-84ff1e0ab6b0` for `erdos-123` (conjecture active cap reached)
-- skipped `8ff8f195-9883-49d3-b3b8-a2d095af85ba` for `erdos-123` (conjecture active cap reached)
-- skipped `57eb4b3d-5af3-4977-a896-cc7d29603ffd` for `erdos-123` (conjecture active cap reached)
-- skipped `facae2fb-1104-4b7f-af46-8af5f83b6eee` for `erdos-123` (conjecture active cap reached)
-- skipped `4292cd9f-18ae-43a8-b079-11e6ef8396df` for `erdos-123` (conjecture active cap reached)
+- considered `50f90a66-ad52-4c8e-8d72-c13c4e2ddea0` rank=1 score=181.9575
+- considered `6d423a7c-337a-4ea5-a8e1-0665a22f3cb8` rank=2 score=183.9116
+- considered `efffb4b7-65d5-4f27-8fa6-856397cc0c33` rank=3 score=178.9116
+- considered `fe8799a8-5386-401c-ab9a-4f0c6b5bceb4` rank=4 score=185.2985
+- considered `a9b6e55a-9155-4c36-8aad-a28fc6844cfc` rank=5 score=183.9184
+- skipped `50f90a66-ad52-4c8e-8d72-c13c4e2ddea0` for `erdos-123` (duplicate active experiment signature)
+- skipped `efffb4b7-65d5-4f27-8fa6-856397cc0c33` for `erdos-123` (duplicate active experiment signature)
+- skipped `6d423a7c-337a-4ea5-a8e1-0665a22f3cb8` for `erdos-123` (conjecture active cap reached)
+- skipped `fe8799a8-5386-401c-ab9a-4f0c6b5bceb4` for `erdos-123` (conjecture active cap reached)
+- skipped `a9b6e55a-9155-4c36-8aad-a28fc6844cfc` for `erdos-123` (conjecture active cap reached)
+- skipped `735f97f1-1889-4260-b08f-ff1bca9c5c52` for `erdos-123` (conjecture active cap reached)
+- skipped `355c8005-bf24-4adf-9646-28bddfb69534` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
