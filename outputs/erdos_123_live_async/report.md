@@ -2653,7 +2653,7 @@ The sorry here represents the core open mathematical co`
 ## Incidents
 
 - `warning` `repeated_provider_failures`: Provider-side failures reached 21 in recent completed experiments.
-- `warning` `retry_budget_exhausted`: Experiment 997b8c14-54cd-44d3-b724-7b4397ebb34f reached retry budget (7 attempts).
+- `warning` `retry_budget_exhausted`: Experiment 997b8c14-54cd-44d3-b724-7b4397ebb34f reached retry budget (8 attempts).
 - `warning` `retry_budget_exhausted`: Experiment e6aeafa2-d8b7-4492-b6e3-757eecdb7bfb reached retry budget (9 attempts).
 - `warning` `retry_budget_exhausted`: Experiment ab8dcd05-af04-4f0b-9155-59b46bea632e reached retry budget (13 attempts).
 - `warning` `retry_budget_exhausted`: Experiment a6e053f4-7da8-4eb4-bcd0-bb8727ce257b reached retry budget (9 attempts).
@@ -2689,10 +2689,10 @@ The sorry here represents the core open mathematical co`
 - recurring structures considered: lemmas=10, subgoals=1, traces=10
 - synced `997b8c14-54cd-44d3-b724-7b4397ebb34f` with proof_outcome=`unknown` new_signal=0 reused_signal=0
 - synced `6804e070-3e39-4139-94ef-60653d908d2f` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- considered `35b5142f-7035-41b7-906e-67abe4502507` rank=1 score=22.473
-- considered `f927d637-be6c-4996-b5c1-4731579014dc` rank=2 score=19.7133
-- skipped `35b5142f-7035-41b7-906e-67abe4502507` for `erdos-123` (duplicate active experiment signature)
-- skipped `f927d637-be6c-4996-b5c1-4731579014dc` for `erdos-123` (conjecture active cap reached)
+- considered `fbeb8bc7-f396-452c-a262-1dad216f501e` rank=1 score=22.473
+- considered `09fef7d3-1d93-45b3-9d8e-81a0eb4081f5` rank=2 score=19.7133
+- skipped `fbeb8bc7-f396-452c-a262-1dad216f501e` for `erdos-123` (duplicate active experiment signature)
+- skipped `09fef7d3-1d93-45b3-9d8e-81a0eb4081f5` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
