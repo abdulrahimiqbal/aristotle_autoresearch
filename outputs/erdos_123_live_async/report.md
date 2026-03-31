@@ -16,7 +16,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Campaign Health
 
-- active=2 pending=2 running=1 completed=17 failed=0
+- active=2 pending=2 running=2 completed=17 failed=0
 - structured ingestion success rate: 1.0
 - semantic reuse rate: 0.253
 - transfer usage rate: 0.529
@@ -26,7 +26,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - repeated no-signal streak: 0
 - duplicate frontier pressure: 0
 - move-family diversity: frontier=1 completed=10
-- open incidents: 11
+- open incidents: 12
 
 ## Version Drift
 
@@ -72,8 +72,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `IN_PROGRESS`: 1
-- `QUEUED`: 1
+- `IN_PROGRESS`: 2
 
 ## Recently completed
 
@@ -2111,7 +2110,7 @@ The sorry here represents the core open mathematical co`
 - reused signal count: 0
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_list_stdout.txt` (8851 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_list_stdout.txt` (8846 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/a6e053f4-7da8-4eb4-bcd0-bb8727ce257b/aristotle_list_stderr.txt`
@@ -2123,28 +2122,29 @@ The sorry here represents the core open mathematical co`
 - move family: `legacy.counterexample_mode`
 - theorem family: `erdos_problem`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `06c3fbef-db57-4499-a70c-a769df042a02`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. Search for a counterexample or independence witness for the negated weakening. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: A targeted counterexample pass helps separate true obstruction from solver drift.
 - campaign priority: -0.85
-- learned summary: remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ab8dcd05-af04-4f0b-9155-59b46bea632e/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ab8dcd05-af04-4f0b-9155-59b46bea632e/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ab8dcd05-af04-4f0b-9155-59b46bea632e/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ab8dcd05-af04-4f0b-9155-59b46bea632e/aristotle_list_stdout.txt` (8846 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ab8dcd05-af04-4f0b-9155-59b46bea632e/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ab8dcd05-af04-4f0b-9155-59b46bea632e/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ab8dcd05-af04-4f0b-9155-59b46bea632e/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/ab8dcd05-af04-4f0b-9155-59b46bea632e/aristotle_list_stderr.txt`
+- notes: Aristotle job 06c3fbef-db57-4499-a70c-a769df042a02 is still in progress.
 
 ## Incidents
 
 - `warning` `repeated_provider_failures`: Provider-side failures reached 17 in recent completed experiments.
+- `warning` `retry_budget_exhausted`: Experiment a6e053f4-7da8-4eb4-bcd0-bb8727ce257b reached retry budget (6 attempts).
 - `warning` `retry_budget_exhausted`: Experiment 5646d012-e09a-4f34-9968-cf102ffacf97 reached retry budget (17 attempts).
 - `warning` `retry_budget_exhausted`: Experiment dd1125b5-8d98-43f7-ae5b-4d8334b53522 reached retry budget (21 attempts).
 - `warning` `retry_budget_exhausted`: Experiment 2af6662f-930d-4743-b852-8aef0ed7417a reached retry budget (13 attempts).
@@ -2153,7 +2153,6 @@ The sorry here represents the core open mathematical co`
 - `warning` `retry_budget_exhausted`: Experiment 5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13 reached retry budget (21 attempts).
 - `warning` `retry_budget_exhausted`: Experiment abd99d04-1751-4f5c-a802-c4d16072db93 reached retry budget (8 attempts).
 - `warning` `retry_budget_exhausted`: Experiment e7ffb40d-1e42-444e-8ffd-4d486f55a51e reached retry budget (6 attempts).
-- `warning` `retry_budget_exhausted`: Experiment b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21 reached retry budget (12 attempts).
 
 ## Audit Trail
 
@@ -2173,17 +2172,17 @@ The sorry here represents the core open mathematical co`
 - policy path: `fallback`
 - policy candidate audits: 1
 - jobs synced: 2
-- jobs submitted: 1
+- jobs submitted: 0
 - active before: 2
 - active after: 2
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=10, subgoals=1, traces=10
-- synced `dd1125b5-8d98-43f7-ae5b-4d8334b53522` with proof_outcome=`partial` new_signal=63 reused_signal=2
 - synced `a6e053f4-7da8-4eb4-bcd0-bb8727ce257b` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- queued `ab8dcd05-af04-4f0b-9155-59b46bea632e` for `erdos-123` via `counterexample_mode` / `legacy.counterexample_mode` (chosen by deterministic fallback policy; move_family=legacy.counterexample_mode; rationale=A targeted counterexample pass helps separate true obstruction from solver drift.)
-- selected `ab8dcd05-af04-4f0b-9155-59b46bea632e` rank=1 score=32.5616
+- synced `ab8dcd05-af04-4f0b-9155-59b46bea632e` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- considered `34c07f54-3fc8-4e8d-8a7a-76b99a140e7a` rank=1 score=29.1616
+- skipped `34c07f54-3fc8-4e8d-8a7a-76b99a140e7a` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
-- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
+- Promote the top recurring lemma into a standalone theorem if not already tested.
