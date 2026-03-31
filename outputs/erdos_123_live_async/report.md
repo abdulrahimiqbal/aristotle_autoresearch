@@ -16,7 +16,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Campaign Health
 
-- active=2 pending=2 running=1 completed=10 failed=0
+- active=2 pending=2 running=2 completed=10 failed=0
 - structured ingestion success rate: 1.0
 - semantic reuse rate: 0.171
 - transfer usage rate: 0.3
@@ -24,9 +24,9 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - obstruction discovery rate: 0.6
 - high-priority frontier share: 0.75
 - repeated no-signal streak: 0
-- duplicate frontier pressure: 1
+- duplicate frontier pressure: 2
 - move-family diversity: frontier=7 completed=5
-- open incidents: 5
+- open incidents: 6
 
 ## Version Drift
 
@@ -68,8 +68,7 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `IN_PROGRESS`: 1
-- `QUEUED`: 1
+- `IN_PROGRESS`: 2
 
 ## Recently completed
 
@@ -1172,27 +1171,28 @@ The sorry here represents the core open mathematical co`
 - move family: `legacy.promote_lemma`
 - theorem family: `erdos_problem`
 - phase: `consolidation`
-- status: `submitted`
+- status: `in_progress`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `3493caf4-61a7-418b-ad16-0d8268e77f9f`
-- external status: `QUEUED`
+- external status: `IN_PROGRESS`
 - objective: Fill in all sorries. This lemma was promoted from a recurring intermediate result. Prove it as a standalone theorem. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Recurring lemma 'IsDComplete : (A : Set ℕ) : Prop' crossed the promotion threshold.
-- learned summary: remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bea30dbc-a8e9-4042-895b-51e6ee2e7105/aristotle_submit_stderr.txt` (54 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bea30dbc-a8e9-4042-895b-51e6ee2e7105/aristotle_submit_stdout.txt` (0 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bea30dbc-a8e9-4042-895b-51e6ee2e7105/aristotle_list_stderr.txt` (58 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bea30dbc-a8e9-4042-895b-51e6ee2e7105/aristotle_list_stdout.txt` (8771 bytes)
 - artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bea30dbc-a8e9-4042-895b-51e6ee2e7105/aristotle_submit_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bea30dbc-a8e9-4042-895b-51e6ee2e7105/aristotle_submit_stderr.txt`
-- notes: Submitted Aristotle job without waiting for completion.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bea30dbc-a8e9-4042-895b-51e6ee2e7105/aristotle_list_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/bea30dbc-a8e9-4042-895b-51e6ee2e7105/aristotle_list_stderr.txt`
+- notes: Aristotle job 3493caf4-61a7-418b-ad16-0d8268e77f9f is still in progress.
 
 ## Incidents
 
 - `warning` `repeated_provider_failures`: Provider-side failures reached 10 in recent completed experiments.
+- `warning` `retry_budget_exhausted`: Experiment 5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13 reached retry budget (6 attempts).
 - `warning` `retry_budget_exhausted`: Experiment abd99d04-1751-4f5c-a802-c4d16072db93 reached retry budget (8 attempts).
 - `warning` `retry_budget_exhausted`: Experiment e7ffb40d-1e42-444e-8ffd-4d486f55a51e reached retry budget (6 attempts).
 - `warning` `retry_budget_exhausted`: Experiment b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21 reached retry budget (12 attempts).
@@ -1215,24 +1215,29 @@ The sorry here represents the core open mathematical co`
 
 - policy path: `fallback`
 - policy candidate audits: 8
-- jobs synced: 3
-- jobs submitted: 1
-- active before: 3
+- jobs synced: 2
+- jobs submitted: 0
+- active before: 2
 - active after: 2
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=10, subgoals=1, traces=1
-- synced `abd99d04-1751-4f5c-a802-c4d16072db93` with proof_outcome=`partial` new_signal=32 reused_signal=1
-- synced `e3d8383c-3e6e-4996-b4e4-f0354432fc76` with proof_outcome=`partial` new_signal=18 reused_signal=0
 - synced `5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- queued `bea30dbc-a8e9-4042-895b-51e6ee2e7105` for `erdos-123` via `promote_lemma` / `legacy.promote_lemma` (chosen by deterministic fallback policy; move_family=legacy.promote_lemma; rationale=Recurring lemma 'IsDComplete : (A : Set ℕ) : Prop' crossed the promotion threshold.)
-- considered `8a82441a-5c0a-45c5-9141-fd28cdcec335` rank=1 score=191.3521
-- selected `bea30dbc-a8e9-4042-895b-51e6ee2e7105` rank=2 score=196.4971
-- considered `fc966f80-5e35-4752-836f-2df907d4d674` rank=3 score=193.3062
-- considered `58bcb056-6371-46b5-9a33-1d4c9e643606` rank=4 score=193.3062
-- considered `0c6108df-331a-4f4e-bb6b-d6a897410f92` rank=5 score=194.6931
-- skipped `8a82441a-5c0a-45c5-9141-fd28cdcec335` for `erdos-123` (duplicate active experiment signature)
+- synced `bea30dbc-a8e9-4042-895b-51e6ee2e7105` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- considered `13e1afd8-4adf-4956-99c3-5b51c712cab1` rank=1 score=187.9521
+- considered `ce5ca89c-74ff-49a4-bfb5-85271ff4c7f9` rank=2 score=188.0971
+- considered `5e232e05-ec38-4f43-8552-9fe895401826` rank=3 score=189.9062
+- considered `96cb9c92-36ff-4f89-92ee-e9a2394dcc08` rank=4 score=189.9062
+- considered `d4aa63f9-fd9f-4429-8b8d-f653a0105015` rank=5 score=191.2931
+- skipped `13e1afd8-4adf-4956-99c3-5b51c712cab1` for `erdos-123` (duplicate active experiment signature)
+- skipped `ce5ca89c-74ff-49a4-bfb5-85271ff4c7f9` for `erdos-123` (duplicate active experiment signature)
+- skipped `5e232e05-ec38-4f43-8552-9fe895401826` for `erdos-123` (conjecture active cap reached)
+- skipped `96cb9c92-36ff-4f89-92ee-e9a2394dcc08` for `erdos-123` (conjecture active cap reached)
+- skipped `d4aa63f9-fd9f-4429-8b8d-f653a0105015` for `erdos-123` (conjecture active cap reached)
+- skipped `6c1f3d64-563b-49d2-85b1-8edc8c2460ce` for `erdos-123` (conjecture active cap reached)
+- skipped `778e33ea-b430-44aa-b661-411f2c3cc422` for `erdos-123` (conjecture active cap reached)
+- skipped `97e0ea91-4d98-4778-b53b-39b6c1649e48` for `erdos-123` (conjecture active cap reached)
 
 ## Suggested next move
 
-- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
+- Promote the top recurring lemma into a standalone theorem if not already tested.
