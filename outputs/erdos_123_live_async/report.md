@@ -8,23 +8,23 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Summary
 
-- Experiments: 9
+- Experiments: 11
 - Succeeded: 0
-- Stalled: 7
+- Stalled: 8
 - Failed: 0
-- Pending: 2
+- Pending: 3
 
 ## Campaign Health
 
-- active=2 pending=2 running=2 completed=7 failed=0
+- active=3 pending=3 running=1 completed=8 failed=0
 - structured ingestion success rate: 1.0
-- semantic reuse rate: 0.131
-- transfer usage rate: 0.286
-- reusable structure rate: 0.429
-- obstruction discovery rate: 0.714
-- high-priority frontier share: 0.636
+- semantic reuse rate: 0.14
+- transfer usage rate: 0.25
+- reusable structure rate: 0.375
+- obstruction discovery rate: 0.625
+- high-priority frontier share: 0.7
 - repeated no-signal streak: 0
-- duplicate frontier pressure: 2
+- duplicate frontier pressure: 1
 - move-family diversity: frontier=9 completed=5
 - open incidents: 4
 
@@ -38,9 +38,9 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Discovery Graph
 
-- nodes: 92
-- edges: 104
-- verified-like nodes: 53
+- nodes: 103
+- edges: 118
+- verified-like nodes: 60
 - `experiment` `9941d619-a8ab-4ac9-ab9c-1503088b4e65` confidence=1.0 provenance=execution
 - `experiment` `ddb1aae2-1b93-438c-9165-39a34b6f05c6` confidence=1.0 provenance=execution
 - `experiment` `bff4c05f-d103-47ac-83f8-1164972a1bca` confidence=1.0 provenance=execution
@@ -48,9 +48,9 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 - `experiment` `456ae293-4a69-4679-b093-913c49b3b304` confidence=1.0 provenance=execution
 - `experiment` `e7ffb40d-1e42-444e-8ffd-4d486f55a51e` confidence=1.0 provenance=execution
 - `experiment` `b1167253-8940-4176-b5b6-fc4968f3735f` confidence=1.0 provenance=execution
+- `experiment` `e09e11d5-cf0f-4033-a866-668dd1a6cdff` confidence=1.0 provenance=execution
 - `verified_lemma` `PowTripleSet : (a b c : ℕ) : Set ℕ` confidence=0.95 provenance=artifact
 - `verified_lemma` `PairwiseCoprime3 : (a b c : ℕ) : Prop` confidence=0.95 provenance=artifact
-- `verified_lemma` `IsDivisionAntichain : (s : Finset ℕ) : Prop` confidence=0.95 provenance=artifact
 
 ## Discovery Questions
 
@@ -68,22 +68,23 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Active jobs
 
-- `IN_PROGRESS`: 2
+- `IN_PROGRESS`: 1
+- `QUEUED`: 2
 
 ## Recently completed
 
+- `e09e11d5-cf0f-4033-a866-668dd1a6cdff` on `erdos-123` -> `stalled`
 - `b1167253-8940-4176-b5b6-fc4968f3735f` on `erdos-123` -> `stalled`
 - `e7ffb40d-1e42-444e-8ffd-4d486f55a51e` on `erdos-123` -> `stalled`
 - `456ae293-4a69-4679-b093-913c49b3b304` on `erdos-123` -> `stalled`
 - `b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21` on `erdos-123` -> `stalled`
-- `bff4c05f-d103-47ac-83f8-1164972a1bca` on `erdos-123` -> `stalled`
 
 ## Recurring lemmas
 
-- `IsDComplete : (A : Set ℕ) : Prop` — reuse=10
-- `IsDivisionAntichain : (s : Finset ℕ) : Prop` — reuse=10
-- `PairwiseCoprime3 : (a b c : ℕ) : Prop` — reuse=10
-- `PowTripleSet : (a b c : ℕ) : Set ℕ` — reuse=10
+- `IsDComplete : (A : Set ℕ) : Prop` — reuse=12
+- `IsDivisionAntichain : (s : Finset ℕ) : Prop` — reuse=12
+- `PairwiseCoprime3 : (a b c : ℕ) : Prop` — reuse=12
+- `PowTripleSet : (a b c : ℕ) : Set ℕ` — reuse=12
 - `one_mem_PowTripleSet : (a b c : ℕ) : 1 ∈ PowTripleSet a b c` — reuse=4
 - `promoted_lemma : True` — reuse=4
 - `IsDCompleteAll : (A : Set ℕ) : Prop` — reuse=2
@@ -97,15 +98,18 @@ the formalization infrastructure. -/` — reuse=2
 - `PowTripleSet_pos : {a b c n : ℕ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)` — reuse=2
 - `a_mem_PowTripleSet : (a b c : ℕ) : a ∈ PowTripleSet a b c` — reuse=2
 - `anonymous_have : = Nat.dvd_gcd (dvd_refl _) h` — reuse=2
+- `anonymous_have : = congr_arg Even h ; norm_num [ Nat.even_add, Nat.even_pow ] at this ; aesop;` — reuse=2
 - `anonymous_have : = coprime_pow_triple_incomparable ha hb hc hco hne hdiv` — reuse=2
 - `anonymous_have : = dvd_iff_exponents_le ha hb hc hab hac hbc |>.1 h; aesop;` — reuse=2
 - `anonymous_have : = dvd_iff_exponents_le ha hb hc hab hac hbc |>.1 h_div.1; have` — reuse=2
 - `antichain_of_incomparable_exponents : {a b c : ℕ}` — reuse=2
+- `antichain_pow2_card_le_one : (s : Finset ℕ)` — reuse=2
 - `antichain_sum_pow2 : (s : Finset ℕ)` — reuse=2
 - `b_mem_PowTripleSet : (a b c : ℕ) : b ∈ PowTripleSet a b c` — reuse=2
 - `bridge_interval_coverage : True` — reuse=2
 - `brown_completeness_criterion : (f : ℕ → ℕ) (hf0 : f 0 = 1)` — reuse=2
 - `c_mem_PowTripleSet : (a b c : ℕ) : c ∈ PowTripleSet a b c` — reuse=2
+- `coprime_1_1_2 : : PairwiseCoprime3 1 1 2` — reuse=2
 - `coprime_pow_triple_incomparable : {a b c : ℕ}` — reuse=2
 - `cross_family_incomparable : {a b c : ℕ}` — reuse=2
 - `diagonal_antichain : {a b c : ℕ} (ha : 1 < a) (hb : 1 < b) (hc : 1 < c)` — reuse=2
@@ -122,10 +126,16 @@ the formalization infrastructure. -/` — reuse=2
 - `erdos_123_d_complete_sequences [sorry at line 268]: exact powTripleSet_2bc_dComplete a b
   -- All of a, b, c ≥ 3: requires density of smooth numbers (the blocker)
   sorry` — reuse=2
+- `erdos_123_d_complete_sequences [sorry at line 51]: PairwiseCoprime3 a b c →
+      IsDComplete (PowTripleSet a b c) := by
+  sorry
+
+/-` — reuse=2
 - `erdos_123_modified_false : :` — reuse=2
 - `erdos_123_no_coprimality_false [sorry at line 200]: --       PairwiseCoprime3 a b c →
 --       IsDComplete (PowTripleSet a b c) := by
 --   sorry` — reuse=2
+- `erdos_123_perturbed_is_false : :` — reuse=2
 - `exists_close_pair [sorry at line 222]: (hab : Nat.Coprime a b) :
     ∃ p q : ℕ, 0 < p ∧ b ^ q < a ^ p ∧ a ^ p ≤ 2 * b ^ q := by
   sorry
@@ -136,6 +146,7 @@ the formalization infrastructure. -/` — reuse=2
 - `h_card_eq_one : s.card = 1` — reuse=2
 - `h_card_le_one : s.card ≤ 1` — reuse=2
 - `h_contra : b ^ j₁ ∣ a ^ i₂ * b ^ j₂ * c ^ k₂` — reuse=2
+- `h_contra : s.card ≥ 2 → ¬IsDivisionAntichain s` — reuse=2
 - `h_diff : m - f (k + 1) ≤ ∑ i ∈ Finset.range (k + 1), f i` — reuse=2
 - `h_div : a ^ i₁ * b ^ j₁ * c ^ k₁ ∣ a ^ i₂ * b ^ j₂ * c ^ k₂ ∧ a ^ i₂ * b ^ j₂ * c ^ k₂ ∣ a ^ i₁ * b ^ j₁ * c ^ k₁` — reuse=2
 - `h_div : i₁ ≤ i₂ ∧ j₁ ≤ j₂ ∧ k₁ ≤ k₂ ∧ i₂ ≤ i₁ ∧ j₂ ≤ j₁ ∧ k₂ ≤ k₁` — reuse=2
@@ -158,11 +169,14 @@ the formalization infrastructure. -/` — reuse=2
 - `not_eventually_pow2 : :` — reuse=2
 - `one_mem_PowTripleSet : {a b c : ℕ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :` — reuse=2
 - `pow2_antichain_card_le_one : (s : Finset ℕ)` — reuse=2
+- `pow2_dvd_of_ne : {a b : ℕ} (ha : ∃ i, a = 2 ^ i) (hb : ∃ j, b = 2 ^ j)` — reuse=2
 - `powPair_eventually_dense [sorry at line 235]: ∃ N₀ : ℕ, ∀ M : ℕ, N₀ ≤ M →
       ∃ i j : ℕ, M < a ^ i * b ^ j ∧ a ^ i * b ^ j ≤ 2 * M := by
   sorry
 
 -- ============================================================` — reuse=2
+- `powTripleSet_1_1_2_eq : :` — reuse=2
+- `powTripleSet_1_1_2_not_dComplete : :` — reuse=2
 - `powTripleSet_222_eq : : PowTripleSet 2 2 2 = {n | ∃ m : ℕ, n = 2 ^ m}` — reuse=2
 - `powTripleSet_222_not_dComplete : :` — reuse=2
 - `powTripleSet_2bc_dComplete : (b c : ℕ) :` — reuse=2
@@ -181,7 +195,7 @@ the formalization infrastructure. -/` — reuse=2
 
 ## Space Search Progress
 
-- recurring lemmas: 77 clusters
+- recurring lemmas: 86 clusters
 - recurring subgoals: 1 clusters
 - recurring proof traces: none stabilized yet
 - no-signal branches: none crossed the backoff threshold
@@ -191,11 +205,12 @@ the formalization infrastructure. -/` — reuse=2
 - recurring lemmas are beginning to cluster across runs
 - repeated subgoal `erdos_123_d_complete_sequences: pairwisecoprime3 v v v → isdcomplete (powtripleset v v v) := by sorry` across 3 runs
 - no blocker patterns aggregated yet
-- move `perturb_assumption` repeatedly yields blocker `unknown` / `partial` (3 runs)
+- move `perturb_assumption` repeatedly yields blocker `unknown` / `partial` (4 runs)
 - move `promote_lemma` repeatedly yields blocker `unknown` / `partial` (3 runs)
 
 ## Assumption sensitivity
 
+- `a, b, c are integers greater than 1` — avg_sensitivity=0.2 across 1 observations
 - `a, b, c are pairwise coprime` — avg_sensitivity=0.2 across 1 observations
 - `no chosen summand divides another` — avg_sensitivity=0.2 across 1 observations
 - `the representation is required only for sufficiently large integers` — avg_sensitivity=0.2 across 1 observations
@@ -828,23 +843,91 @@ The sorry here represents the core open mathematical co`
 - move family: `legacy.perturb_assumption`
 - theorem family: `erdos_problem`
 - phase: `consolidation`
-- status: `in_progress`
-- proof outcome: `unknown`
+- status: `stalled`
+- proof outcome: `partial`
 - blocker: `unknown`
 - external job id: `f22db0dd-8b5b-494e-9520-99baef7cdd64`
-- external status: `IN_PROGRESS`
+- external status: `COMPLETE`
 - objective: Fill in all sorries. The assumption 'a, b, c are integers greater than 1' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Assumption 'a, b, c are integers greater than 1' has not yet been stress-tested under verification pressure.
-- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
-- new signal count: 0
-- reused signal count: 0
+- learned summary: remote_status=COMPLETE; verification_status=partial; theorem_status=partially_verified; blocker=unknown; proved=10; generated=3; subgoals=1
+- new signal count: 15
+- reused signal count: 4
+- generated lemmas:
+  - `h_contra : s.card ≥ 2 → ¬IsDivisionAntichain s`
+  - `anonymous_have : = congr_arg Even h ; norm_num [ Nat.even_add, Nat.even_pow ] at this ; aesop;`
+  - `erdos_123_d_complete_sequences [sorry at line 51]: PairwiseCoprime3 a b c →
+      IsDComplete (PowTripleSet a b c) := by
+  sorry
+
+/-`
+- proved lemmas:
+  - `PowTripleSet : (a b c : ℕ) : Set ℕ`
+  - `PairwiseCoprime3 : (a b c : ℕ) : Prop`
+  - `IsDivisionAntichain : (s : Finset ℕ) : Prop`
+  - `IsDComplete : (A : Set ℕ) : Prop`
+  - `coprime_1_1_2 : : PairwiseCoprime3 1 1 2`
+  - `powTripleSet_1_1_2_eq : :`
+  - `pow2_dvd_of_ne : {a b : ℕ} (ha : ∃ i, a = 2 ^ i) (hb : ∃ j, b = 2 ^ j)`
+  - `antichain_pow2_card_le_one : (s : Finset ℕ)`
+  - `powTripleSet_1_1_2_not_dComplete : :`
+  - `erdos_123_perturbed_is_false : :`
+- candidate lemmas:
+  - `h_contra : s.card ≥ 2 → ¬IsDivisionAntichain s`
+  - `anonymous_have : = congr_arg Even h ; norm_num [ Nat.even_add, Nat.even_pow ] at this ; aesop;`
+  - `erdos_123_d_complete_sequences [sorry at line 51]: PairwiseCoprime3 a b c →
+      IsDComplete (PowTripleSet a b c) := by
+  sorry
+
+/-`
+  - `PowTripleSet : (a b c : ℕ) : Set ℕ`
+  - `PairwiseCoprime3 : (a b c : ℕ) : Prop`
+  - `IsDivisionAntichain : (s : Finset ℕ) : Prop`
+  - `IsDComplete : (A : Set ℕ) : Prop`
+  - `coprime_1_1_2 : : PairwiseCoprime3 1 1 2`
+  - `powTripleSet_1_1_2_eq : :`
+  - `pow2_dvd_of_ne : {a b : ℕ} (ha : ∃ i, a = 2 ^ i) (hb : ∃ j, b = 2 ^ j)`
+  - `antichain_pow2_card_le_one : (s : Finset ℕ)`
+  - `powTripleSet_1_1_2_not_dComplete : :`
+  - `erdos_123_perturbed_is_false : :`
+- unresolved goals:
+  - `erdos_123_d_complete_sequences:       PairwiseCoprime3 a b c →
+      IsDComplete (PowTripleSet a b c) := by
+  sorry
+
+/-`
+- proof traces:
+  - `have h_contra : s.card ≥ 2 → ¬IsDivisionAntichain s`
+  - `have anonymous_have : = congr_arg Even h ; norm_num [ Nat.even_add, Nat.even_pow ] at this ; aesop;`
+  - `depends_on: PowTripleSet (in powTripleSet_1_1_2_eq)`
+  - `depends_on: le_of_not_gt (in antichain_pow2_card_le_one)`
+  - `depends_on: powTripleSet_1_1_2_not_dComplete (in erdos_123_perturbed_is_false)`
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_list_stdout.txt` (8766 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_list_stdout.txt` (8771 bytes)
+  - `bin` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_f22db0dd-8b5b-494e-9520-99baef7cdd64.bin` (5628 bytes)
+  - `md` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_f22db0dd-8b5b-494e-9520-99baef7cdd64.bin.contents/e09e11d5-cf0f-4033-a866-668dd1a6cdff_aristotle/ARISTOTLE_SUMMARY_f22db0dd-8b5b-494e-9520-99baef7cdd64.md` (3023 bytes)
+  - `lean` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_f22db0dd-8b5b-494e-9520-99baef7cdd64.bin.contents/e09e11d5-cf0f-4033-a866-668dd1a6cdff_aristotle/Main.lean` (8279 bytes)
+  - `md` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_f22db0dd-8b5b-494e-9520-99baef7cdd64.bin.contents/e09e11d5-cf0f-4033-a866-668dd1a6cdff_aristotle/README.md` (248 bytes)
+  - `json` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_f22db0dd-8b5b-494e-9520-99baef7cdd64.bin.contents/e09e11d5-cf0f-4033-a866-668dd1a6cdff_aristotle/lake-manifest.json` (3109 bytes)
+  - `toml` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_f22db0dd-8b5b-494e-9520-99baef7cdd64.bin.contents/e09e11d5-cf0f-4033-a866-668dd1a6cdff_aristotle/lakefile.toml` (215 bytes)
+  - `file` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_f22db0dd-8b5b-494e-9520-99baef7cdd64.bin.contents/e09e11d5-cf0f-4033-a866-668dd1a6cdff_aristotle/lean-toolchain` (25 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_stderr.txt` (247 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_list_stderr.txt`
-- notes: Aristotle job f22db0dd-8b5b-494e-9520-99baef7cdd64 is still in progress.
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_stderr.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_f22db0dd-8b5b-494e-9520-99baef7cdd64.bin`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_f22db0dd-8b5b-494e-9520-99baef7cdd64.bin`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_f22db0dd-8b5b-494e-9520-99baef7cdd64.bin.contents/e09e11d5-cf0f-4033-a866-668dd1a6cdff_aristotle/lake-manifest.json`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_f22db0dd-8b5b-494e-9520-99baef7cdd64.bin.contents/e09e11d5-cf0f-4033-a866-668dd1a6cdff_aristotle/Main.lean`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_f22db0dd-8b5b-494e-9520-99baef7cdd64.bin.contents/e09e11d5-cf0f-4033-a866-668dd1a6cdff_aristotle/ARISTOTLE_SUMMARY_f22db0dd-8b5b-494e-9520-99baef7cdd64.md`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_f22db0dd-8b5b-494e-9520-99baef7cdd64.bin.contents/e09e11d5-cf0f-4033-a866-668dd1a6cdff_aristotle/lean-toolchain`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_f22db0dd-8b5b-494e-9520-99baef7cdd64.bin.contents/e09e11d5-cf0f-4033-a866-668dd1a6cdff_aristotle/lakefile.toml`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e09e11d5-cf0f-4033-a866-668dd1a6cdff/aristotle_result_f22db0dd-8b5b-494e-9520-99baef7cdd64.bin.contents/e09e11d5-cf0f-4033-a866-668dd1a6cdff_aristotle/README.md`
+- evaluation total: 119.303
+- notes: Aristotle result downloaded successfully. Customize result ingestion to extract generated Lean artifacts and intermediate lemmas.
 
 ### abd99d04-1751-4f5c-a802-c4d16072db93
 
@@ -864,21 +947,75 @@ The sorry here represents the core open mathematical co`
 - reused signal count: 0
 - artifact inventory:
   - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_list_stdout.txt` (8766 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_list_stdout.txt` (8771 bytes)
 - artifacts:
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_list_stdout.txt`
   - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/abd99d04-1751-4f5c-a802-c4d16072db93/aristotle_list_stderr.txt`
 - notes: Aristotle job 33d6bd02-cbb8-4418-97f5-4b6732939093 is still in progress.
 
+### e3d8383c-3e6e-4996-b4e4-f0354432fc76
+
+- move: `promote_lemma`
+- move family: `decompose_subclaim`
+- theorem family: `erdos_problem`
+- phase: `consolidation`
+- status: `submitted`
+- proof outcome: `unknown`
+- blocker: `unknown`
+- external job id: `72ebb2f3-61d4-4895-992b-c95cdc1b8462`
+- external status: `QUEUED`
+- objective: Fill in all sorries. Split the current theorem into a bridge lemma and a remaining reduction built around the recurring subgoal. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
+- rationale: Recurring subgoal 'erdos_123_d_complete_sequences: pairwisecoprime3 v v v → isdcomplete (powtripleset v v v) := by sorry' is ready to be isolated as its own bridge claim.
+- campaign priority: 1.7
+- transfer score: 0.3
+- learned summary: remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- new signal count: 0
+- reused signal count: 0
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e3d8383c-3e6e-4996-b4e4-f0354432fc76/aristotle_submit_stderr.txt` (54 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e3d8383c-3e6e-4996-b4e4-f0354432fc76/aristotle_submit_stdout.txt` (0 bytes)
+- artifacts:
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e3d8383c-3e6e-4996-b4e4-f0354432fc76/aristotle_submit_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/e3d8383c-3e6e-4996-b4e4-f0354432fc76/aristotle_submit_stderr.txt`
+- notes: Submitted Aristotle job without waiting for completion.
+
+### 5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13
+
+- move: `reformulate`
+- move family: `transfer_reformulation`
+- theorem family: `erdos_problem`
+- phase: `consolidation`
+- status: `submitted`
+- proof outcome: `unknown`
+- blocker: `unknown`
+- external job id: `e40f70d0-7196-479d-a916-b6b75a8f67b4`
+- external status: `QUEUED`
+- objective: Fill in all sorries. Reformulate the current conjecture using the transferable artifact 'special-case covering lemmas can often be transferred by isolating the divisibility obstruction' from additive number theory. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
+- rationale: Reusable signal from erdos-44 suggests a cross-family transfer opportunity.
+- campaign priority: 1.5
+- transfer score: 1.75
+- learned summary: remote_status=QUEUED; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- new signal count: 0
+- reused signal count: 0
+- artifact inventory:
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_submit_stderr.txt` (54 bytes)
+  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_submit_stdout.txt` (0 bytes)
+- artifacts:
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_submit_stdout.txt`
+  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13/aristotle_submit_stderr.txt`
+- notes: Submitted Aristotle job without waiting for completion.
+
 ## Incidents
 
-- `warning` `repeated_provider_failures`: Provider-side failures reached 7 in recent completed experiments.
+- `warning` `repeated_provider_failures`: Provider-side failures reached 8 in recent completed experiments.
 - `warning` `retry_budget_exhausted`: Experiment e7ffb40d-1e42-444e-8ffd-4d486f55a51e reached retry budget (6 attempts).
 - `warning` `retry_budget_exhausted`: Experiment b81e1cdc-4cf1-4713-b2c4-5cb4e5684b21 reached retry budget (12 attempts).
 - `warning` `retry_budget_exhausted`: Experiment bff4c05f-d103-47ac-83f8-1164972a1bca reached retry budget (13 attempts).
 
 ## Audit Trail
 
+- `experiment_finalized` at `2026-03-31T06:48:20.648933+00:00`
+- `result_ingested` at `2026-03-31T06:48:20.635610+00:00`
 - `experiment_finalized` at `2026-03-31T05:22:40.931908+00:00`
 - `result_ingested` at `2026-03-31T05:22:40.921415+00:00`
 - `experiment_finalized` at `2026-03-31T05:22:39.218470+00:00`
@@ -887,39 +1024,29 @@ The sorry here represents the core open mathematical co`
 - `result_ingested` at `2026-03-31T03:19:20.422050+00:00`
 - `experiment_finalized` at `2026-03-31T01:48:01.941869+00:00`
 - `result_ingested` at `2026-03-31T01:48:01.926858+00:00`
-- `experiment_finalized` at `2026-03-31T01:48:00.291717+00:00`
-- `result_ingested` at `2026-03-31T01:48:00.274085+00:00`
 
 ## Latest manager decision
 
 - policy path: `fallback`
-- policy candidate audits: 11
+- policy candidate audits: 10
 - jobs synced: 2
-- jobs submitted: 0
+- jobs submitted: 2
 - active before: 2
-- active after: 2
+- active after: 3
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=10, subgoals=1, traces=0
-- synced `e09e11d5-cf0f-4033-a866-668dd1a6cdff` with proof_outcome=`unknown` new_signal=0 reused_signal=0
+- synced `e09e11d5-cf0f-4033-a866-668dd1a6cdff` with proof_outcome=`partial` new_signal=19 reused_signal=0
 - synced `abd99d04-1751-4f5c-a802-c4d16072db93` with proof_outcome=`unknown` new_signal=0 reused_signal=0
-- considered `1df41832-321e-4d82-8367-5ae070a74487` rank=1 score=189.05
-- considered `e031aa43-3b4f-444d-b7c2-11739ac41003` rank=2 score=189.05
-- considered `0e35905f-5019-4df7-9877-7ea87e21b363` rank=3 score=203.497
-- considered `914d624b-0487-4296-93b2-e4c70ff169d9` rank=4 score=198.075
-- considered `f26e6e94-0f34-46bb-a9ef-4c620c61d2dd` rank=5 score=198.22
-- skipped `0e35905f-5019-4df7-9877-7ea87e21b363` for `erdos-123` (conjecture active cap reached)
-- skipped `914d624b-0487-4296-93b2-e4c70ff169d9` for `erdos-123` (conjecture active cap reached)
-- skipped `f26e6e94-0f34-46bb-a9ef-4c620c61d2dd` for `erdos-123` (conjecture active cap reached)
-- skipped `0c657bdf-9e65-45db-9ec9-c14f241469ae` for `erdos-123` (conjecture active cap reached)
-- skipped `3ac04c05-ec8b-4c5d-a770-6d205f37a3a3` for `erdos-123` (conjecture active cap reached)
-- skipped `e0111230-5575-4e1f-b1fa-faf4055c8445` for `erdos-123` (conjecture active cap reached)
-- skipped `3c804782-078f-4fc4-b7d2-732f874efc38` for `erdos-123` (conjecture active cap reached)
-- skipped `98555086-aba4-4754-91dd-00aaf49361cc` for `erdos-123` (conjecture active cap reached)
-- skipped `1df41832-321e-4d82-8367-5ae070a74487` for `erdos-123` (duplicate active experiment signature)
-- skipped `e031aa43-3b4f-444d-b7c2-11739ac41003` for `erdos-123` (duplicate active experiment signature)
-- skipped `12d4e30b-9aff-45f2-88ab-8c9ddf147e68` for `erdos-123` (conjecture active cap reached)
+- queued `e3d8383c-3e6e-4996-b4e4-f0354432fc76` for `erdos-123` via `promote_lemma` / `decompose_subclaim` (chosen by deterministic fallback policy; move_family=decompose_subclaim; rationale=Recurring subgoal 'erdos_123_d_complete_sequences: pairwisecoprime3 v v v → isdcomplete (powtripleset v v v) := by sorry' is ready to be isolated as its own bridge claim.)
+- queued `5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13` for `erdos-123` via `reformulate` / `transfer_reformulation` (chosen by deterministic fallback policy; move_family=transfer_reformulation; rationale=Reusable signal from erdos-44 suggests a cross-family transfer opportunity.)
+- considered `933c8203-1bf1-4dea-820d-b6e638b9ff7e` rank=1 score=194.9275
+- selected `e3d8383c-3e6e-4996-b4e4-f0354432fc76` rank=2 score=209.3745
+- selected `5c41e2cf-5943-4ab9-8a53-1ca0d3e5ff13` rank=3 score=203.9525
+- considered `1517e126-0368-4813-8397-e79fa288ef0d` rank=4 score=204.0975
+- considered `105514d0-c1e3-4760-ba19-8c63dd7ecaf8` rank=5 score=200.9066
+- skipped `933c8203-1bf1-4dea-820d-b6e638b9ff7e` for `erdos-123` (duplicate active experiment signature)
 
 ## Suggested next move
 
-- Promote the top recurring lemma into a standalone theorem if not already tested.
+- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
