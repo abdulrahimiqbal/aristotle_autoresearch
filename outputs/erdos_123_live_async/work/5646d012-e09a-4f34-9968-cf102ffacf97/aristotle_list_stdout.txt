@@ -1,7 +1,7 @@
 ID                                   STATUS          CREATED              PROGRESS  
 -------------------------------------------------------------------------------------
-fbc0c3e4-4029-42be-94ad-693f511fe3a8 IN_PROGRESS     1 min ago            1%        
-4cca2bac-93a0-44bb-8545-1f6f61e12bb6 IN_PROGRESS     1 min ago            1%        
+fbc0c3e4-4029-42be-94ad-693f511fe3a8 IN_PROGRESS     2 mins ago           2%        
+4cca2bac-93a0-44bb-8545-1f6f61e12bb6 IN_PROGRESS     2 mins ago           1%        
 14f32ff1-b320-483e-a67a-449277066168 COMPLETE        1 hour ago           100%      
 5e6a26d2-f87a-49bf-a461-3847581a26e8 IN_PROGRESS     1 hour ago           14%       
 516dc484-7dcb-4208-aa9d-a41f19654867 IN_PROGRESS     1 hour ago           11%       
@@ -17,9 +17,9 @@ bcbbca66-836b-479c-88aa-3779f9238d70 COMPLETE        3 hours ago          100%
 3354fec4-d810-4a3e-87ae-6bca5784bbb3 COMPLETE_WITH_ERRORS 3 hours ago          100%      
 d90f2c03-0ed3-4cfd-ad1b-4548e9560c54 COMPLETE_WITH_ERRORS 4 hours ago          100%      
 add8fba4-9484-4954-afa0-5ad32b4f294d COMPLETE        4 hours ago          100%      
-47673564-a189-4141-8aaf-84a202de8202 COMPLETE        5 hours ago          100%      
-fed370a6-ba06-4600-9a61-9e59660bcc3a COMPLETE_WITH_ERRORS 5 hours ago          100%      
-380d42c7-0d2c-44a1-9994-1028f0324460 COMPLETE_WITH_ERRORS 5 hours ago          100%      
+47673564-a189-4141-8aaf-84a202de8202 COMPLETE        6 hours ago          100%      
+fed370a6-ba06-4600-9a61-9e59660bcc3a COMPLETE_WITH_ERRORS 6 hours ago          100%      
+380d42c7-0d2c-44a1-9994-1028f0324460 COMPLETE_WITH_ERRORS 6 hours ago          100%      
 46b495cf-4123-4142-b310-90875d1ce7e9 COMPLETE_WITH_ERRORS 6 hours ago          100%      
 1095834b-80a1-4ca4-bddb-46df6790ddc0 COMPLETE        7 hours ago          100%      
 2b51283d-c2e9-461c-af77-93493b373bb1 COMPLETE_WITH_ERRORS 7 hours ago          100%      
@@ -38,7 +38,7 @@ f22db0dd-8b5b-494e-9520-99baef7cdd64 COMPLETE        9 hours ago          100%
 607249a9-02b5-4d1e-9143-6c70e2312f95 COMPLETE        11 hours ago         100%      
 a5bb5146-4e04-4427-9ec2-71e3c7af645c COMPLETE_WITH_ERRORS 11 hours ago         100%      
 3ab54590-401a-4143-b363-190bf6d8acc0 COMPLETE        11 hours ago         100%      
-37d91660-f818-4cf0-94cf-aaad55620324 COMPLETE        11 hours ago         100%      
+37d91660-f818-4cf0-94cf-aaad55620324 COMPLETE        12 hours ago         100%      
 a554206b-b500-4e66-8e51-469b5ef6a2f1 COMPLETE        13 hours ago         100%      
 bb04f762-c569-4b6c-951f-ea6f00e41202 COMPLETE        13 hours ago         100%      
 c047b46b-fc9e-4352-8010-29071c731563 COMPLETE        13 hours ago         100%      
