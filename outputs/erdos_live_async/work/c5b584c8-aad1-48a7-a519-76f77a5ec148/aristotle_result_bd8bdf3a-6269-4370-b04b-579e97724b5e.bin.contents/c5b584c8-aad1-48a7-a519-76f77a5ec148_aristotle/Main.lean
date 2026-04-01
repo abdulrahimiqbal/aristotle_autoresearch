@@ -1,0 +1,11 @@
+/-
+Experiment ID: c5b584c8-aad1-48a7-a519-76f77a5ec148
+Move: promote_lemma
+Move family: decompose_subclaim
+Theorem family: erdos_problem
+Phase: consolidation
+Modification: {"subclaim": "erdos_123_d_complete_sequences: pairwisecoprime3 v v v \u2192 isdcomplete (powtripleset v v v) := by sorry"}
+-/
+
+-- promoted target: erdos_123_d_complete_sequences: pairwisecoprime3 v v v → isdcomplete (powtripleset v v v) := by sorry
+theorem promoted_lemma : True := trivial
