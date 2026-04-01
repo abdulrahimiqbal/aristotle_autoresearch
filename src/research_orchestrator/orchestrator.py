@@ -736,6 +736,43 @@ def manager_tick(
     # Emit policy events
     submissions = []
     for audit in policy.candidate_audits[:20]:
+        # Build a proper selection rationale from score breakdown
+        score_breakdown = audit.get("score_breakdown", {})
+        bonuses = score_breakdown.get("bonuses", {})
+        penalties = score_breakdown.get("penalties", {})
+        score = score_breakdown.get("score", 0)
+        selected = bool(audit.get("selected"))
+
+        # Create strategic rationale
+        rationale_parts = []
+        if selected:
+            rationale_parts.append("Selected by manager policy")
+        else:
+            rationale_parts.append("Scored but not selected")
+
+        # Add key scoring factors
+        key_factors = []
+        if bonuses.get("discovery_priority", 0) > 0:
+            key_factors.append(f"discovery_priority={bonuses['discovery_priority']:.2f}")
+        if bonuses.get("signal_support", 0) > 0:
+            key_factors.append(f"signal_support={bonuses['signal_support']:.2f}")
+        if bonuses.get("transfer_opportunity", 0) > 0:
+            key_factors.append(f"transfer_score={bonuses['transfer_opportunity']:.2f}")
+        if bonuses.get("reuse_potential", 0) > 0:
+            key_factors.append(f"reuse_score={bonuses['reuse_potential']:.2f}")
+        if bonuses.get("semantic_novelty", 0) > 0:
+            key_factors.append(f"novelty_score={bonuses['semantic_novelty']:.2f}")
+
+        if key_factors:
+            rationale_parts.append("Key factors: " + ", ".join(key_factors))
+
+        # Add rejection reason if not selected
+        selection_reason = audit.get("selection_reason", "")
+        if not selected and selection_reason:
+            rationale_parts.append(f"Reason: {selection_reason}")
+
+        rationale = "; ".join(rationale_parts)
+
         db.emit_manager_event(
             project_id=project_id,
             run_id=run_id,
@@ -744,8 +781,11 @@ def manager_tick(
             experiment_id=audit.get("experiment_id"),
             payload={
                 "experiment_id": audit.get("experiment_id"),
-                "score_breakdown": audit.get("score_breakdown", {}),
-                "selected": bool(audit.get("selected")),
+                "score_breakdown": score_breakdown,
+                "selected": selected,
+                "policy_score": score,
+                "rationale": rationale,
+                "selection_reason": selection_reason if not selected else "chosen by policy",
             },
         )
     for skipped in policy.skipped[:20]:

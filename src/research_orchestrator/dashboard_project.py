@@ -298,15 +298,43 @@ def _get_experiments_with_details(db: Database, project_id: str, limit: int = 10
             """,
             (exp["experiment_id"],),
         ).fetchone()
-        
+
         if audit_row:
             exp["manager_reason"] = audit_row["selection_reason"]
             exp["score_breakdown"] = json.loads(audit_row.get("score_breakdown_json", "{}"))
             candidate = json.loads(audit_row.get("candidate_json", "{}"))
             exp["rationale"] = candidate.get("rationale", "")
         else:
-            exp["manager_reason"] = ""
-            exp["rationale"] = exp["candidate_metadata"].get("rationale", "")
+            # Fallback: Get rationale from manager_events (candidate.scored)
+            event_row = db.conn.execute(
+                """
+                SELECT payload_json
+                FROM manager_events
+                WHERE experiment_id = ?
+                AND event_type = 'candidate.scored'
+                ORDER BY sequence_no DESC
+                LIMIT 1
+                """,
+                (exp["experiment_id"],),
+            ).fetchone()
+
+            if event_row:
+                try:
+                    payload = json.loads(event_row["payload_json"] or "{}")
+                    exp["manager_reason"] = payload.get("selection_reason", "")
+                    exp["score_breakdown"] = payload.get("score_breakdown", {})
+                    exp["rationale"] = payload.get("rationale", "")
+                    exp["policy_score"] = payload.get("policy_score", 0)
+                except json.JSONDecodeError:
+                    exp["manager_reason"] = ""
+                    exp["score_breakdown"] = {}
+                    exp["rationale"] = ""
+                    exp["policy_score"] = 0
+            else:
+                exp["manager_reason"] = ""
+                exp["score_breakdown"] = {}
+                exp["rationale"] = exp["candidate_metadata"].get("rationale", "")
+                exp["policy_score"] = 0
         
         # Get knowledge graph contributions
         exp["kg_nodes"] = []
@@ -484,16 +512,68 @@ TEMPLATES = {
           </div>
           <div class="experiment-body">
             
-            <!-- LLM Reasoning -->
+            <!-- Manager Selection Rationale -->
             <div class="section">
-              <div class="section-title">Why the LLM Sent This</div>
+              <div class="section-title">Manager Selection Rationale</div>
               <div class="section-content">
-                <div class="rationale">
-                  {{ exp.rationale or exp.objective or "No rationale recorded" }}
+                {% if exp.manager_reason %}
+                <div class="manager-reason" style="background: #1f2937; padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #3b82f6;">
+                  <strong style="color: #60a5fa;">Selection Reason:</strong>
+                  <span style="color: #e5e7eb;">{{ exp.manager_reason }}</span>
                 </div>
+                {% endif %}
+
+                {% if exp.score_breakdown and exp.score_breakdown.bonuses %}
+                <div class="score-breakdown" style="margin-top: 12px;">
+                  <div style="font-size: 12px; color: #9ca3af; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Policy Score Breakdown</div>
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
+                    {% if exp.score_breakdown.score is defined %}
+                    <div style="background: #1f2937; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                      <span style="color: #9ca3af; font-size: 12px;">Total Score</span>
+                      <span style="color: #4ade80; font-weight: 600;">{{ "%.2f"|format(exp.score_breakdown.score) }}</span>
+                    </div>
+                    {% endif %}
+                    {% if exp.score_breakdown.bonuses.signal_support %}
+                    <div style="background: #1f2937; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                      <span style="color: #9ca3af; font-size: 12px;">Signal Support</span>
+                      <span style="color: #4ade80; font-weight: 500;">+{{ "%.2f"|format(exp.score_breakdown.bonuses.signal_support) }}</span>
+                    </div>
+                    {% endif %}
+                    {% if exp.score_breakdown.bonuses.transfer_opportunity %}
+                    <div style="background: #1f2937; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                      <span style="color: #9ca3af; font-size: 12px;">Transfer Score</span>
+                      <span style="color: #4ade80; font-weight: 500;">+{{ "%.2f"|format(exp.score_breakdown.bonuses.transfer_opportunity) }}</span>
+                    </div>
+                    {% endif %}
+                    {% if exp.score_breakdown.bonuses.reuse_potential %}
+                    <div style="background: #1f2937; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                      <span style="color: #9ca3af; font-size: 12px;">Reuse Score</span>
+                      <span style="color: #4ade80; font-weight: 500;">+{{ "%.2f"|format(exp.score_breakdown.bonuses.reuse_potential) }}</span>
+                    </div>
+                    {% endif %}
+                    {% if exp.score_breakdown.bonuses.semantic_novelty %}
+                    <div style="background: #1f2937; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                      <span style="color: #9ca3af; font-size: 12px;">Novelty Score</span>
+                      <span style="color: #4ade80; font-weight: 500;">+{{ "%.2f"|format(exp.score_breakdown.bonuses.semantic_novelty) }}</span>
+                    </div>
+                    {% endif %}
+                    {% if exp.score_breakdown.penalties %}
+                      {% for penalty_name, penalty_value in exp.score_breakdown.penalties.items() %}
+                        {% if penalty_value > 0 %}
+                        <div style="background: #1f2937; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                          <span style="color: #9ca3af; font-size: 12px;">{{ penalty_name.replace('_', ' ').title() }}</span>
+                          <span style="color: #f87171; font-weight: 500;">-{{ "%.2f"|format(penalty_value) }}</span>
+                        </div>
+                        {% endif %}
+                      {% endfor %}
+                    {% endif %}
+                  </div>
+                </div>
+                {% endif %}
+
                 {% if exp.expected_signal %}
-                <div class="expected-signal">
-                  <strong>Expected signal:</strong> {{ exp.expected_signal }}
+                <div class="expected-signal" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #374151;">
+                  <strong style="color: #60a5fa;">Expected signal:</strong> {{ exp.expected_signal }}
                 </div>
                 {% endif %}
               </div>

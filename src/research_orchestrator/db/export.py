@@ -73,4 +73,47 @@ class DatabaseExportMixin:
             for row in experiment_rows:
                 writer.writerow({key: row.get(key, "") for key in fieldnames})
         written["experiments.csv"] = str(experiments_csv)
+
+        # Export manager candidate audits for dashboard
+        audits = self.conn.execute(
+            """
+            SELECT audit_id, run_id, experiment_id, conjecture_id, rank_position,
+                   selected, selection_reason, policy_score, score_breakdown_json,
+                   candidate_json, created_at
+            FROM manager_candidate_audits
+            WHERE project_id = ?
+            ORDER BY created_at DESC
+            """,
+            (project_id,),
+        ).fetchall()
+
+        audits_data = []
+        for audit in audits:
+            try:
+                score_breakdown = json.loads(audit["score_breakdown_json"] or "{}")
+            except json.JSONDecodeError:
+                score_breakdown = {}
+            try:
+                candidate = json.loads(audit["candidate_json"] or "{}")
+            except json.JSONDecodeError:
+                candidate = {}
+
+            audits_data.append({
+                "audit_id": audit["audit_id"],
+                "run_id": audit["run_id"],
+                "experiment_id": audit["experiment_id"],
+                "conjecture_id": audit["conjecture_id"],
+                "rank_position": audit["rank_position"],
+                "selected": bool(audit["selected"]),
+                "selection_reason": audit["selection_reason"],
+                "policy_score": audit["policy_score"],
+                "score_breakdown": score_breakdown,
+                "candidate": candidate,
+                "created_at": audit["created_at"],
+            })
+
+        audits_path = destination / "manager_candidate_audits.json"
+        audits_path.write_text(json.dumps(audits_data, indent=2), encoding="utf-8")
+        written["manager_candidate_audits.json"] = str(audits_path)
+
         return written

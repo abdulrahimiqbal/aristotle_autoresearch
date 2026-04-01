@@ -102,19 +102,46 @@ def load_experiments() -> List[Dict[str, Any]]:
                 }
                 experiments.append(exp)
     
+    # Load manager candidate audits for selection rationale
+    audits = load_json("manager_candidate_audits.json")
+    exp_manager_reason = {}
+    exp_score_breakdown = {}
+
+    for audit in audits:
+        exp_id = audit.get("experiment_id")
+        if exp_id:
+            # Use selection_reason if available, fall back to candidate rationale
+            reason = audit.get("selection_reason", "")
+            if not reason and audit.get("candidate"):
+                reason = audit["candidate"].get("rationale", "")
+            if reason:
+                exp_manager_reason[exp_id] = reason
+
+            # Use score_breakdown from audit
+            if audit.get("score_breakdown"):
+                exp_score_breakdown[exp_id] = audit["score_breakdown"]
+
     # Try to enrich with rationale from manager events
     events = load_json("manager_events.json")
     exp_rationale = {}
+
     for event in events:
         if event.get("event_type") == "candidate.scored":
             payload = event.get("payload", {})
             exp_id = payload.get("experiment_id")
             if exp_id and payload.get("rationale"):
                 exp_rationale[exp_id] = payload.get("rationale")
-    
+
     for exp in experiments:
-        if exp["experiment_id"] in exp_rationale:
-            exp["rationale"] = exp_rationale[exp["experiment_id"]]
+        exp_id = exp["experiment_id"]
+        if exp_id in exp_rationale:
+            exp["rationale"] = exp_rationale[exp_id]
+        # Prefer audit data for manager_reason and score_breakdown
+        if exp_id in exp_manager_reason:
+            exp["manager_reason"] = exp_manager_reason[exp_id]
+        if exp_id in exp_score_breakdown:
+            exp["score_breakdown"] = exp_score_breakdown[exp_id]
+
         # If no rationale, use objective as fallback
         if not exp["rationale"]:
             exp["rationale"] = exp["objective"] or "No rationale recorded"
@@ -362,10 +389,67 @@ def render_experiment_card(exp: Dict, num: int, expanded: bool) -> str:
     
     raw_html = "\n".join(raw_items)
     
-    # Rationale
-    rationale = exp.get("rationale", "") or exp.get("objective", "No rationale recorded")
+    # Manager Selection Rationale
+    manager_reason = exp.get("manager_reason", "")
+    score_breakdown = exp.get("score_breakdown", {})
     expected_signal = exp.get("expected_signal", "")
-    expected_html = f'<div class="expected-signal"><strong>Expected signal:</strong> {expected_signal}</div>' if expected_signal else ""
+
+    # Build manager rationale HTML
+    manager_html = ""
+    if manager_reason:
+        manager_html += f'''<div class="manager-reason" style="background: #1f2937; padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #3b82f6;">
+          <strong style="color: #60a5fa;">Selection Reason:</strong>
+          <span style="color: #e5e7eb;">{manager_reason}</span>
+        </div>'''
+
+    # Build score breakdown HTML
+    score_html = ""
+    if score_breakdown and score_breakdown.get("bonuses"):
+        bonuses = score_breakdown.get("bonuses", {})
+        penalties = score_breakdown.get("penalties", {})
+        total_score = score_breakdown.get("score", 0)
+
+        score_items = []
+
+        # Total score
+        score_items.append(f'''<div style="background: #1f2937; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: #9ca3af; font-size: 12px;">Total Score</span>
+          <span style="color: #4ade80; font-weight: 600;">{total_score:.2f}</span>
+        </div>''')
+
+        # Key bonus factors
+        key_factors = [
+            ("signal_support", "Signal Support"),
+            ("transfer_opportunity", "Transfer Score"),
+            ("reuse_potential", "Reuse Score"),
+            ("semantic_novelty", "Novelty Score"),
+        ]
+        for key, label in key_factors:
+            val = bonuses.get(key, 0)
+            if val > 0:
+                score_items.append(f'''<div style="background: #1f2937; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: #9ca3af; font-size: 12px;">{label}</span>
+          <span style="color: #4ade80; font-weight: 500;">+{val:.2f}</span>
+        </div>''')
+
+        # Penalties
+        for key, val in penalties.items():
+            if val > 0:
+                label = key.replace('_', ' ').title()
+                score_items.append(f'''<div style="background: #1f2937; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: #9ca3af; font-size: 12px;">{label}</span>
+          <span style="color: #f87171; font-weight: 500;">-{val:.2f}</span>
+        </div>''')
+
+        if score_items:
+            score_html = f'''<div class="score-breakdown" style="margin-top: 12px;">
+          <div style="font-size: 12px; color: #9ca3af; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Policy Score Breakdown</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
+            {''.join(score_items)}
+          </div>
+        </div>'''
+
+    expected_html = f'<div class="expected-signal" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #374151;"><strong style="color: #60a5fa;">Expected signal:</strong> {expected_signal}</div>' if expected_signal else ""
     
     # Raw JSON toggle
     raw_json = json.dumps(exp, indent=2, default=str)
@@ -382,11 +466,12 @@ def render_experiment_card(exp: Dict, num: int, expanded: bool) -> str:
     <span style="margin-left: auto; color: #8b949e; font-size: 11px;">{conjecture_id}</span>
     <span class="collapsed-indicator">{indicator}</span>
   </div>
-  <div class="experiment-body">
+    <div class="experiment-body">
     <div class="section">
-      <div class="section-title">Why the LLM Sent This</div>
+      <div class="section-title">Manager Selection Rationale</div>
       <div class="section-content">
-        <div class="rationale">{rationale}</div>
+        {manager_html}
+        {score_html}
         {expected_html}
       </div>
     </div>

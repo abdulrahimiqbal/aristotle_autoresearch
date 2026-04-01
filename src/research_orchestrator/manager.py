@@ -773,11 +773,37 @@ def _diversify_candidates(ranked: List[Dict[str, Any]], max_count: int, explorat
 
 def _candidate_decision(candidate: Dict[str, Any], reason: str) -> CandidateDecision:
     breakdown = candidate_score_breakdown(candidate)
+
+    # Build a strategic reason explaining why this candidate was selected
+    strategic_factors = []
+
+    # Key scoring factors that contributed to selection
+    bonuses = breakdown.get("bonuses", {})
+    if bonuses.get("signal_support", 0) > 0:
+        strategic_factors.append(f"signal_support={bonuses['signal_support']:.2f}")
+    if bonuses.get("transfer_opportunity", 0) > 0:
+        strategic_factors.append(f"transfer={bonuses['transfer_opportunity']:.2f}")
+    if bonuses.get("reuse_potential", 0) > 0:
+        strategic_factors.append(f"reuse={bonuses['reuse_potential']:.2f}")
+    if bonuses.get("semantic_novelty", 0) > 0:
+        strategic_factors.append(f"novelty={bonuses['semantic_novelty']:.2f}")
+    if bonuses.get("discovery_priority", 0) > 0:
+        strategic_factors.append(f"discovery={bonuses['discovery_priority']:.2f}")
+    if bonuses.get("recent_signal_velocity", 0) > 0:
+        strategic_factors.append(f"velocity={bonuses['recent_signal_velocity']:.2f}")
+
+    # Build the full reason
+    full_reason_parts = [reason]
+    full_reason_parts.append(f"move_family={candidate.get('move_family', candidate['move'])}")
+    if strategic_factors:
+        full_reason_parts.append(f"scoring_factors=[{', '.join(strategic_factors)}]")
+    full_reason_parts.append(f"policy_score={breakdown['score']:.2f}")
+
     return CandidateDecision(
         experiment_id=candidate["experiment_id"],
         conjecture_id=candidate["conjecture_id"],
         move=candidate["move"],
-        reason=f"{reason}; move_family={candidate.get('move_family', candidate['move'])}; rationale={candidate.get('rationale', '')}".strip(),
+        reason="; ".join(full_reason_parts),
         expected_signal=candidate["expected_signal"],
         modification=candidate["modification"],
         workspace_dir=candidate["workspace_dir"],
@@ -970,10 +996,61 @@ def choose_candidates_for_submission(
     ]
     selected_ids = [item.experiment_id for item in chosen]
 
-    # Build rationale with directive awareness
-    base_rationale = "Fallback policy ranked candidates by motif reuse, recent signal velocity, boundary evidence, and an exploration floor."
+    # Build strategic rationale explaining the selection decision
+    rationale_parts = []
+
+    # Overall strategy context
     if not frontier and workspace_root and filtered_frontier:
-        base_rationale = f"Directive-based generation was used to create {len(filtered_frontier)} candidates. " + base_rationale
+        rationale_parts.append(f"Generated {len(filtered_frontier)} fresh candidates via directive-based exploration.")
+
+    # Selection summary
+    if chosen:
+        selected_moves = [c.move for c in chosen]
+        selected_conjectures = list(set(c.conjecture_id for c in chosen))
+        rationale_parts.append(
+            f"Selected {len(chosen)} candidates: moves={', '.join(selected_moves[:3])}"
+            + (f" (and {len(selected_moves) - 3} more)" if len(selected_moves) > 3 else "")
+        )
+        rationale_parts.append(f"Targeting {len(selected_conjectures)} conjecture(s)")
+
+    # Strategic priorities from top candidates
+    if heuristic_ranked:
+        top_candidate = heuristic_ranked[0]
+        top_factors = []
+        if top_candidate.get("signal_support", 0) > 0:
+            top_factors.append("strong signal support")
+        if top_candidate.get("transfer_opportunity", 0) > 0.5:
+            top_factors.append("transfer opportunity")
+        if top_candidate.get("reuse_potential", 0) > 0:
+            top_factors.append("reuse potential")
+        if top_candidate.get("semantic_novelty", 0) > 0:
+            top_factors.append("novelty")
+        if top_candidate.get("discovery_priority", 0) > 0:
+            top_factors.append("discovery priority")
+        if top_factors:
+            rationale_parts.append(f"Top candidate prioritized: {', '.join(top_factors)}")
+
+    # Rejection summary
+    if skipped:
+        skip_reasons = {}
+        for s in skipped:
+            reason = s.get("reason", "unknown")
+            skip_reasons[reason] = skip_reasons.get(reason, 0) + 1
+        top_skips = sorted(skip_reasons.items(), key=lambda x: x[1], reverse=True)[:2]
+        skip_summary = ", ".join([f"{count} {reason}" for reason, count in top_skips])
+        rationale_parts.append(f"Skipped: {skip_summary}")
+
+    # Exploration vs exploitation balance
+    if chosen and heuristic_ranked:
+        selected_ids_set = set(c.experiment_id for c in chosen)
+        total_frontier = len(heuristic_ranked)
+        selected_count = len(chosen)
+        rationale_parts.append(
+            f"Selection ratio: {selected_count}/{total_frontier} "
+            f"({(selected_count/total_frontier*100):.0f}%) of frontier"
+        )
+
+    base_rationale = "; ".join(rationale_parts) if rationale_parts else "No candidates available for selection."
 
     return PolicyDecision(
         chosen=chosen,
