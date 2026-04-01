@@ -166,10 +166,10 @@ def _status_class(status: str) -> str:
 
 def _status_icon(status: str) -> str:
     icons = {
-        "proved": "✓", "succeeded": "✓", "ingested": "✓", "completed": "✓",
-        "stalled": "⚠", "failed": "✗", "planned": "○", "submitted": "→", "in_progress": "◐",
+        "proved": "[OK]", "succeeded": "[OK]", "ingested": "[OK]", "completed": "[OK]",
+        "stalled": "[!]", "failed": "[X]", "planned": "[ ]", "submitted": "[>]", "in_progress": "[~]",
     }
-    return icons.get(status, "○")
+    return icons.get(status, "[ ]")
 
 
 def _format_duration(created: str, completed: Optional[str]) -> str:
@@ -362,7 +362,7 @@ def render_experiment_card(exp: Dict, num: int, expanded: bool) -> str:
             src = edge.get("source", "")[:8]
             tgt = edge.get("target", "")[:8]
             rel = edge.get("relation", "")
-            kg_items.append(f'<div class="kg-edge">→ {src}... —[{rel}]→ {tgt}...</div>')
+            kg_items.append(f'<div class="kg-edge">-> {src}... —[{rel}]-> {tgt}...</div>')
         kg_html = "\n".join(kg_items)
     else:
         kg_html = '<div style="color: #8b949e;">No knowledge graph nodes created from this experiment.</div>'
@@ -409,7 +409,7 @@ def render_experiment_card(exp: Dict, num: int, expanded: bool) -> str:
         llm_reasoning = candidate_meta.get("llm_reasoning", "")
         strategic_priority = candidate_meta.get("strategic_priority", "")
         manager_html += f'''<div class="llm-reasoned-badge" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #34d399;">
-          <strong style="color: #d1fae5;">🧠 LLM Deeply Reasoned</strong>
+          <strong style="color: #d1fae5;">[LLM] Deeply Reasoned</strong>
           {f'<span style="color: #a7f3d0; margin-left: 8px; font-size: 11px;">Epistemic Score: {epistemic_score:.2f}</span>' if epistemic_score else ""}
           {f'<div style="color: #d1fae5; margin-top: 6px; font-size: 12px;">{llm_reasoning[:250]}{"..." if len(llm_reasoning) > 250 else ""}</div>' if llm_reasoning else ""}
           {f'<div style="color: #a7f3d0; margin-top: 4px; font-size: 11px;">Priority: {strategic_priority}</div>' if strategic_priority else ""}
@@ -420,7 +420,7 @@ def render_experiment_card(exp: Dict, num: int, expanded: bool) -> str:
         synthesis_obs = candidate_meta.get("synthesis_observation", "")
         novelty = candidate_meta.get("novelty", "")
         manager_html += f'''<div class="llm-synthesis-badge" style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #a78bfa;">
-          <strong style="color: #e9d5ff;">✨ LLM Synthesized Conjecture</strong>
+          <strong style="color: #e9d5ff;">[LLM] Synthesized Conjecture</strong>
           <div style="color: #f3e8ff; margin-top: 6px; font-size: 12px;">{synthesis_obs[:200]}{"..." if len(synthesis_obs) > 200 else ""}</div>
           {f'<div style="color: #ddd6fe; margin-top: 4px; font-size: 11px; font-style: italic;">Novelty: {novelty[:100]}</div>' if novelty else ""}
         </div>'''

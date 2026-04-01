@@ -30,8 +30,8 @@ The system can leverage Kimi K2.5 as both a **gatekeeper** and a **creative rese
 
 | Mode | Badge | Purpose |
 |------|-------|---------|
-| **Gatekeeper Review** | 🧠 LLM Deeply Reasoned | Every candidate is reviewed before submission |
-| **Synthesis** | ✨ LLM Synthesized | New conjectures created from verified patterns |
+| **Gatekeeper Review** | [LLM] Deeply Reasoned | Every candidate is reviewed before submission |
+| **Synthesis** | [LLM] Synthesized | New conjectures created from verified patterns |
 
 ### The Gatekeeper Mechanism
 
@@ -78,12 +78,12 @@ cp .env.example .env
 
 When LLM synthesis is enabled, the dashboard shows:
 
-- **Green Badge (🧠 LLM Deeply Reasoned)**: Candidate passed gatekeeper review
+- **Green Badge ([LLM] Deeply Reasoned)**: Candidate passed gatekeeper review
   - Epistemic score (0.0-1.0)
   - Strategic reasoning text
   - Priority level (high/medium/low)
 
-- **Purple Badge (✨ LLM Synthesized)**: Candidate created by LLM synthesis
+- **Purple Badge ([LLM] Synthesized)**: Candidate created by LLM synthesis
   - Synthesis observation
   - Novelty claim
 
@@ -240,11 +240,11 @@ When `RESEARCH_ORCHESTRATOR_LLM_SYNTHESIS=true`, the workflow is the same, but:
 1. **Candidates are reviewed by LLM before submission**
    - Each candidate gets an epistemic score
    - Only approved candidates go to Aristotle
-   - Dashboard shows 🧠 LLM Deeply Reasoned badge
+   - Dashboard shows [LLM] Deeply Reasoned badge
 
 2. **LLM may propose new conjectures**
    - Synthesized from verified discoveries
-   - Dashboard shows ✨ LLM Synthesized badge
+   - Dashboard shows [LLM] Synthesized badge
 
 3. **Manager events include gatekeeper stats**
    ```bash
