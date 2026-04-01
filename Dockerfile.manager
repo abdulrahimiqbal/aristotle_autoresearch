@@ -1,0 +1,41 @@
+# Dockerfile.manager - Railway deployment for Aristotle Research Orchestrator
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    sqlite3 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY src/ ./src/
+
+# Set Python environment
+ENV PYTHONPATH=/app/src
+ENV PYTHONUNBUFFERED=1
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Data volume mount point (for persistent SQLite DB)
+VOLUME ["/data"]
+
+# Default command - overridden by Railway for each service
+# Arguments passed via environment variables:
+#   PROBLEM_NUMBER - e.g., "273"
+#   PROJECT_ID - e.g., "campaign-erdos-problem-273-d686516d"
+#   MOONSHOT_API_KEY - LLM API key
+#   ARISTOTLE_API_KEY - Provider API key
+CMD ["python", "-m", "research_orchestrator.cli", "solve", \
+     "--db", "/data/erdos.sqlite", \
+     "--workspace", "/data/workspace", \
+     "--provider", "aristotle-cli", \
+     "--max-active", "3", \
+     "--tick-interval", "60"]

@@ -9,7 +9,7 @@ from research_orchestrator.campaign_planner import synthesize_campaign
 from research_orchestrator.charter import load_charter, load_conjecture
 from research_orchestrator.dashboard_loader import DashboardLoader
 from research_orchestrator.db import Database
-from research_orchestrator.github_state import publish_state_bundle, sync_github_state
+# State export (local only - no GitHub integration)
 from research_orchestrator.llm_manager import build_campaign_brief, render_campaign_brief
 from research_orchestrator.orchestrator import (
     backfill_provider_results,
@@ -22,6 +22,342 @@ from research_orchestrator.replay import manager_llm_report, replay_experiment, 
 from research_orchestrator.reporter import build_report, write_report
 from research_orchestrator.manager import choose_next_experiment
 from research_orchestrator.live_projections import refresh_live_projections
+from research_orchestrator.health_server import start_health_server
+from research_orchestrator.manager_config import load_config, ManagerConfig
+
+import time
+import signal
+import sys
+
+
+def cmd_solve(args):
+    """Autonomous solve mode: start campaign and run until solved or stopped."""
+    
+    # Handle graceful shutdown
+    stop_requested = [False]
+    def handle_signal(signum, frame):
+        print("\n[STOP] Shutdown requested. Finishing current tick...")
+        stop_requested[0] = True
+    signal.signal(signal.SIGINT, handle_signal)
+    signal.signal(signal.SIGTERM, handle_signal)
+    
+    # Initialize database
+    db = Database(args.db)
+    db.initialize()
+    
+    # Start or resume campaign
+    if args.project:
+        # Resume existing campaign
+        project_id = args.project
+        charter = db.get_charter(project_id)
+        if not charter:
+            print(f"Error: Project {project_id} not found")
+            sys.exit(1)
+        print(f"[RESUME] Continuing campaign: {project_id}")
+    else:
+        # Start new campaign from prompt
+        spec, charter, conjectures, questions = synthesize_campaign(args.prompt)
+        db.save_project(charter)
+        db.save_campaign_spec(spec)
+        for conjecture in conjectures:
+            db.save_conjecture(conjecture)
+        for question in questions:
+            db.save_discovery_question(question)
+        db.add_audit_event(
+            project_id=spec.project_id,
+            event_type="campaign_started",
+            detail={
+                "version": spec.version,
+                "title": spec.title,
+                "conjectures": [item.conjecture_id for item in conjectures],
+                "discovery_questions": [item.question_id for item in questions],
+            },
+        )
+        project_id = spec.project_id
+        print(f"[START] New campaign: {project_id}")
+        print(f"        Title: {spec.title}")
+    
+    # Setup workspace
+    workspace = Path(args.workspace)
+    workspace.mkdir(parents=True, exist_ok=True)
+    report_path = Path(args.report_output) if args.report_output else workspace / "report.md"
+    snapshot_path = report_path.with_suffix(".manager_snapshot.json")
+    
+    print(f"[CONFIG] Provider: {args.provider}")
+    print(f"[CONFIG] Max active: {args.max_active}")
+    print(f"[CONFIG] Max submit/tick: {args.max_submit_per_tick}")
+    print(f"[CONFIG] Tick interval: {args.tick_interval}s")
+    print(f"[CONFIG] Convergence threshold: {args.convergence_threshold * 100}%")
+    print(f"[CONFIG] Max experiments: {args.max_experiments}")
+    print("")
+    print("=" * 60)
+    print("AUTONOMOUS SOLVE MODE")
+    print("Running until problem is solved or stopped (Ctrl+C)")
+    print("=" * 60)
+    print("")
+    
+    tick_count = 0
+    start_time = time.time()
+    
+    while not stop_requested[0]:
+        tick_count += 1
+        tick_start = time.time()
+        
+        print(f"\n[TICK {tick_count}] {time.strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        # Check completion criteria
+        convergence = db.convergence_metrics(project_id)
+        conv_score = convergence.get("convergence_score", 0)
+        open_obligations = convergence.get("distance_to_proof", {}).get("open_obligations_count", 999)
+        trend = convergence.get("trend", "unknown")
+        
+        # Count experiments
+        experiments = db.list_experiments(project_id)
+        exp_count = len(experiments)
+        
+        print(f"  Progress: {conv_score * 100:.1f}% converged, {open_obligations} open obligations")
+        print(f"  Trend: {trend} | Experiments: {exp_count}")
+        
+        # Check if solved
+        if conv_score >= args.convergence_threshold and open_obligations == 0:
+            print("\n" + "=" * 60)
+            print("[SOLVED] Problem appears to be solved!")
+            print(f"  Convergence: {conv_score * 100:.1f}%")
+            print(f"  No open obligations remaining")
+            print(f"  Total experiments: {exp_count}")
+            print(f"  Total time: {time.time() - start_time:.0f}s")
+            print("=" * 60)
+            break
+        
+        # Check budget
+        if exp_count >= args.max_experiments:
+            print(f"\n[BUDGET] Reached max experiments ({args.max_experiments}). Stopping.")
+            break
+        
+        # Run sync first
+        try:
+            print("  -> Syncing results...")
+            sync_provider_results(db, project_id, args.provider, limit=args.max_active * 2)
+        except Exception as e:
+            print(f"  [WARN] Sync failed: {e}")
+        
+        # Run manager tick
+        try:
+            print("  -> Running manager tick...")
+            result = manager_tick(
+                db=db,
+                project_id=project_id,
+                provider_name=args.provider,
+                workspace_root=str(workspace),
+                max_active=args.max_active,
+                max_submit_per_tick=args.max_submit_per_tick,
+                llm_manager_mode=args.llm_manager,
+                report_output=report_path,
+                snapshot_output=snapshot_path,
+            )
+            print(f"  -> Synced: {result['jobs_synced']} | Submitted: {result['jobs_submitted']}")
+            print(f"  -> Active: {result['active_after']} | Policy: {result['policy_path']}")
+        except Exception as e:
+            print(f"  [ERROR] Manager tick failed: {e}")
+            if args.stop_on_error:
+                raise
+        
+        # Refresh projections
+        try:
+            refresh_live_projections(db, project_id)
+        except Exception as e:
+            print(f"  [WARN] Projection refresh failed: {e}")
+        
+        # Sleep before next tick
+        elapsed = time.time() - tick_start
+        sleep_time = max(0, args.tick_interval - elapsed)
+        if sleep_time > 0 and not stop_requested[0]:
+            print(f"  -> Sleeping {sleep_time:.0f}s...")
+            time.sleep(sleep_time)
+    
+    # Final report
+    print("\n" + "=" * 60)
+    print("FINAL STATUS")
+    print("=" * 60)
+    
+    final_conv = db.convergence_metrics(project_id)
+    print(f"Convergence: {final_conv.get('convergence_score', 0) * 100:.1f}%")
+    print(f"Trend: {final_conv.get('trend', 'unknown')}")
+    print(f"Open obligations: {final_conv.get('distance_to_proof', {}).get('open_obligations_count', 0)}")
+    print(f"Total experiments: {len(db.list_experiments(project_id))}")
+    print(f"Report: {report_path}")
+    print(f"Database: {args.db}")
+    print("=" * 60)
+
+
+def cmd_solve_env(args):
+    """Autonomous solve mode using environment variables (Railway deployment)."""
+    # Load configuration from environment
+    try:
+        config = load_config()
+    except ValueError as e:
+        print(f"[ERROR] Configuration error: {e}")
+        sys.exit(1)
+
+    print(f"[CONFIG] Problem {config.problem_number}: {config.project_id}")
+    print(f"[CONFIG] Database: {config.database_path}")
+    print(f"[CONFIG] Workspace: {config.workspace_path}")
+    print(f"[CONFIG] Provider: {config.provider_name}")
+    print(f"[CONFIG] LLM Mode: {config.llm_manager_mode}")
+    print(f"[CONFIG] Max active: {config.max_active}")
+    print(f"[CONFIG] Tick interval: {config.tick_interval_seconds}s")
+
+    # Initialize database
+    db = Database(config.database_path)
+    db.initialize()
+
+    # Check if project exists, error if not (Railway mode requires pre-initialized DB)
+    charter = db.get_charter(config.project_id)
+    if not charter:
+        print(f"[ERROR] Project {config.project_id} not found in database.")
+        print("[ERROR] Railway mode requires a pre-initialized database.")
+        print("[INFO] Initialize locally first:")
+        print(f"  research-orchestrator start-campaign --prompt '...' --db {config.database_path}")
+        sys.exit(1)
+
+    print(f"[RESUME] Continuing campaign: {config.project_id}")
+
+    # Setup workspace
+    from pathlib import Path
+    workspace = Path(config.workspace_path)
+    workspace.mkdir(parents=True, exist_ok=True)
+    report_path, snapshot_path = config.to_report_paths()
+
+    # Start health server
+    health = None
+    if config.enable_health_server:
+        try:
+            from research_orchestrator.llm_manager import get_synthesis_client
+            llm_client = get_synthesis_client() if config.llm_manager_mode != "none" else None
+        except Exception:
+            llm_client = None
+
+        health = start_health_server(
+            port=config.health_port,
+            project_id=config.project_id,
+            db=db,
+            llm_client=llm_client,
+        )
+        print(f"[HEALTH] Health server enabled on port {config.health_port}")
+
+    # Handle graceful shutdown
+    stop_requested = [False]
+    def handle_signal(signum, frame):
+        print("\n[STOP] Shutdown requested. Finishing current tick...")
+        stop_requested[0] = True
+        if health:
+            health.set_healthy(False)
+    signal.signal(signal.SIGINT, handle_signal)
+    signal.signal(signal.SIGTERM, handle_signal)
+
+    print("")
+    print("=" * 60)
+    print("AUTONOMOUS SOLVE MODE (Railway)")
+    print("Running until problem is solved or stopped")
+    print("=" * 60)
+    print("")
+
+    tick_count = 0
+    start_time = time.time()
+
+    while not stop_requested[0]:
+        tick_count += 1
+        tick_start = time.time()
+
+        # Update health check
+        if health:
+            health.set_tick_timestamp()
+
+        print(f"\n[TICK {tick_count}] {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+        # Check completion criteria
+        convergence = db.convergence_metrics(config.project_id)
+        conv_score = convergence.get("convergence_score", 0)
+        open_obligations = convergence.get("distance_to_proof", {}).get("open_obligations_count", 999)
+        trend = convergence.get("trend", "unknown")
+
+        # Count experiments
+        experiments = db.list_experiments(config.project_id)
+        exp_count = len(experiments)
+
+        print(f"  Progress: {conv_score * 100:.1f}% converged, {open_obligations} open obligations")
+        print(f"  Trend: {trend} | Experiments: {exp_count}")
+
+        # Check if solved
+        if conv_score >= config.convergence_threshold and open_obligations == 0:
+            print("\n" + "=" * 60)
+            print("[SOLVED] Problem appears to be solved!")
+            print(f"  Convergence: {conv_score * 100:.1f}%")
+            print(f"  No open obligations remaining")
+            print(f"  Total experiments: {exp_count}")
+            print(f"  Total time: {time.time() - start_time:.0f}s")
+            print("=" * 60)
+            break
+
+        # Check budget
+        if exp_count >= config.max_experiments:
+            print(f"\n[BUDGET] Reached max experiments ({config.max_experiments}). Stopping.")
+            break
+
+        # Run sync first
+        try:
+            print("  -> Syncing results...")
+            sync_provider_results(db, config.project_id, config.provider_name, limit=config.max_active * 2)
+        except Exception as e:
+            print(f"  [WARN] Sync failed: {e}")
+
+        # Run manager tick
+        try:
+            print("  -> Running manager tick...")
+            result = manager_tick(
+                db=db,
+                project_id=config.project_id,
+                provider_name=config.provider_name,
+                workspace_root=str(workspace),
+                max_active=config.max_active,
+                max_submit_per_tick=config.max_submit_per_tick,
+                llm_manager_mode=config.llm_manager_mode,
+                report_output=report_path,
+                snapshot_output=snapshot_path,
+            )
+            print(f"  -> Synced: {result['jobs_synced']} | Submitted: {result['jobs_submitted']}")
+            print(f"  -> Active: {result['active_after']} | Policy: {result['policy_path']}")
+        except Exception as e:
+            print(f"  [ERROR] Manager tick failed: {e}")
+            if config.stop_on_error:
+                raise
+
+        # Refresh projections
+        try:
+            refresh_live_projections(db, config.project_id)
+        except Exception as e:
+            print(f"  [WARN] Projection refresh failed: {e}")
+
+        # Sleep before next tick
+        elapsed = time.time() - tick_start
+        sleep_time = max(0, config.tick_interval_seconds - elapsed)
+        if sleep_time > 0 and not stop_requested[0]:
+            print(f"  -> Sleeping {sleep_time:.0f}s...")
+            time.sleep(sleep_time)
+
+    # Final report
+    print("\n" + "=" * 60)
+    print("FINAL STATUS")
+    print("=" * 60)
+
+    final_conv = db.convergence_metrics(config.project_id)
+    print(f"Convergence: {final_conv.get('convergence_score', 0) * 100:.1f}%")
+    print(f"Trend: {final_conv.get('trend', 'unknown')}")
+    print(f"Open obligations: {final_conv.get('distance_to_proof', {}).get('open_obligations_count', 0)}")
+    print(f"Total experiments: {len(db.list_experiments(config.project_id))}")
+    print(f"Report: {report_path}")
+    print(f"Database: {config.database_path}")
+    print("=" * 60)
 
 
 def cmd_start_campaign(args):
@@ -358,17 +694,6 @@ def cmd_demo(args):
     print(f"Demo complete. Report: {report_path}")
 
 
-def cmd_sync_github_state(args):
-    written = sync_github_state(
-        repo=args.repo,
-        ref=args.ref,
-        state_dir=args.state_dir,
-    )
-    print(f"Synced {len(written)} state files from {args.repo}@{args.ref}")
-    for path in written:
-        print(path)
-
-
 def cmd_db_check(args):
     db = Database(args.db)
     db.initialize()
@@ -551,16 +876,6 @@ def build_parser():
     llm_report.add_argument("--project", required=True)
     llm_report.set_defaults(func=cmd_manager_llm_report)
 
-    sync_github = sub.add_parser(
-        "sync-github-state",
-        help="Download the canonical live campaign state from GitHub into the local state directory.",
-    )
-    sync_github.add_argument("--repo", default="abdulrahimiqbal/aristotle_autoresearch")
-    sync_github.add_argument("--ref", default="campaign-state")
-    sync_github.add_argument("--state-dir", default="outputs/erdos_live_async")
-    sync_github.add_argument("--include-sqlite", action="store_true")
-    sync_github.set_defaults(func=cmd_sync_github_state)
-
     db_check = sub.add_parser("db-check", help="Run SQLite integrity checks.")
     db_check.add_argument("--db", required=True)
     db_check.set_defaults(func=cmd_db_check)
@@ -609,6 +924,29 @@ def build_parser():
     demo.add_argument("--workspace", required=True)
     demo.add_argument("--max-cycles", type=int, default=5)
     demo.set_defaults(func=cmd_demo)
+
+    # Autonomous solve command - run until problem is solved
+    solve = sub.add_parser("solve", help="Start campaign and run autonomously until solved.")
+    solve.add_argument("--db", required=True, help="Path to SQLite database")
+    solve.add_argument("--prompt", help="Natural language problem description (for new campaigns)")
+    solve.add_argument("--project", help="Existing project ID to resume (alternative to --prompt)")
+    solve.add_argument("--workspace", required=True, help="Workspace directory for experiments")
+    solve.add_argument("--provider", choices=["mock", "aristotle-cli"], default="aristotle-cli", help="Provider to use")
+    solve.add_argument("--max-active", type=int, default=3, help="Max concurrent experiments")
+    solve.add_argument("--max-submit-per-tick", type=int, default=2, help="Max new experiments per tick")
+    solve.add_argument("--tick-interval", type=int, default=30, help="Seconds between ticks")
+    solve.add_argument("--convergence-threshold", type=float, default=0.9, help="Convergence score to consider solved (0-1)")
+    solve.add_argument("--max-experiments", type=int, default=100, help="Max total experiments before stopping")
+    solve.add_argument("--llm-manager", choices=["on", "off", "auto"], default="off", help="LLM manager mode")
+    solve.add_argument("--report-output", help="Path for markdown report (default: workspace/report.md)")
+    solve.add_argument("--stop-on-error", action="store_true", help="Stop on first error (default: continue)")
+    solve.set_defaults(func=cmd_solve)
+
+    # Autonomous solve using environment variables (Railway deployment mode)
+    solve_env = sub.add_parser("solve-env", help="Run autonomously using environment variables (Railway mode).")
+    solve_env.add_argument("--health-port", type=int, default=8080, help="Port for health check server")
+    solve_env.set_defaults(func=cmd_solve_env)
+
     return parser
 
 

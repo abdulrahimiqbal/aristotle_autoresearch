@@ -1,0 +1,102 @@
+# Docker Compose for local testing of Railway deployment
+# Usage: docker-compose up manager-273
+
+version: '3.8'
+
+services:
+  # Manager for Erdős Problem 273
+  manager-273:
+    build:
+      context: .
+      dockerfile: Dockerfile.manager
+    container_name: erdos273-manager
+    volumes:
+      # Mount local SQLite database (read-write)
+      - ./erdos273.sqlite:/data/erdos273.sqlite:rw
+      # Mount workspace for experiment files
+      - ./work_273:/data/workspace:rw
+    environment:
+      - PROBLEM_NUMBER=273
+      - PROJECT_ID=campaign-erdos-problem-273-d686516d
+      - DATABASE_PATH=/data/erdos273.sqlite
+      - WORKSPACE_PATH=/data/workspace
+      - MAX_ACTIVE=3
+      - TICK_INTERVAL=60
+      - CONVERGENCE_THRESHOLD=0.95
+      - PROVIDER_NAME=aristotle-cli
+      - LLM_MANAGER_MODE=gatekeeper
+      - MOONSHOT_API_KEY=${MOONSHOT_API_KEY}
+      - ARISTOTLE_API_KEY=${ARISTOTLE_API_KEY}
+      - HEALTH_PORT=8080
+      - ENABLE_HEALTH_SERVER=true
+      - STOP_ON_ERROR=false
+    ports:
+      # Health check endpoint
+      - "8080:8080"
+    # Health check for Docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    restart: unless-stopped
+
+  # Manager for Erdős Problem 123 (disabled by default - uncomment to enable)
+  # manager-123:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.manager
+  #   container_name: erdos123-manager
+  #   volumes:
+  #     - ./erdos123.sqlite:/data/erdos123.sqlite:rw
+  #     - ./work_123:/data/workspace:rw
+  #   environment:
+  #     - PROBLEM_NUMBER=123
+  #     - PROJECT_ID=campaign-erdos-problem-123
+  #     - DATABASE_PATH=/data/erdos123.sqlite
+  #     - WORKSPACE_PATH=/data/workspace
+  #     - MAX_ACTIVE=3
+  #     - TICK_INTERVAL=60
+  #     - CONVERGENCE_THRESHOLD=0.95
+  #     - PROVIDER_NAME=aristotle-cli
+  #     - LLM_MANAGER_MODE=gatekeeper
+  #     - MOONSHOT_API_KEY=${MOONSHOT_API_KEY}
+  #     - ARISTOTLE_API_KEY=${ARISTOTLE_API_KEY}
+  #     - HEALTH_PORT=8080
+  #     - ENABLE_HEALTH_SERVER=true
+  #   ports:
+  #     - "8081:8080"
+  #   restart: unless-stopped
+
+  # Multi-tenant unified dashboard (read-only access to all databases)
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: erdos-dashboard
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_CONFIG={"273":"/data/erdos273.sqlite"}
+      - PORT=8000
+    volumes:
+      # Mount database read-only for safety
+      - ./erdos273.sqlite:/data/erdos273.sqlite:ro
+    # Uncomment for multiple problems:
+    # volumes:
+    #   - ./erdos273.sqlite:/data/erdos273.sqlite:ro
+    #   - ./erdos123.sqlite:/data/erdos123.sqlite:ro
+    #   - ./erdos181.sqlite:/data/erdos181.sqlite:ro
+    #   - ./erdos44.sqlite:/data/erdos44.sqlite:ro
+    # environment:
+    #   - DATABASE_CONFIG={"273":"/data/erdos273.sqlite","123":"/data/erdos123.sqlite","181":"/data/erdos181.sqlite","44":"/data/erdos44.sqlite"}
+    depends_on:
+      - manager-273
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
+    restart: unless-stopped

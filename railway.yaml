@@ -1,0 +1,160 @@
+# Railway deployment configuration for Aristotle Research Orchestrator
+# Multi-tenant: One service per Erdős problem
+
+services:
+  # Manager for Erdős Problem 273 (Primary)
+  manager-273:
+    build:
+      context: .
+      dockerfile: Dockerfile.manager
+    volumes:
+      - data-273:/data
+    env:
+      PROBLEM_NUMBER: "273"
+      PROJECT_ID: "campaign-erdos-problem-273-d686516d"
+      DATABASE_PATH: "/data/erdos273.sqlite"
+      WORKSPACE_PATH: "/data/workspace"
+      MAX_ACTIVE: "3"
+      TICK_INTERVAL: "60"
+      CONVERGENCE_THRESHOLD: "0.95"
+      PROVIDER_NAME: "aristotle-cli"
+      LLM_MANAGER_MODE: "gatekeeper"
+      MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
+      ARISTOTLE_API_KEY: ${{ secrets.ARISTOTLE_API_KEY }}
+      HEALTH_PORT: "8080"
+      ENABLE_HEALTH_SERVER: "true"
+    healthcheck:
+      path: /health
+      port: 8080
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    restart: always
+
+  # Manager for Erdős Problem 123
+  manager-123:
+    build:
+      context: .
+      dockerfile: Dockerfile.manager
+    volumes:
+      - data-123:/data
+    env:
+      PROBLEM_NUMBER: "123"
+      PROJECT_ID: "campaign-erdos-problem-123"
+      DATABASE_PATH: "/data/erdos123.sqlite"
+      WORKSPACE_PATH: "/data/workspace"
+      MAX_ACTIVE: "3"
+      TICK_INTERVAL: "60"
+      CONVERGENCE_THRESHOLD: "0.95"
+      PROVIDER_NAME: "aristotle-cli"
+      LLM_MANAGER_MODE: "gatekeeper"
+      MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
+      ARISTOTLE_API_KEY: ${{ secrets.ARISTOTLE_API_KEY }}
+      HEALTH_PORT: "8080"
+      ENABLE_HEALTH_SERVER: "true"
+    healthcheck:
+      path: /health
+      port: 8080
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    restart: always
+
+  # Manager for Erdős Problem 181
+  manager-181:
+    build:
+      context: .
+      dockerfile: Dockerfile.manager
+    volumes:
+      - data-181:/data
+    env:
+      PROBLEM_NUMBER: "181"
+      PROJECT_ID: "campaign-erdos-problem-181"
+      DATABASE_PATH: "/data/erdos181.sqlite"
+      WORKSPACE_PATH: "/data/workspace"
+      MAX_ACTIVE: "3"
+      TICK_INTERVAL: "60"
+      CONVERGENCE_THRESHOLD: "0.95"
+      PROVIDER_NAME: "aristotle-cli"
+      LLM_MANAGER_MODE: "gatekeeper"
+      MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
+      ARISTOTLE_API_KEY: ${{ secrets.ARISTOTLE_API_KEY }}
+      HEALTH_PORT: "8080"
+      ENABLE_HEALTH_SERVER: "true"
+    healthcheck:
+      path: /health
+      port: 8080
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    restart: always
+
+  # Manager for Erdős Problem 44
+  manager-44:
+    build:
+      context: .
+      dockerfile: Dockerfile.manager
+    volumes:
+      - data-44:/data
+    env:
+      PROBLEM_NUMBER: "44"
+      PROJECT_ID: "campaign-erdos-problem-44"
+      DATABASE_PATH: "/data/erdos44.sqlite"
+      WORKSPACE_PATH: "/data/workspace"
+      MAX_ACTIVE: "3"
+      TICK_INTERVAL: "60"
+      CONVERGENCE_THRESHOLD: "0.95"
+      PROVIDER_NAME: "aristotle-cli"
+      LLM_MANAGER_MODE: "gatekeeper"
+      MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
+      ARISTOTLE_API_KEY: ${{ secrets.ARISTOTLE_API_KEY }}
+      HEALTH_PORT: "8080"
+      ENABLE_HEALTH_SERVER: "true"
+    healthcheck:
+      path: /health
+      port: 8080
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    restart: always
+
+  # Multi-tenant unified dashboard
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    ports:
+      - "8000:8000"
+    env:
+      DATABASE_CONFIG: |
+        {
+          "273": "/data/erdos273.sqlite",
+          "123": "/data/erdos123.sqlite",
+          "181": "/data/erdos181.sqlite",
+          "44": "/data/erdos44.sqlite"
+        }
+      PORT: "8000"
+    volumes:
+      - data-273:/data:ro
+    healthcheck:
+      path: /api/health
+      port: 8000
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
+    restart: always
+
+volumes:
+  data-273:
+    persistent: true
+  data-123:
+    persistent: true
+  data-181:
+    persistent: true
+  data-44:
+    persistent: true
