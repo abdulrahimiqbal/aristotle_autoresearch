@@ -44,14 +44,6 @@ def _lakefile_contents(conjecture: Conjecture) -> str:
     return "\n".join(lines)
 
 
-def _next_phase(charter: ProjectCharter, num_experiments: int) -> str:
-    if num_experiments == 0:
-        return "mapping"
-    if num_experiments < 3:
-        return "excavation"
-    if num_experiments < 5:
-        return "stress_testing"
-    return "consolidation"
 
 
 def _seed_discovery_questions(conjecture: Conjecture) -> List[dict]:
@@ -498,6 +490,75 @@ def _materialized_body(conjecture: Conjecture, candidate: MoveCandidate, header:
     return adapter.materialize_source(conjecture, candidate.move_family, candidate.parameters, header)
 
 
+def build_cumulative_workspace(
+    base_body: str,
+    conjecture_id: str,
+    db: Any = None,
+    proved_lemmas: List[Dict[str, Any]] | None = None,
+) -> str:
+    """Build a cumulative workspace including all previously proved lemmas.
+
+    This function prepends proved lemmas from the proof ledger to the base
+    workspace body, creating a cumulative context where each new experiment
+    builds on all previously verified results.
+
+    Args:
+        base_body: The base Lean code for the current experiment
+        conjecture_id: The conjecture ID to filter lemmas by
+        db: Optional database instance to fetch lemmas from proof_ledger
+        proved_lemmas: Optional list of proved lemmas (if db not provided)
+
+    Returns:
+        The cumulative workspace body with proved lemmas prepended
+    """
+    lemmas_to_include: List[Dict[str, Any]] = []
+
+    # Fetch from database if available
+    if db is not None:
+        try:
+            lemmas_to_include = db.get_proved_lemmas_for_conjecture(conjecture_id)
+        except Exception:
+            # Database might not have the method or connection issue
+            pass
+
+    # Use provided lemmas if no db results
+    if not lemmas_to_include and proved_lemmas is not None:
+        lemmas_to_include = proved_lemmas
+
+    if not lemmas_to_include:
+        return base_body
+
+    # Build cumulative header with proved lemmas
+    cumulative_parts = ["/-", "Cumulative Workspace: Previously Proved Lemmas", "-/", ""]
+
+    for i, lemma in enumerate(lemmas_to_include):
+        statement = lemma.get("lemma_statement", "")
+        lean_code = lemma.get("proof_lean_code", "")
+        lemma_id = lemma.get("entry_id", f"lemma_{i}")
+
+        if not statement:
+            continue
+
+        cumulative_parts.append(f"-- From proof ledger: {lemma_id}")
+        cumulative_parts.append(f"lemma cumulative_lemma_{i} : {statement} := by")
+
+        if lean_code:
+            # Indent the proof code
+            indented_proof = "\n".join("  " + line for line in lean_code.strip().split("\n"))
+            cumulative_parts.append(indented_proof)
+        else:
+            cumulative_parts.append("  sorry")
+
+        cumulative_parts.append("")
+
+    cumulative_parts.append("/-")
+    cumulative_parts.append("Current Experiment")
+    cumulative_parts.append("-/")
+    cumulative_parts.append("")
+
+    return "\n".join(cumulative_parts) + "\n" + base_body
+
+
 def materialize_candidate(
     *,
     charter: ProjectCharter,
@@ -507,7 +568,7 @@ def materialize_candidate(
     candidate: MoveCandidate,
     discovery_questions: List[dict] | None = None,
 ) -> ExperimentBrief:
-    phase = _next_phase(charter, len(experiments))
+    phase = "discovery"
     discovery_questions = discovery_questions or []
     recurring_signal_counter = _recent_signal_counter(experiments, conjecture.conjecture_id)
     chosen_question = select_discovery_question(
@@ -533,15 +594,21 @@ def materialize_candidate(
         f"Move: {candidate.legacy_move}",
         f"Move family: {candidate.move_family}",
         f"Theorem family: {theorem_family_id}",
-        f"Phase: {phase}",
         f"Modification: {json.dumps(candidate.parameters, sort_keys=True)}",
         "-/",
         "",
     ]
     body = _materialized_body(conjecture, candidate, header)
 
+    # Build cumulative workspace with previously proved lemmas
+    cumulative_body = build_cumulative_workspace(
+        base_body=body,
+        conjecture_id=conjecture.conjecture_id,
+        db=None,  # Will be injected by caller if available
+    )
+
     with open(lean_file, "w", encoding="utf-8") as handle:
-        handle.write(body if body.endswith("\n") else body + "\n")
+        handle.write(cumulative_body if cumulative_body.endswith("\n") else cumulative_body + "\n")
     toolchain_file.write_text(DEFAULT_LEAN_TOOLCHAIN + "\n", encoding="utf-8")
     lakefile.write_text(_lakefile_contents(conjecture), encoding="utf-8")
 

@@ -7,13 +7,11 @@ from research_orchestrator.dashboard_routes import build_dashboard_router
 
 def create_dashboard_app(
     *,
-    state_dir: str | None,
-    db: str | None,
+    db: str,
     project_id: str | None = None,
 ) -> FastAPI:
     app = FastAPI(title="Research Orchestrator Dashboard")
     config = {
-        "state_dir": state_dir,
         "db": db,
         "project_id": project_id,
     }

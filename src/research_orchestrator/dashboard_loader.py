@@ -9,33 +9,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from research_orchestrator.dashboard_derivations import (
-    choose_strongest_motif,
-    choose_strongest_obstruction,
-    classify_proof_traction,
-    normalize_structure_type,
-    normalized_name,
-    structure_status_from_reuse,
-    summarize_falsehood_boundary,
-    summarize_problem_progress,
-    summarize_recent_result,
-)
 from research_orchestrator.dashboard_models import DashboardState, DataProvenance, HealthStatus
 
 
-REQUIRED_BUNDLE_FILES = (
-    "campaign_summary.json",
-    "conjecture_scoreboard.json",
-    "recurring_structures.json",
-    "active_queue.json",
-    "incidents.json",
-    "experiments.csv",
-)
-OPTIONAL_BUNDLE_FILES = (
-    "integrity.json",
-    "report.manager_snapshot.json",
-    "report.md",
-)
 
 
 def _parse_ts(value: str | None) -> datetime | None:
@@ -142,54 +118,34 @@ class SqliteSnapshot:
 
 
 class DashboardLoader:
-    def __init__(self, *, state_dir: str | Path | None, db_path: str | Path | None, project_id: str | None = None):
-        self.state_dir = Path(state_dir).resolve() if state_dir else None
+    def __init__(self, *, state_dir: str | Path | None = None, db_path: str | Path | None = None, project_id: str | None = None):
         self.db_path = Path(db_path).resolve() if db_path else None
         self.project_id_arg = project_id
 
     def load(self) -> DashboardState:
-        bundle = self._load_bundle()
         db = self._load_db()
-        source_mode = self._source_mode(bundle, db)
-        warnings: list[str] = []
-        if db["corrupt"] and bundle["available"]:
-            warnings.append("SQLite appears corrupt; using readable bundle fallback.")
-        if db["corrupt"] and not bundle["available"]:
-            raise RuntimeError("SQLite is not readable and no valid state bundle was found.")
+        if not db["available"]:
+            raise RuntimeError("No readable DB found. Provide --db.")
 
-        if not bundle["available"] and not db["available"]:
-            raise RuntimeError("No readable source found. Provide --state-dir, --db, or both.")
+        project_id = self.project_id_arg or db["project_id"] or "unknown-project"
+        campaign_name = db["campaign_summary"].get("campaign_title") or project_id
 
-        project_id = self.project_id_arg or bundle["project_id"] or db["project_id"] or "unknown-project"
-        campaign_name = (
-            bundle["campaign_summary"].get("campaign_title")
-            or db["campaign_summary"].get("campaign_title")
-            or project_id
-        )
-        stale_warning = self._bundle_stale_warning(bundle["last_export_time"], db["last_db_update"])
-        bundle["stale_warning"] = stale_warning
-        if stale_warning:
-            warnings.append(bundle["stale_warning"])
-
-        experiments = self._merge_experiments(bundle["experiments"], db["experiments"])
-        scoreboard = bundle["scoreboard"] or db["scoreboard"]
-        recurring_structures = self._merge_recurring_structures(
-            bundle["recurring_structures"], db["recurring_structures"], experiments, project_id
-        )
-        active_queue = bundle["active_queue"] or db["active_queue"]
-        incidents = bundle["incidents"] or db["incidents"]
-        manager_snapshot = self._merge_manager_snapshot(bundle["manager_snapshot"], db["manager_snapshot"])
+        experiments = db["experiments"]
+        scoreboard = db["scoreboard"]
+        recurring_structures = db["recurring_structures"]
+        active_queue = db["active_queue"]
+        incidents = db["incidents"]
+        manager_snapshot = db["manager_snapshot"]
 
         snapshot = self._build_campaign_snapshot(
             project_id=project_id,
             campaign_name=campaign_name,
-            campaign_summary=bundle["campaign_summary"] or db["campaign_summary"],
+            campaign_summary=db["campaign_summary"],
             scoreboard=scoreboard,
             recurring_structures=recurring_structures,
             incidents=incidents,
             db=db,
-            bundle=bundle,
-            source_mode=source_mode,
+            source_mode="db",
         )
         problems, problem_progress, falsehood_boundaries, pipeline = self._build_problem_sections(
             scoreboard=scoreboard,
@@ -205,31 +161,31 @@ class DashboardLoader:
         )
         manager_reasoning = self._build_manager_reasoning(manager_snapshot)
         health = HealthStatus(
-            source_mode=source_mode,
+            source_mode="db",
             db_path=str(self.db_path) if self.db_path else "",
-            state_dir=str(self.state_dir) if self.state_dir else "",
+            state_dir="",
             db_readable=db["available"],
             db_corrupt=db["corrupt"],
             db_integrity=db["integrity_status"],
-            last_bundle_export=bundle["last_export_time"],
+            last_bundle_export="",
             last_db_update=db["last_db_update"],
-            missing_files=bundle["missing_files"],
-            stale_bundle_warning=bundle["stale_warning"],
-            warnings=[*warnings],
+            missing_files=[],
+            stale_bundle_warning="",
+            warnings=[],
         )
         provenance = {
-            "campaign_snapshot": DataProvenance(source=snapshot.get("_source", source_mode), last_updated=snapshot.get("last_updated", "")),
-            "knowledge_structure": DataProvenance(source="bundle" if bundle["recurring_structures"] else ("db" if db["recurring_structures"] else "derived")),
+            "campaign_snapshot": DataProvenance(source="db", last_updated=snapshot.get("last_updated", "")),
+            "knowledge_structure": DataProvenance(source="db"),
             "problem_progress": DataProvenance(source="derived", last_updated=snapshot.get("last_updated", "")),
             "falsehood_boundary": DataProvenance(source="derived", last_updated=snapshot.get("last_updated", "")),
-            "recent_results": DataProvenance(source="bundle" if bundle["experiments"] else ("db" if db["experiments"] else "derived")),
-            "manager_actions": DataProvenance(source="bundle" if bundle["active_queue"] else ("db" if db["active_queue"] else "derived")),
+            "recent_results": DataProvenance(source="db"),
+            "manager_actions": DataProvenance(source="db"),
         }
         db["close"]()
         return DashboardState(
             project_id=project_id,
             campaign_name=campaign_name,
-            source_mode=source_mode,
+            source_mode="db",
             campaign_snapshot={k: v for k, v in snapshot.items() if not k.startswith("_")},
             knowledge_structures=recurring_structures,
             problem_progress=problem_progress,
@@ -243,118 +199,6 @@ class DashboardLoader:
             provenance=provenance,
             health=health,
         )
-
-    def _merge_manager_snapshot(self, bundle_snapshot: dict[str, Any], db_snapshot: dict[str, Any]) -> dict[str, Any]:
-        if not bundle_snapshot:
-            return db_snapshot
-        if not db_snapshot:
-            return bundle_snapshot
-        merged = dict(db_snapshot)
-        merged.update(bundle_snapshot)
-        for key in ("campaign_interpretations", "bridge_hypotheses", "candidate_audits"):
-            bundle_value = bundle_snapshot.get(key)
-            db_value = db_snapshot.get(key)
-            if bundle_value:
-                merged[key] = bundle_value
-            elif db_value:
-                merged[key] = db_value
-        return merged
-
-    def _source_mode(self, bundle: dict[str, Any], db: dict[str, Any]) -> str:
-        if bundle["available"] and db["available"]:
-            return "mixed"
-        if bundle["available"]:
-            return "bundle"
-        if db["available"]:
-            return "db"
-        return "none"
-
-    def _bundle_stale_warning(self, bundle_ts: str, db_ts: str) -> str:
-        bundle_time = _parse_ts(bundle_ts)
-        db_time = _parse_ts(db_ts)
-        if bundle_time is None or db_time is None:
-            return ""
-        lag = int((db_time - bundle_time).total_seconds())
-        if lag > 120:
-            return f"Bundle export is stale relative to DB by {lag} seconds."
-        return ""
-
-    def _load_bundle(self) -> dict[str, Any]:
-        if self.state_dir is None:
-            return {
-                "available": False,
-                "campaign_summary": {},
-                "scoreboard": [],
-                "recurring_structures": [],
-                "active_queue": [],
-                "incidents": [],
-                "experiments": [],
-                "manager_snapshot": {},
-                "integrity": {},
-                "missing_files": [],
-                "project_id": "",
-                "last_export_time": "",
-                "stale_warning": "",
-            }
-        state_dir = self.state_dir
-        missing = [name for name in REQUIRED_BUNDLE_FILES if not (state_dir / name).exists()]
-        data: dict[str, Any] = {"available": len(missing) < len(REQUIRED_BUNDLE_FILES), "missing_files": missing}
-        data["campaign_summary"] = _safe_json_load(state_dir / "campaign_summary.json") or {}
-        data["scoreboard"] = _safe_json_load(state_dir / "conjecture_scoreboard.json") or []
-        data["recurring_structures"] = _safe_json_load(state_dir / "recurring_structures.json") or []
-        data["active_queue"] = _safe_json_load(state_dir / "active_queue.json") or []
-        data["incidents"] = _safe_json_load(state_dir / "incidents.json") or []
-        data["integrity"] = _safe_json_load(state_dir / "integrity.json") or {}
-        data["manager_snapshot"] = _safe_json_load(state_dir / "report.manager_snapshot.json") or {}
-        data["experiments"] = self._read_experiments_csv(state_dir / "experiments.csv")
-        data["project_id"] = (
-            data["campaign_summary"].get("project_id")
-            or (data["scoreboard"][0].get("project_id") if data["scoreboard"] else "")
-            or ""
-        )
-        latest_mtime = None
-        for name in (*REQUIRED_BUNDLE_FILES, *OPTIONAL_BUNDLE_FILES):
-            path = state_dir / name
-            if path.exists():
-                mtime = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
-                latest_mtime = mtime if latest_mtime is None or mtime > latest_mtime else latest_mtime
-        data["last_export_time"] = _fmt_ts(latest_mtime)
-        data["stale_warning"] = ""
-        return data
-
-    def _read_experiments_csv(self, path: Path) -> list[dict[str, Any]]:
-        if not path.exists():
-            return []
-        rows: list[dict[str, Any]] = []
-        with path.open("r", encoding="utf-8", newline="") as handle:
-            reader = csv.DictReader(handle)
-            for row in reader:
-                rows.append(
-                    {
-                        "experiment_id": row.get("experiment_id", ""),
-                        "project_id": row.get("project_id", ""),
-                        "conjecture_id": row.get("conjecture_id", ""),
-                        "phase": row.get("phase", ""),
-                        "move": row.get("move", ""),
-                        "move_family": row.get("move_family", "") or row.get("move", ""),
-                        "status": row.get("status", ""),
-                        "proof_outcome": row.get("proof_outcome", ""),
-                        "blocker_type": row.get("blocker_type", ""),
-                        "objective": row.get("objective", ""),
-                        "expected_signal": row.get("expected_signal", ""),
-                        "new_signal_count": int(row.get("new_signal_count", 0) or 0),
-                        "reused_signal_count": int(row.get("reused_signal_count", 0) or 0),
-                        "boundary_summary": row.get("boundary_summary", ""),
-                        "motif_id": row.get("motif_id", ""),
-                        "motif_signature": row.get("motif_signature", ""),
-                        "created_at": row.get("created_at", ""),
-                        "completed_at": row.get("completed_at", ""),
-                        "missing_assumptions": [],
-                        "counterexample_witnesses": [],
-                        "rationale": "",
-                    }
-                )
-        return rows
 
     def _load_db(self) -> dict[str, Any]:
         if self.db_path is None:
@@ -828,94 +672,6 @@ class DashboardLoader:
         parsed = [item for item in (_parse_ts(value) for value in values) if item is not None]
         return _fmt_ts(max(parsed)) if parsed else ""
 
-    def _merge_experiments(self, bundle_rows: list[dict[str, Any]], db_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        by_id: dict[str, dict[str, Any]] = {}
-        for row in db_rows:
-            by_id[row.get("experiment_id", "")] = row
-        for row in bundle_rows:
-            if row.get("experiment_id") not in by_id:
-                by_id[row.get("experiment_id", "")] = row
-        rows = list(by_id.values())
-        rows.sort(key=lambda item: _parse_ts(item.get("completed_at") or item.get("created_at")) or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
-        return rows
-
-    def _merge_recurring_structures(
-        self,
-        bundle_rows: list[dict[str, Any]],
-        db_rows: list[dict[str, Any]],
-        experiments: list[dict[str, Any]],
-        project_id: str,
-    ) -> list[dict[str, Any]]:
-        base_rows = bundle_rows or db_rows
-        by_key: dict[str, dict[str, Any]] = {}
-        conjecture_refs = defaultdict(set)
-        for exp in experiments:
-            cid = exp.get("conjecture_id", "")
-            motif = exp.get("motif_signature") or exp.get("motif_id") or ""
-            if cid and motif:
-                conjecture_refs[normalized_name(motif)].add(cid)
-            for witness in exp.get("counterexample_witnesses", []) or []:
-                if cid and witness:
-                    conjecture_refs[normalized_name(str(witness))].add(cid)
-        for row in base_rows:
-            name = row.get("summary_text") or row.get("name") or row.get("statement") or row.get("fragment") or row.get("witness") or ""
-            if not name:
-                continue
-            raw_kind = row.get("structure_kind") or row.get("type") or row.get("kind") or ""
-            normalized_type, role = normalize_structure_type(str(raw_kind), str(name))
-            reuse = int(row.get("observations", row.get("reuse_count", row.get("reuse", 0))) or 0)
-            touches = set()
-            if isinstance(row.get("conjecture_ids"), list):
-                touches.update(row["conjecture_ids"])
-            if row.get("conjecture_id"):
-                touches.add(row["conjecture_id"])
-            touches.update(conjecture_refs.get(normalized_name(str(name)), set()))
-            key = f"{normalized_type}:{normalized_name(str(name))}"
-            by_key[key] = {
-                "name": str(name),
-                "type": normalized_type,
-                "reuse_count": reuse,
-                "role": role,
-                "status": structure_status_from_reuse(reuse),
-                "touches": sorted(t for t in touches if t),
-                "project_id": project_id,
-            }
-        required_types = {
-            "recurring lemma",
-            "recurring subgoal",
-            "recurring proof trace",
-            "witness motif",
-            "boundary fact / obstruction",
-        }
-        present_types = {item["type"] for item in by_key.values()}
-        if "boundary fact / obstruction" not in present_types:
-            blockers = Counter(exp.get("blocker_type", "") for exp in experiments if exp.get("blocker_type") and exp.get("blocker_type") != "unknown")
-            for blocker, count in blockers.most_common(3):
-                key = f"boundary fact / obstruction:{normalized_name(blocker)}"
-                by_key[key] = {
-                    "name": blocker,
-                    "type": "boundary fact / obstruction",
-                    "reuse_count": int(count),
-                    "role": "recurring blocker or boundary condition",
-                    "status": structure_status_from_reuse(int(count)),
-                    "touches": sorted({exp.get('conjecture_id', '') for exp in experiments if exp.get("blocker_type") == blocker and exp.get("conjecture_id")}),
-                    "project_id": project_id,
-                }
-        for missing_type in required_types - {item["type"] for item in by_key.values()}:
-            key = f"{missing_type}:none"
-            by_key[key] = {
-                "name": "none observed yet",
-                "type": missing_type,
-                "reuse_count": 0,
-                "role": "no recurring item captured",
-                "status": "early",
-                "touches": [],
-                "project_id": project_id,
-            }
-        rows = list(by_key.values())
-        rows.sort(key=lambda item: (-int(item["reuse_count"]), item["type"], item["name"]))
-        return rows
-
     def _build_campaign_snapshot(
         self,
         *,
@@ -926,7 +682,6 @@ class DashboardLoader:
         recurring_structures: list[dict[str, Any]],
         incidents: list[dict[str, Any]],
         db: dict[str, Any],
-        bundle: dict[str, Any],
         source_mode: str,
     ) -> dict[str, Any]:
         total_experiments = sum(int(item.get("experiments_total", 0) or 0) for item in scoreboard) or int(campaign_summary.get("num_experiments", 0) or 0)
@@ -938,10 +693,9 @@ class DashboardLoader:
         open_incidents = sum(int(item.get("incident_count", 0) or 0) for item in incidents if (item.get("status") or "open") == "open")
         recurring_clusters = len([item for item in recurring_structures if int(item.get("reuse_count", 0) or 0) > 0])
         db_health = "ok" if db["available"] and db["integrity_status"] == "ok" else ("corrupt" if db["corrupt"] else "unknown")
-        last_updated = db["last_db_update"] or bundle["last_export_time"]
-        source = "bundle" if source_mode == "bundle" else ("db" if source_mode == "db" else "mixed")
+        last_updated = db["last_db_update"]
         return {
-            "_source": source,
+            "_source": source_mode,
             "last_updated": last_updated,
             "project_id": project_id,
             "campaign_name": campaign_name,
@@ -956,7 +710,6 @@ class DashboardLoader:
             "open_incidents": open_incidents,
             "db_health": db_health,
             "integrity_status": db["integrity_status"],
-            "last_export_time": bundle["last_export_time"],
             "last_db_update": db["last_db_update"],
             "source_mode": source_mode,
         }
@@ -969,117 +722,70 @@ class DashboardLoader:
         experiments: list[dict[str, Any]],
         manager_snapshot: dict[str, Any],
     ) -> tuple[dict[str, dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+        # Simplified to return raw data without complex derivations
         by_problem = {item.get("conjecture_id", ""): item for item in scoreboard if item.get("conjecture_id")}
         for exp in experiments:
             cid = exp.get("conjecture_id", "")
             if not cid:
                 continue
             by_problem.setdefault(cid, {"conjecture_id": cid, "experiments_total": 0, "new_signal_count": 0, "name": cid})
+
         structures_by_problem = defaultdict(list)
         for row in recurring_structures:
             for cid in row.get("touches", []):
                 structures_by_problem[cid].append(row)
+
         exps_by_problem = defaultdict(list)
-        missing_by_problem = defaultdict(list)
-        witnesses_by_problem = defaultdict(list)
         for exp in experiments:
             cid = exp.get("conjecture_id", "")
-            if not cid:
-                continue
-            exps_by_problem[cid].append(exp)
-            missing_by_problem[cid].extend(exp.get("missing_assumptions") or [])
-            witnesses_by_problem[cid].extend([str(w) for w in (exp.get("counterexample_witnesses") or []) if w])
+            if cid:
+                exps_by_problem[cid].append(exp)
 
         problem_rows: list[dict[str, Any]] = []
         boundary_rows: list[dict[str, Any]] = []
         problems_detail: dict[str, dict[str, Any]] = {}
+
         for cid, score in sorted(by_problem.items(), key=lambda item: item[0]):
             exp_rows = exps_by_problem[cid]
             structure_rows = structures_by_problem[cid]
-            top_motif = choose_strongest_motif(cid, experiments, recurring_structures)
-            top_obstruction = choose_strongest_obstruction(cid, experiments, missing_by_problem)
             lemma_count = len([s for s in structure_rows if s["type"] == "recurring lemma" and s["reuse_count"] >= 2])
             subgoal_count = len([s for s in structure_rows if s["type"] == "recurring subgoal" and s["reuse_count"] >= 2])
             trace_count = len([s for s in structure_rows if s["type"] == "recurring proof trace" and s["reuse_count"] >= 2])
             recurring_reuse = sum(int(s["reuse_count"]) for s in structure_rows if int(s["reuse_count"]) >= 2)
-            witness_density = (
-                len(witnesses_by_problem[cid]) / max(1, len(exp_rows))
-                if exp_rows
-                else 0.0
-            )
-            recent_signal_velocity = float(score.get("recent_signal_velocity", 0) or 0)
-            traction = classify_proof_traction(
-                experiments_count=int(score.get("experiments_total", len(exp_rows)) or len(exp_rows)),
-                recurring_reuse=recurring_reuse,
-                stabilized_lemmas=lemma_count,
-                recurring_subgoals=subgoal_count,
-                recurring_traces=trace_count,
-                witness_density=witness_density,
-                recent_signal_velocity=recent_signal_velocity,
-            )
-            current_route, missing = summarize_problem_progress(
-                conjecture_id=cid,
-                experiments_count=int(score.get("experiments_total", len(exp_rows)) or len(exp_rows)),
-                new_signals=int(score.get("new_signal_count", 0) or 0),
-                traction=traction,
-                strongest_motif=top_motif,
-                strongest_obstruction=top_obstruction,
-                missing_assumptions=missing_by_problem[cid],
-            )
-            disproved = len([item for item in exp_rows if (item.get("proof_outcome") or "").lower() == "disproved"])
-            repair_hints = self._repair_hints_for_problem(cid, manager_snapshot, exp_rows)
-            boundary = summarize_falsehood_boundary(
-                conjecture_id=cid,
-                disproved_count=disproved,
-                witness_regions=witnesses_by_problem[cid],
-                missing_assumptions=missing_by_problem[cid],
-                salvage_hints=repair_hints,
-            )
+
             row = {
                 "conjecture_id": cid,
                 "conjecture_name": score.get("name", cid),
                 "experiments_count": int(score.get("experiments_total", len(exp_rows)) or len(exp_rows)),
                 "total_new_signals": int(score.get("new_signal_count", 0) or 0),
-                "strongest_motif": top_motif,
-                "strongest_obstruction": top_obstruction,
-                "proof_traction_state": traction,
-                "current_best_route": current_route,
-                "what_is_still_missing": missing,
-                "falsehood_boundary_status": boundary["falsified_weakened_variants"],
+                "proof_traction_state": "active" if exp_rows else "idle",
                 "structure_reuse": recurring_reuse,
                 "lemma_stability": lemma_count,
                 "subgoal_convergence": subgoal_count,
                 "trace_convergence": trace_count,
             }
             problem_rows.append(row)
+
+            boundary = {
+                "conjecture_id": cid,
+                "falsified_weakened_variants": "",
+                "witness_regions": [],
+                "missing_assumptions": [],
+                "salvage_hints": [],
+            }
             boundary_rows.append(boundary)
+
             problems_detail[cid] = {
                 **row,
                 "recent_results": self._build_recent_results(exp_rows, limit=8),
                 "structures": sorted(structure_rows, key=lambda item: (-int(item["reuse_count"]), item["name"])),
                 "falsehood_boundary": boundary,
             }
+
         problem_rows.sort(key=lambda item: (-int(item["total_new_signals"]), item["conjecture_id"]))
         boundary_rows.sort(key=lambda item: item["conjecture_id"])
         pipeline = self._knowledge_pipeline(problem_rows, recurring_structures, experiments)
         return problems_detail, problem_rows, boundary_rows, pipeline
-
-    def _repair_hints_for_problem(
-        self,
-        conjecture_id: str,
-        manager_snapshot: dict[str, Any],
-        experiments: list[dict[str, Any]],
-    ) -> list[str]:
-        hints: list[str] = []
-        for item in manager_snapshot.get("submitted_experiments", []):
-            if item.get("conjecture_id") == conjecture_id:
-                reason = item.get("reason")
-                if reason:
-                    hints.append(str(reason))
-        for exp in experiments[:6]:
-            if exp.get("rationale"):
-                hints.append(str(exp["rationale"]))
-        return hints[:3]
 
     def _knowledge_pipeline(
         self,

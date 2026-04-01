@@ -26,9 +26,6 @@ Non-goals:
 Allowed moves:
 {chr(10).join(f"- {item}" for item in charter.allowed_moves)}
 
-Phase order:
-{chr(10).join(f"- {item}" for item in charter.phase_order)}
-
 Hard rules:
 - Do not optimize only for proving the original theorem.
 - Do not treat one failed proof attempt as evidence of falsity.
@@ -108,7 +105,6 @@ Conjecture:
 
 Current experiment:
 - experiment_id: {brief.experiment_id}
-- phase: {brief.phase}
 - move: {brief.move}
 - move family: {brief.move_family or brief.move}
 - theorem family: {brief.theorem_family_id or conjecture.theorem_family_id or conjecture.domain}

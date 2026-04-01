@@ -399,6 +399,29 @@ SCHEMA: List[str] = [
         applied_at TEXT NOT NULL
     )
     """,
+    """
+    CREATE TABLE IF NOT EXISTS proof_ledger (
+        entry_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        conjecture_id TEXT NOT NULL,
+        experiment_id TEXT NOT NULL,
+        lemma_statement TEXT NOT NULL,
+        lemma_hash TEXT NOT NULL,
+        proof_status TEXT NOT NULL DEFAULT 'proved',
+        proof_lean_code TEXT,
+        dependencies TEXT NOT NULL DEFAULT '[]',
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id),
+        FOREIGN KEY(conjecture_id) REFERENCES conjectures(conjecture_id),
+        FOREIGN KEY(experiment_id) REFERENCES experiments(experiment_id)
+    )
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_proof_ledger_conjecture ON proof_ledger(conjecture_id)
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_proof_ledger_hash ON proof_ledger(lemma_hash)
+    """,
 ]
 
 VIEWS: List[str] = [

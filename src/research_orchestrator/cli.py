@@ -9,7 +9,7 @@ from research_orchestrator.campaign_planner import synthesize_campaign
 from research_orchestrator.charter import load_charter, load_conjecture
 from research_orchestrator.dashboard_loader import DashboardLoader
 from research_orchestrator.db import Database
-from research_orchestrator.github_state import publish_state_bundle, sync_github_state, sync_state_bundle
+from research_orchestrator.github_state import publish_state_bundle, sync_github_state
 from research_orchestrator.llm_manager import build_campaign_brief, render_campaign_brief
 from research_orchestrator.orchestrator import (
     backfill_provider_results,
@@ -60,87 +60,75 @@ def cmd_campaign_status(args):
     db = Database(args.db)
     db.initialize()
     project_id = args.project
-    
+
+    # Source materials for legacy fallback
+    summary = db.project_summary(project_id)
+    spec = db.get_campaign_spec(project_id)
+
+    # 1. Attempt to gather data from projections (Control Plane source of truth)
+    health_current = None
     try:
-        # Source materials for legacy fallback
-        summary = db.project_summary(project_id)
-        spec = db.get_campaign_spec(project_id)
-        
-        # 1. Attempt to gather data from projections (Control Plane source of truth)
-        health_current = None
-        try:
-            health_row = db.conn.execute(
-                "SELECT payload_json, manager_status, last_event_at, last_projection_at FROM system_health_current WHERE project_id = ?",
-                (project_id,),
-            ).fetchone()
-            if health_row:
-                health_current = {
-                    "manager_status": health_row["manager_status"],
-                    "last_event_at": health_row["last_event_at"],
-                    "last_projection_at": health_row["last_projection_at"],
-                    **json.loads(health_row["payload_json"]),
-                }
-        except Exception:
-            pass
-
-        active_current = []
-        try:
-            active_current = [
-                json.loads(row["payload_json"])
-                for row in db.conn.execute(
-                    "SELECT payload_json FROM active_experiments_current WHERE project_id = ?",
-                    (project_id,),
-                ).fetchall()
-            ]
-        except Exception:
-            pass
-
-        incidents_current = []
-        try:
-            incidents_current = [
-                json.loads(row["payload_json"])
-                for row in db.conn.execute(
-                    "SELECT payload_json FROM incidents_current WHERE project_id = ? AND status = 'open'",
-                    (project_id,),
-                ).fetchall()
-            ]
-        except Exception:
-            pass
-
-        timeline_check = db.check_event_timeline_integrity()
-
-        payload = {
-            "project_id": project_id,
-            "title": summary["campaign_title"],
-            "campaign_version": summary.get("campaign_version", ""),
-            "raw_prompt": spec.raw_prompt if spec is not None else "",
-            "summary": summary,
-            "control_plane": {
-                "manager_status": health_current["manager_status"] if health_current else "unknown",
-                "last_event_at": health_current["last_event_at"] if health_current else "n/a",
-                "last_projection_at": health_current["last_projection_at"] if health_current else "n/a",
-                "timeline_ok": timeline_check.get("ok", False),
-                "timeline_gaps": timeline_check.get("gaps", 0),
-                "source_mode": "projection" if health_current else "legacy_fallback",
-            },
-            "open_questions": db.list_discovery_questions(project_id, status="open"),
-            "open_incidents": incidents_current if health_current else db.list_incidents(project_id, status="open"),
-            "active_experiments": active_current if active_current else db.list_active_experiments(project_id),
-            "health": health_current if health_current else db.campaign_health(project_id),
-            "version_drift": db.version_drift_summary(project_id),
-            "source": "sqlite",
-        }
+        health_row = db.conn.execute(
+            "SELECT payload_json, manager_status, last_event_at, last_projection_at FROM system_health_current WHERE project_id = ?",
+            (project_id,),
+        ).fetchone()
+        if health_row:
+            health_current = {
+                "manager_status": health_row["manager_status"],
+                "last_event_at": health_row["last_event_at"],
+                "last_projection_at": health_row["last_projection_at"],
+                **json.loads(health_row["payload_json"]),
+            }
     except Exception:
-        if not args.state_dir:
-            raise
-        state_root = Path(args.state_dir)
-        payload = {
-            "project_id": project_id,
-            "summary": json.loads((state_root / "campaign_summary.json").read_text(encoding="utf-8")),
-            "conjecture_scoreboard": json.loads((state_root / "conjecture_scoreboard.json").read_text(encoding="utf-8")),
-            "open_incidents": json.loads((state_root / "incidents.json").read_text(encoding="utf-8")),
-            "source": "readable_bundle",
-        }
+        pass
+
+    active_current = []
+    try:
+        active_current = [
+            json.loads(row["payload_json"])
+            for row in db.conn.execute(
+                "SELECT payload_json FROM active_experiments_current WHERE project_id = ?",
+                (project_id,),
+            ).fetchall()
+        ]
+    except Exception:
+        pass
+
+    incidents_current = []
+    try:
+        incidents_current = [
+            json.loads(row["payload_json"])
+            for row in db.conn.execute(
+                "SELECT payload_json FROM incidents_current WHERE project_id = ? AND status = 'open'",
+                (project_id,),
+            ).fetchall()
+        ]
+    except Exception:
+        pass
+
+    timeline_check = db.check_event_timeline_integrity()
+
+    payload = {
+        "project_id": project_id,
+        "title": summary["campaign_title"],
+        "campaign_version": summary.get("campaign_version", ""),
+        "raw_prompt": spec.raw_prompt if spec is not None else "",
+        "summary": summary,
+        "control_plane": {
+            "manager_status": health_current["manager_status"] if health_current else "unknown",
+            "last_event_at": health_current["last_event_at"] if health_current else "n/a",
+            "last_projection_at": health_current["last_projection_at"] if health_current else "n/a",
+            "timeline_ok": timeline_check.get("ok", False),
+            "timeline_gaps": timeline_check.get("gaps", 0),
+            "source_mode": "projection" if health_current else "legacy_fallback",
+        },
+        "open_questions": db.list_discovery_questions(project_id, status="open"),
+        "open_incidents": incidents_current if health_current else db.list_incidents(project_id, status="open"),
+        "active_experiments": active_current if active_current else db.list_active_experiments(project_id),
+        "health": health_current if health_current else db.campaign_health(project_id),
+        "version_drift": db.version_drift_summary(project_id),
+        "source": "sqlite",
+    }
     print(json.dumps(payload, indent=2))
 
 
@@ -371,17 +359,13 @@ def cmd_demo(args):
 
 
 def cmd_sync_github_state(args):
-    result = sync_state_bundle(
+    written = sync_github_state(
         repo=args.repo,
         ref=args.ref,
         state_dir=args.state_dir,
-        include_sqlite_snapshot=args.include_sqlite,
     )
-    print(f"Synced {len(result.written_files)} readable state files from {args.repo}@{args.ref}")
-    print(f"Integrity: {result.integrity_status}")
-    print(f"Authoritative artifact: {result.authoritative_artifact}")
-    print(f"SQLite snapshot: {result.sqlite_status}")
-    for path in result.written_files:
+    print(f"Synced {len(written)} state files from {args.repo}@{args.ref}")
+    for path in written:
         print(path)
 
 
@@ -437,28 +421,20 @@ def cmd_publish_state_bundle(args):
         manager_snapshot_path=args.manager_snapshot if args.manager_snapshot else None,
         include_sqlite_snapshot=args.include_sqlite,
     )
-    print(json.dumps({"written": written, "authoritative_artifact": "readable_bundle"}, indent=2))
+    print(json.dumps({"written": written}, indent=2))
 
 
 def cmd_dashboard(args):
-    if not args.state_dir and not args.db:
-        raise SystemExit("dashboard requires at least one source: --state-dir and/or --db")
+    if not args.db:
+        raise SystemExit("dashboard requires --db")
     try:
         state = DashboardLoader(
-            state_dir=args.state_dir,
             db_path=args.db,
             project_id=args.project,
         ).load()
     except Exception as exc:
         raise SystemExit(f"dashboard source initialization failed: {exc}") from exc
-    print(
-        f"Launching dashboard | source={state.source_mode} | project={state.project_id} | "
-        f"state_dir={args.state_dir or 'none'} | db={args.db or 'none'}"
-    )
-    if state.health.db_corrupt and state.source_mode in {"bundle", "mixed"}:
-        print("Warning: sqlite appears corrupt; serving from readable bundle fallback.")
-    if state.health.stale_bundle_warning:
-        print(f"Warning: {state.health.stale_bundle_warning}")
+    print(f"Launching dashboard | source={state.source_mode} | project={state.project_id} | db={args.db}")
     try:
         from research_orchestrator.dashboard_app import create_dashboard_app
         import uvicorn
@@ -468,7 +444,7 @@ def cmd_dashboard(args):
             "(fastapi, uvicorn, jinja2)."
         ) from exc
 
-    app = create_dashboard_app(state_dir=args.state_dir, db=args.db, project_id=args.project)
+    app = create_dashboard_app(db=args.db, project_id=args.project)
     uvicorn.run(app, host=args.host, port=args.port, reload=args.reload)
 
 
@@ -484,7 +460,6 @@ def build_parser():
     campaign_status = sub.add_parser("campaign-status", help="Inspect campaign state, discovery graph, and incidents.")
     campaign_status.add_argument("--db", required=True)
     campaign_status.add_argument("--project", required=True)
-    campaign_status.add_argument("--state-dir")
     campaign_status.set_defaults(func=cmd_campaign_status)
 
     campaign_health = sub.add_parser("campaign-health", help="Inspect machine-readable campaign health and runtime signals.")
@@ -610,9 +585,8 @@ def build_parser():
     publish_bundle.add_argument("--include-sqlite", action="store_true")
     publish_bundle.set_defaults(func=cmd_publish_state_bundle)
 
-    dashboard = sub.add_parser("dashboard", help="Launch a local, live dashboard from readable bundle and/or SQLite.")
-    dashboard.add_argument("--state-dir")
-    dashboard.add_argument("--db", default="outputs/erdos_live_async/state.sqlite")
+    dashboard = sub.add_parser("dashboard", help="Launch a local, live dashboard from SQLite.")
+    dashboard.add_argument("--db", required=True)
     dashboard.add_argument("--project", default="erdos-combo-001")
     dashboard.add_argument("--host", default="127.0.0.1")
     dashboard.add_argument("--port", type=int, default=8000)

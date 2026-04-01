@@ -228,3 +228,83 @@ class DatabaseCoreMixin:
         item = dict(row)
         item["hypothesis"] = json.loads(item["hypothesis_json"])
         return item
+
+    # Proof ledger operations
+    def add_proof_ledger_entry(
+        self,
+        entry_id: str,
+        project_id: str,
+        conjecture_id: str,
+        experiment_id: str,
+        lemma_statement: str,
+        lemma_hash: str,
+        proof_status: str = "proved",
+        proof_lean_code: Optional[str] = None,
+        dependencies: Optional[List[str]] = None,
+    ) -> None:
+        """Add an entry to the proof ledger."""
+        self.conn.execute(
+            """
+            INSERT INTO proof_ledger (
+                entry_id, project_id, conjecture_id, experiment_id,
+                lemma_statement, lemma_hash, proof_status, proof_lean_code,
+                dependencies, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(entry_id) DO UPDATE SET
+                proof_status = excluded.proof_status,
+                proof_lean_code = excluded.proof_lean_code,
+                dependencies = excluded.dependencies
+            """,
+            (
+                entry_id,
+                project_id,
+                conjecture_id,
+                experiment_id,
+                lemma_statement,
+                lemma_hash,
+                proof_status,
+                proof_lean_code,
+                json.dumps(dependencies or []),
+                utcnow(),
+            ),
+        )
+        self.conn.commit()
+
+    def get_proof_ledger(self, project_id: str) -> List[Dict[str, Any]]:
+        """Get all proof ledger entries for a project."""
+        rows = self.conn.execute(
+            "SELECT * FROM proof_ledger WHERE project_id = ? ORDER BY created_at DESC",
+            (project_id,),
+        ).fetchall()
+        result = []
+        for row in rows:
+            item = dict(row)
+            item["dependencies"] = json.loads(item["dependencies"])
+            result.append(item)
+        return result
+
+    def get_proved_lemmas_for_conjecture(self, conjecture_id: str) -> List[Dict[str, Any]]:
+        """Get all proved lemmas for a specific conjecture."""
+        rows = self.conn.execute(
+            """
+            SELECT * FROM proof_ledger
+            WHERE conjecture_id = ? AND proof_status = 'proved'
+            ORDER BY created_at DESC
+            """,
+            (conjecture_id,),
+        ).fetchall()
+        result = []
+        for row in rows:
+            item = dict(row)
+            item["dependencies"] = json.loads(item["dependencies"])
+            result.append(item)
+        return result
+
+    def lemma_is_proved(self, lemma_hash: str) -> bool:
+        """Check if a lemma has been proved."""
+        row = self.conn.execute(
+            "SELECT 1 FROM proof_ledger WHERE lemma_hash = ? AND proof_status = 'proved' LIMIT 1",
+            (lemma_hash,),
+        ).fetchone()
+        return row is not None
+        return item

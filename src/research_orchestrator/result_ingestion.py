@@ -598,3 +598,40 @@ def build_verification_signals(
             )
         )
     return signals
+
+
+def save_proved_lemmas_to_ledger(
+    db,
+    project_id: str,
+    conjecture_id: str,
+    experiment_id: str,
+    result: ProviderResult,
+) -> None:
+    """Save proved lemmas from a provider result to the proof ledger.
+
+    This extracts proved lemmas from the verification record and adds them
+    to the cumulative proof ledger for reuse across experiments.
+    """
+    record = result.verification_record
+    if record is None:
+        return
+
+    for lemma in record.proved_lemmas:
+        if not lemma.text or not lemma.canonical_id:
+            continue
+
+        # Check if already proved to avoid duplicates
+        if db.lemma_is_proved(lemma.canonical_id):
+            continue
+
+        db.add_proof_ledger_entry(
+            entry_id=str(uuid4()),
+            project_id=project_id,
+            conjecture_id=conjecture_id,
+            experiment_id=experiment_id,
+            lemma_statement=lemma.text,
+            lemma_hash=lemma.canonical_id,
+            proof_status="proved",
+            proof_lean_code=lemma.raw_lean_code if hasattr(lemma, "raw_lean_code") else None,
+            dependencies=[],  # TODO: extract dependencies from proof
+        )

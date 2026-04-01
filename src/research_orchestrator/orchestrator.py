@@ -7,12 +7,15 @@ from typing import Any, Dict, List, Optional
 from research_orchestrator.db import Database
 from research_orchestrator.evaluator import score_result
 from research_orchestrator.manager import choose_next_experiment, generate_frontier
-from research_orchestrator.manager_policy import choose_candidates_for_submission
+from research_orchestrator.manager import choose_candidates_for_submission
 from research_orchestrator.prompt_linter import lint_manager_prompt, lint_worker_prompt
 from research_orchestrator.prompts import build_worker_prompt
 from research_orchestrator.provider_registry import get_provider
-from research_orchestrator.result_ingestion import build_verification_signals, prepare_ingested_result
-from research_orchestrator.route_planner import assign_routes_to_frontier, select_route
+from research_orchestrator.result_ingestion import (
+    build_verification_signals,
+    prepare_ingested_result,
+    save_proved_lemmas_to_ledger,
+)
 from research_orchestrator.live_projections import refresh_live_projections
 from research_orchestrator.types import ExperimentBrief
 
@@ -49,7 +52,7 @@ def _prepare_cycle_from_candidate(db: Database, project_id: str, candidate: Dict
         experiment_id=candidate["experiment_id"],
         project_id=project_id,
         conjecture_id=candidate["conjecture_id"],
-        route_id=candidate.get("route_id", ""),
+        route_id="",
         phase=candidate["phase"],
         move=candidate["move"],
         objective=candidate["objective"],
@@ -89,7 +92,7 @@ def _brief_from_experiment(experiment: Dict[str, object]) -> ExperimentBrief:
         experiment_id=experiment["experiment_id"],
         project_id=experiment["project_id"],
         conjecture_id=experiment["conjecture_id"],
-        route_id=experiment.get("route_id", ""),
+        route_id="",
         phase=experiment["phase"],
         move=experiment["move"],
         objective=experiment["objective"],
@@ -134,25 +137,12 @@ def _apply_operator_commands(db: Database, project_id: str, run_id: str) -> Dict
             details["paused"] = True
         elif command["command_type"] == "resume-manager":
             details["paused"] = False
-        elif command["command_type"] == "prioritize-route":
-            priority = int(command["payload"].get("priority", 5))
-            if command.get("route_id"):
-                db.set_route_operator_priority(command["route_id"], priority)
-                details["priority"] = priority
-        elif command["command_type"] == "pause-route":
-            if command.get("route_id"):
-                db.set_route_status(command["route_id"], "stalled")
         elif command["command_type"] == "retry-experiment":
             if command.get("target_id"):
                 db.reset_experiment_for_retry(command["target_id"])
         elif command["command_type"] == "kill-job":
             if command.get("target_id"):
                 db.mark_experiment_killed(command["target_id"])
-        elif command["command_type"] == "operator-note":
-            note = command["payload"].get("note", "")
-            if command.get("route_id") and note:
-                db.append_route_note(command["route_id"], note)
-                details["note"] = note
         else:
             status = "rejected"
             details["reason"] = "unknown command_type"
@@ -163,7 +153,6 @@ def _apply_operator_commands(db: Database, project_id: str, run_id: str) -> Dict
             event_type="operator.command.applied",
             source_component="operator",
             experiment_id=command.get("target_id"),
-            route_id=command.get("route_id"),
             payload={
                 "command_id": command["command_id"],
                 "command_type": command["command_type"],
@@ -227,6 +216,14 @@ def _finalize_result(
         proved=result.proved_lemmas,
         candidate=result.candidate_lemmas,
     )
+    # Save proved lemmas to the cumulative proof ledger
+    save_proved_lemmas_to_ledger(
+        db=db,
+        project_id=project_id,
+        conjecture_id=brief.conjecture_id,
+        experiment_id=brief.experiment_id,
+        result=result,
+    )
     db.update_experiment_result(
         experiment_id=brief.experiment_id,
         provider=provider_name,
@@ -234,14 +231,12 @@ def _finalize_result(
         evaluation=evaluation.__dict__,
     )
     resolved_run_id = run_id or f"ingestion:{brief.experiment_id}"
-    route_id = getattr(brief, "route_id", "") or None
     db.emit_manager_event(
         project_id=project_id,
         run_id=resolved_run_id,
         event_type="result.ingested",
         source_component="result_ingestion",
         experiment_id=brief.experiment_id,
-        route_id=route_id,
         payload={
             "status": result.status,
             "proof_outcome": result.proof_outcome,
@@ -250,31 +245,6 @@ def _finalize_result(
             "reused_signal_count": result.reused_signal_count,
         },
     )
-    if route_id:
-        strength_delta = float(result.new_signal_count or 0) + float(result.reused_signal_count or 0) * 0.4
-        db.insert_route_evidence(
-            route_id=route_id,
-            evidence_type="result",
-            source_experiment_id=brief.experiment_id,
-            strength_delta=strength_delta,
-            payload={
-                "status": result.status,
-                "proof_outcome": result.proof_outcome,
-                "blocker_type": result.blocker_type,
-            },
-        )
-        db.emit_manager_event(
-            project_id=project_id,
-            run_id=resolved_run_id,
-            event_type="route.strengthened" if strength_delta > 0 else "route.stalled",
-            source_component="route_tracker",
-            experiment_id=brief.experiment_id,
-            route_id=route_id,
-            payload={
-                "strength_delta": strength_delta,
-                "status": result.status,
-            },
-        )
     db.add_audit_event(
         project_id=project_id,
         experiment_id=brief.experiment_id,
@@ -363,7 +333,6 @@ def run_one_cycle(db: Database, project_id: str, provider_name: str, workspace_r
         event_type="cycle.started",
         source_component="single_cycle",
         experiment_id=brief.experiment_id,
-        route_id=getattr(brief, "route_id", None) or None,
         payload={"move": brief.move, "phase": brief.phase, "provider": provider.name},
     )
 
@@ -390,7 +359,6 @@ def run_one_cycle(db: Database, project_id: str, provider_name: str, workspace_r
         event_type="cycle.completed",
         source_component="single_cycle",
         experiment_id=brief.experiment_id,
-        route_id=getattr(brief, "route_id", None) or None,
         payload={
             "status": result.status,
             "proof_outcome": result.proof_outcome,
@@ -427,7 +395,6 @@ def submit_one_cycle(db: Database, project_id: str, provider_name: str, workspac
         event_type="cycle.submit.started",
         source_component="single_cycle",
         experiment_id=brief.experiment_id,
-        route_id=getattr(brief, "route_id", None) or None,
         payload={"move": brief.move, "phase": brief.phase, "provider": provider.name},
     )
 
@@ -462,7 +429,6 @@ def submit_one_cycle(db: Database, project_id: str, provider_name: str, workspac
         event_type="candidate.submitted",
         source_component="single_cycle",
         experiment_id=brief.experiment_id,
-        route_id=getattr(brief, "route_id", None) or None,
         payload={
             "move": brief.move,
             "status": result.status,
@@ -556,7 +522,6 @@ def sync_provider_results(
                 event_type="job.synced",
                 source_component="provider_sync",
                 experiment_id=brief.experiment_id,
-                route_id=brief.route_id or None,
                 payload={
                     "status": result.status,
                     "external_status": result.external_status,
@@ -673,8 +638,6 @@ def manager_tick(
     requested_submissions = min(capacity_remaining, max_submit_per_tick)
 
     frontier = generate_frontier(db, project_id, workspace_root)
-    frontier, route_scores = assign_routes_to_frontier(db, project_id, frontier)
-    selected_route, ranked_routes = select_route(route_scores)
     db.emit_manager_event(
         project_id=project_id,
         run_id=run_id,
@@ -682,71 +645,14 @@ def manager_tick(
         source_component="manager",
         payload={
             "frontier_count": len(frontier),
-            "route_count": len(route_scores),
         },
     )
-    if selected_route is not None:
-        db.emit_manager_event(
-            project_id=project_id,
-            run_id=run_id,
-            event_type="route.selected",
-            source_component="planner",
-            route_id=selected_route.route_id,
-            payload={
-                "route_id": selected_route.route_id,
-                "route_key": selected_route.route_key,
-                "total_score": selected_route.total_score,
-                "components": selected_route.components,
-                "alternatives": [
-                    {
-                        "route_id": item.route_id,
-                        "route_key": item.route_key,
-                        "total_score": item.total_score,
-                        "components": item.components,
-                    }
-                    for item in ranked_routes[:5]
-                ],
-            },
-        )
-    for route in ranked_routes[:5]:
-        db.emit_manager_event(
-            project_id=project_id,
-            run_id=run_id,
-            event_type="route.updated",
-            source_component="planner",
-            route_id=route.route_id,
-            payload={
-                "route_id": route.route_id,
-                "route_key": route.route_key,
-                "total_score": route.total_score,
-                "components": route.components,
-            },
-        )
     policy = choose_candidates_for_submission(
         db=db,
         project_id=project_id,
         frontier=frontier,
         max_count=requested_submissions,
         llm_manager_mode=llm_manager_mode,
-        route_id=selected_route.route_id if selected_route is not None else None,
-        route_context={
-            "selected_route": {
-                "route_id": selected_route.route_id,
-                "route_key": selected_route.route_key,
-                "total_score": selected_route.total_score,
-                "components": selected_route.components,
-            }
-            if selected_route is not None
-            else None,
-            "alternatives": [
-                {
-                    "route_id": item.route_id,
-                    "route_key": item.route_key,
-                    "total_score": item.total_score,
-                }
-                for item in ranked_routes[:5]
-            ],
-        },
     )
     if runtime_policy is not None and runtime_policy.pause_on_incident:
         open_errors = [item for item in db.list_incidents(project_id, status="open") if item["severity"] == "error"]
@@ -777,10 +683,8 @@ def manager_tick(
             event_type="candidate.scored",
             source_component="policy",
             experiment_id=audit.get("experiment_id"),
-            route_id=(audit.get("candidate") or {}).get("route_id"),
             payload={
                 "experiment_id": audit.get("experiment_id"),
-                "route_id": (audit.get("candidate") or {}).get("route_id"),
                 "score_breakdown": audit.get("score_breakdown", {}),
                 "selected": bool(audit.get("selected")),
             },
@@ -840,7 +744,6 @@ def manager_tick(
             event_type="candidate.selected",
             source_component="policy",
             experiment_id=decision.experiment_id,
-            route_id=candidate.get("route_id"),
             payload={
                 "experiment_id": decision.experiment_id,
                 "reason": decision.reason,
@@ -898,7 +801,6 @@ def manager_tick(
                 event_type="job.submitted",
                 source_component="provider",
                 experiment_id=prepared["brief"].experiment_id,
-                route_id=prepared["brief"].route_id or candidate.get("route_id"),
                 payload={
                     "status": result.status,
                     "external_id": result.external_id,

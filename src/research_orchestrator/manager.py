@@ -2,25 +2,15 @@ from __future__ import annotations
 
 import json
 import shutil
-from dataclasses import asdict
-from typing import Any, Dict, List
+from dataclasses import asdict, dataclass, field
+from typing import Any, Dict, List, Tuple
 
 from research_orchestrator.db import Database
 from research_orchestrator.experiment_generator import generate_move_candidates, materialize_candidate
-from research_orchestrator.llm_manager import (
-    annotate_frontier,
-    build_bridge_candidate,
-    build_campaign_brief,
-    feature_flags,
-    interpret_campaign,
-    null_interpretation,
-    render_campaign_brief,
-    synthesize_parameters,
-    validate_bridge_hypotheses,
-)
+from research_orchestrator.llm_manager import build_campaign_brief, render_campaign_brief
+from research_orchestrator.schema_versions import MANAGER_POLICY_VERSION
 from research_orchestrator.move_registry import MoveCandidate
-from research_orchestrator.prompts import build_manager_prompt
-from research_orchestrator.route_planner import assign_routes_to_frontier, select_route
+from research_orchestrator.prompts import build_manager_prompt, build_project_constitution
 
 
 MOVE_PRIORITY = {
@@ -34,6 +24,32 @@ MOVE_PRIORITY = {
     "promote_trace": 7,
     "reformulate": 8,
 }
+
+
+@dataclass
+class CandidateDecision:
+    experiment_id: str
+    conjecture_id: str
+    move: str
+    reason: str
+    expected_signal: str
+    modification: Dict[str, Any]
+    workspace_dir: str
+    lean_file: str
+    phase: str
+    policy_score: float = 0.0
+    score_breakdown: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class PolicyDecision:
+    chosen: List[CandidateDecision] = field(default_factory=list)
+    skipped: List[Dict[str, Any]] = field(default_factory=list)
+    policy_path: str = "fallback"
+    manager_prompt: str = ""
+    raw_response: str = ""
+    rationale: str = ""
+    candidate_audits: List[Dict[str, Any]] = field(default_factory=list)
 
 
 def _counts_by_conjecture(conjectures, experiments):
@@ -60,104 +76,86 @@ def _has_seeded_structure(conjecture) -> bool:
     )
 
 
-def _manager_candidate_slice(conjecture, experiments, move_candidates):
-    conjecture_experiments = [item for item in experiments if item["conjecture_id"] == conjecture.conjecture_id]
-    effective_moves = {
-        item["move"]
-        for item in conjecture_experiments
-        if item.get("proof_outcome") not in {"unknown", "auth_failure", "infra_failure", "malformed"}
-        or (item.get("new_signal_count") or 0) > 0
-    }
-    tested_assumptions = {
-        item["modification"].get("assumption")
-        for item in conjecture_experiments
-        if item["move"] == "perturb_assumption" and item.get("modification", {}).get("assumption")
-    }
-    if not conjecture_experiments and not _has_seeded_structure(conjecture):
-        initial = [candidate for candidate in move_candidates if candidate.legacy_move == "underspecify"]
-        return initial[:1] if initial else move_candidates
-    if "underspecify" in effective_moves and not tested_assumptions:
-        high_value_nonperturb = [
-            candidate
-            for candidate in move_candidates
-            if candidate.legacy_move != "perturb_assumption" and candidate.transfer_score > 0
-        ]
-        if high_value_nonperturb:
-            return move_candidates
-        perturb = [candidate for candidate in move_candidates if candidate.legacy_move == "perturb_assumption"]
-        if perturb:
-            return perturb
-    return move_candidates
+def _manager_candidate_slice(conjecture, experiments, candidates):
+    if _has_seeded_structure(conjecture):
+        return candidates
+    existing = [exp for exp in experiments if exp["conjecture_id"] == conjecture.conjecture_id]
+    if existing:
+        return candidates
+    return [cand for cand in candidates if cand.move_family not in {"transfer_reformulation", "cross_conjecture_analogy"}]
 
 
-def _candidate_payload(candidate, conjecture_id, project_id, existing_experiments, discovery_priority):
-    metadata = candidate.candidate_metadata
+def _frontier_sort_key(candidate: Dict[str, Any]):
+    move_priority = MOVE_PRIORITY.get(candidate["move"], 99)
+    stage_priority = move_priority if candidate["existing_experiments"] == 0 else (-1 if candidate.get("targets_recurring_structure") else move_priority)
+    return (
+        0 if candidate["existing_experiments"] == 0 and candidate["move"] == "underspecify" else 1,
+        0 if candidate["existing_experiments"] > 0 and candidate["move"] == "perturb_assumption" else 1,
+        0 if candidate.get("dominant_motif_bonus", 0) > 0 else candidate["active_count_for_conjecture"],
+        -candidate.get("discovery_priority", 0),
+        -candidate.get("dominant_motif_bonus", 0),
+        -candidate.get("recent_signal_velocity", 0),
+        -candidate.get("motif_reuse_count", 0),
+        -candidate.get("signal_support", 0),
+        -candidate.get("witness_support", 0),
+        -candidate.get("assumption_boundary_support", 0),
+        -candidate.get("campaign_priority", 0),
+        -candidate.get("transfer_opportunity", 0),
+        -candidate.get("reuse_potential", 0),
+        -candidate.get("obstruction_targeting", 0),
+        -candidate.get("semantic_novelty", 0),
+        candidate["existing_experiments"],
+        0 if candidate.get("targets_recurring_structure") else 1,
+        candidate.get("no_signal_penalty", 0),
+        -candidate.get("signal_priority", 0),
+        stage_priority,
+        0 if not candidate["duplicate_active_signature"] else 1,
+        candidate.get("move_family", candidate["move"]),
+        candidate["conjecture_id"],
+    )
+
+
+def _candidate_payload(brief, conjecture_id: str, project_id: str, existing_count: int, priority: int) -> Dict[str, Any]:
     return {
-        "experiment_id": candidate.experiment_id,
+        "experiment_id": brief.experiment_id,
         "project_id": project_id,
         "conjecture_id": conjecture_id,
-        "existing_experiments": existing_experiments,
-        "phase": candidate.phase,
-        "move": candidate.move,
-        "move_family": candidate.move_family or candidate.move,
-        "theorem_family_id": candidate.theorem_family_id,
-        "move_title": candidate.move_title or candidate.move_family or candidate.move,
-        "objective": candidate.objective,
-        "expected_signal": candidate.expected_signal,
-        "modification": candidate.modification,
-        "workspace_dir": candidate.workspace_dir,
-        "lean_file": candidate.lean_file,
-        "rationale": candidate.rationale,
-        "candidate_metadata": metadata,
-        "discovery_question_id": candidate.discovery_question_id,
-        "discovery_question": candidate.discovery_question,
-        "discovery_priority": discovery_priority,
-        "motif_id": metadata.get("motif_id", ""),
-        "motif_signature": metadata.get("motif_signature", ""),
-        "motif_reuse_count": metadata.get("motif_reuse_count", 0),
-        "signal_support": metadata.get("signal_support", 0),
-        "blocker_support": metadata.get("blocker_support", 0),
-        "witness_support": metadata.get("witness_support", 0),
-        "assumption_boundary_support": metadata.get("assumption_boundary_support", 0),
-        "recent_signal_velocity": metadata.get("recent_signal_velocity", 0),
+        "phase": brief.phase,
+        "move": brief.move,
+        "move_family": brief.move_family,
+        "objective": brief.objective,
+        "expected_signal": brief.expected_signal,
+        "modification": brief.modification,
+        "workspace_dir": brief.workspace_dir,
+        "lean_file": brief.lean_file,
+        "route_id": "",
+        "existing_experiments": existing_count,
+        "priority": priority,
+        "rationale": brief.rationale,
+        "candidate_metadata": brief.candidate_metadata,
     }
-
-
-def _frontier_sort_key(item: Dict[str, object]):
-    metadata = item.get("candidate_metadata", {})
-    return (
-        item.get("existing_experiments", 0),
-        -item.get("discovery_priority", 0),
-        -item.get("recent_signal_velocity", 0),
-        -item.get("motif_reuse_count", 0),
-        MOVE_PRIORITY.get(item.get("move", ""), 99),
-        -metadata.get("campaign_priority", 0),
-        -metadata.get("transfer_score", 0),
-        -metadata.get("reuse_potential", 0),
-        -metadata.get("obstruction_targeting", 0),
-        -metadata.get("novelty_score", 0),
-        -item.get("signal_support", 0),
-        item.get("conjecture_id", ""),
-        item.get("move_family", ""),
-    )
 
 
 def _runtime_context(db: Database, project_id: str) -> Dict[str, Any]:
     conjectures = db.list_conjectures(project_id)
     experiments = db.list_experiments(project_id)
-    open_questions = db.list_discovery_questions(project_id, status="open")
-    questions_by_conjecture: Dict[str, List[Dict[str, Any]]] = {}
-    for question in open_questions:
-        questions_by_conjecture.setdefault(question["conjecture_id"], []).append(question)
+    questions = db.list_discovery_questions(project_id)
+    questions_by_conjecture: Dict[str, List[Any]] = {}
+    for question in questions:
+        cid = question.conjecture_id
+        if cid not in questions_by_conjecture:
+            questions_by_conjecture[cid] = []
+        questions_by_conjecture[cid].append(question)
+    charter = db.get_charter(project_id)
     return {
-        "charter": db.get_charter(project_id),
+        "charter": charter,
         "conjectures": conjectures,
         "experiments": experiments,
+        "questions_by_conjecture": questions_by_conjecture,
         "counts": _counts_by_conjecture(conjectures, experiments),
         "recurring": db.recurring_lemmas(),
         "recurring_subgoals": db.recurring_subgoals(project_id),
         "recurring_proof_traces": db.recurring_proof_traces(project_id),
-        "questions_by_conjecture": questions_by_conjecture,
     }
 
 
@@ -239,110 +237,6 @@ def _annotate_runtime_fields(frontier: List[Dict[str, Any]], active: List[Dict[s
         )
 
 
-def _rebuild_payload(payload: Dict[str, Any], synthesis, project_id: str, workspace_root: str, runtime: Dict[str, Any]) -> Dict[str, Any]:
-    conjecture = next(item for item in runtime["conjectures"] if item.conjecture_id == payload["_frontier_candidate"]["conjecture_id"])
-    original_candidate = payload["_frontier_candidate"]["move_candidate"]
-    rebuilt_candidate = MoveCandidate(
-        move_family=original_candidate.move_family,
-        legacy_move=original_candidate.legacy_move,
-        parameters=dict(synthesis.parameters),
-        objective=original_candidate.objective,
-        expected_signal=original_candidate.expected_signal,
-        rationale=original_candidate.rationale,
-        novelty_score=original_candidate.novelty_score,
-        reuse_potential=original_candidate.reuse_potential,
-        obstruction_targeting=original_candidate.obstruction_targeting,
-        diversity_group=original_candidate.diversity_group,
-        duplicate_penalty=original_candidate.duplicate_penalty,
-        no_signal_penalty=original_candidate.no_signal_penalty,
-        transfer_score=original_candidate.transfer_score,
-        generation_metadata={
-            **original_candidate.generation_metadata,
-            "llm_parameter_synthesis": asdict(synthesis),
-        },
-    )
-    shutil.rmtree(payload["_frontier_candidate"]["brief"].workspace_dir, ignore_errors=True)
-    rebuilt = _materialize_payload(project_id, workspace_root, conjecture, rebuilt_candidate, runtime)
-    rebuilt["candidate_metadata"]["llm_parameter_synthesis"] = asdict(synthesis)
-    rebuilt["candidate_metadata"]["original_experiment_id"] = payload["experiment_id"]
-    return rebuilt
-
-
-def _apply_llm_enrichment(db: Database, project_id: str, workspace_root: str, frontier: List[Dict[str, Any]], runtime: Dict[str, Any]) -> tuple[List[Dict[str, Any]], Dict[str, Any]]:
-    flags = feature_flags()
-    artifacts: Dict[str, Any] = {"brief": None, "interpretation": None, "bridge_hypotheses": []}
-    if not frontier or not flags["brief_generation"]:
-        return frontier, artifacts
-
-    clean_frontier = _strip_frontier_internal_fields(frontier)
-    brief = build_campaign_brief(db, project_id, frontier=clean_frontier)
-    artifacts["brief"] = render_campaign_brief(brief)
-    interpretation = null_interpretation()
-
-    if flags["interpretation"]:
-        interpretation, record = interpret_campaign(db, project_id, brief)
-        interpretation_id = db.save_campaign_interpretation(
-            project_id=project_id,
-            prompt_version=record["prompt_version"],
-            model_version=record["model_version"],
-            raw_response=record["raw_response"],
-            parsed=record["parsed"],
-            validation_status=record["validation_status"],
-        )
-        artifacts["interpretation"] = {"interpretation_id": interpretation_id, **asdict(interpretation)}
-
-    if flags["annotation"]:
-        annotations, _ = annotate_frontier(runtime["charter"], brief, interpretation, clean_frontier)
-        for payload in frontier:
-            annotation = annotations.get(payload["experiment_id"])
-            if annotation is None:
-                continue
-            payload["llm_annotation"] = asdict(annotation)
-            payload["candidate_metadata"]["llm_annotation"] = asdict(annotation)
-
-    if flags["parameter_synthesis"]:
-        syntheses, _ = synthesize_parameters(runtime["charter"], brief, interpretation, clean_frontier)
-        if syntheses:
-            frontier = [
-                _rebuild_payload(payload, syntheses[payload["experiment_id"]], project_id, workspace_root, runtime)
-                if payload["experiment_id"] in syntheses
-                else payload
-                for payload in frontier
-            ]
-            clean_frontier = _strip_frontier_internal_fields(frontier)
-
-    if flags["bridge_hypotheses"] and interpretation.cross_conjecture_bridges:
-        bridges = validate_bridge_hypotheses(interpretation.cross_conjecture_bridges, runtime["conjectures"])
-        if bridges:
-            db.save_bridge_hypotheses(project_id, [asdict(item) for item in bridges])
-            artifacts["bridge_hypotheses"] = [asdict(item) for item in bridges]
-            existing_signatures = {
-                (
-                    item["conjecture_id"],
-                    item.get("move_family", item["move"]),
-                    json.dumps(item["modification"], sort_keys=True),
-                )
-                for item in clean_frontier
-            }
-            for bridge in bridges:
-                conjecture = next((item for item in runtime["conjectures"] if item.conjecture_id == bridge.target_conjecture_id), None)
-                if conjecture is None:
-                    continue
-                candidate = build_bridge_candidate(bridge)
-                signature = (
-                    conjecture.conjecture_id,
-                    candidate.move_family,
-                    json.dumps(candidate.parameters, sort_keys=True),
-                )
-                if signature in existing_signatures:
-                    continue
-                payload = _materialize_payload(project_id, workspace_root, conjecture, candidate, runtime)
-                payload["candidate_metadata"]["bridge_hypothesis"] = asdict(bridge)
-                frontier.append(payload)
-
-    return frontier, artifacts
-
-
 def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
     runtime = _runtime_context(db, project_id)
     frontier: List[Dict[str, Any]] = []
@@ -364,14 +258,11 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
         for move_candidate in move_candidates:
             frontier.append(_materialize_payload(project_id, workspace_root, conjecture, move_candidate, runtime))
 
-    frontier, llm_artifacts = _apply_llm_enrichment(db, project_id, workspace_root, frontier, runtime)
     cleaned_frontier = _strip_frontier_internal_fields(frontier)
-    cleaned_frontier, route_scores = assign_routes_to_frontier(db, project_id, cleaned_frontier)
-    route_by_experiment = {item["experiment_id"]: item.get("route_id") for item in cleaned_frontier}
+    for item in cleaned_frontier:
+        item["route_id"] = ""
     for payload in frontier:
-        route_id = route_by_experiment.get(payload["experiment_id"])
-        if route_id:
-            payload["route_id"] = route_id
+        payload["route_id"] = ""
     for item in cleaned_frontier:
         shutil.rmtree(item["workspace_dir"], ignore_errors=True)
 
@@ -380,16 +271,7 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
         state_summary=db.project_summary(project_id),
         frontier=cleaned_frontier,
     )
-    if llm_artifacts["brief"] is not None:
-        manager_prompt = manager_prompt + "\n\nCampaign brief:\n" + json.dumps(llm_artifacts["brief"], indent=2)
-    selected_route, _ = select_route(route_scores)
-    if selected_route is not None:
-        route_candidates = [item for item in cleaned_frontier if item.get("route_id") == selected_route.route_id]
-    else:
-        route_candidates = cleaned_frontier
-    if not route_candidates:
-        route_candidates = cleaned_frontier
-    chosen_payload = min(route_candidates, key=_frontier_sort_key)
+    chosen_payload = min(cleaned_frontier, key=_frontier_sort_key)
     chosen_conjecture = next(item for item in runtime["conjectures"] if item.conjecture_id == chosen_payload["conjecture_id"])
     chosen_move_candidate = next(item["_frontier_candidate"]["move_candidate"] for item in frontier if item["experiment_id"] == chosen_payload["experiment_id"])
     chosen = materialize_candidate(
@@ -400,7 +282,7 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
         candidate=chosen_move_candidate,
         discovery_questions=runtime["questions_by_conjecture"].get(chosen_conjecture.conjecture_id, []),
     )
-    chosen.route_id = chosen_payload.get("route_id", "")
+    chosen.route_id = ""
     return chosen, manager_prompt, cleaned_frontier
 
 
@@ -423,11 +305,355 @@ def generate_frontier(db: Database, project_id: str, workspace_root: str) -> Lis
         for move_candidate in move_candidates:
             frontier.append(_materialize_payload(project_id, workspace_root, conjecture, move_candidate, runtime))
 
-    frontier, _ = _apply_llm_enrichment(db, project_id, workspace_root, frontier, runtime)
     active = db.list_active_experiments(project_id)
     active_counts = _counts_by_conjecture(runtime["conjectures"], active)
     no_signal = {(item["conjecture_id"], item["move"]): item["observations"] for item in db.no_signal_branches(project_id)}
     _annotate_runtime_fields(frontier, active, no_signal, active_counts)
     cleaned = _strip_frontier_internal_fields(frontier)
-    cleaned, _ = assign_routes_to_frontier(db, project_id, cleaned)
+    for item in cleaned:
+        item["route_id"] = ""
     return sorted(cleaned, key=_frontier_sort_key)
+
+
+# ============== Manager Policy Functions (merged from manager_policy.py) ==============
+
+
+def _active_signature(experiment: Dict[str, Any]) -> Tuple[str, str, str]:
+    return (
+        experiment["conjecture_id"],
+        experiment["move"],
+        json.dumps(experiment["modification"], sort_keys=True),
+    )
+
+
+def build_manager_tick_prompt(
+    charter,
+    state_summary: Dict[str, Any],
+    active_experiments: List[Dict[str, Any]],
+    completed_experiments: List[Dict[str, Any]],
+    frontier: List[Dict[str, Any]],
+    recurring_lemmas: List[Dict[str, Any]],
+    recurring_subgoals: List[Dict[str, Any]],
+    assumption_sensitivity: List[Dict[str, Any]],
+    capacity: Dict[str, int],
+    route_context: Dict[str, Any] | None = None,
+) -> str:
+    route_section = ""
+    if route_context:
+        route_section = f"\nRoute selection context:\n{json.dumps(route_context, indent=2)}\n"
+    return f"""
+{build_project_constitution(charter)}
+
+Campaign state summary:
+{json.dumps(state_summary, indent=2)}
+
+Active experiments:
+{json.dumps(active_experiments, indent=2)}
+
+Recently completed experiments:
+{json.dumps(completed_experiments[:10], indent=2)}
+
+Recurring lemmas:
+{json.dumps(recurring_lemmas[:10], indent=2)}
+
+Recurring subgoals:
+{json.dumps(recurring_subgoals[:10], indent=2)}
+
+Assumption sensitivity:
+{json.dumps(assumption_sensitivity[:10], indent=2)}
+
+Frontier candidates:
+{json.dumps(frontier, indent=2)}
+
+Capacity:
+{json.dumps(capacity, indent=2)}
+{route_section}
+
+Return valid JSON with this exact shape:
+{{
+  "ranked_experiment_ids": ["candidate-id-1", "candidate-id-2"],
+  "rationale": "one short paragraph"
+}}
+
+Hard constraints:
+- rank only experiment ids that appear in the frontier candidates
+- prefer candidates with explicit high-priority discovery questions
+- preserve exploration, but allow deeper exploitation when a motif is clearly producing more reusable signal
+- avoid duplicate active runs for the same conjecture, move, and modification
+- favor information gain and reusability
+- prefer candidates that attack recurring lemmas, recurring subgoals, recurring proof traces, or boundary maps from witnesses/missing assumptions
+- de-prioritize branches with repeated no-signal outcomes
+- prefer unexplored move types when otherwise similar
+""".strip()
+
+
+def candidate_score_breakdown(candidate: Dict[str, Any]) -> Dict[str, Any]:
+    penalties = {
+        "active_load": float(candidate.get("active_count_for_conjecture", 0) * 2.4),
+        "existing_coverage": float(candidate.get("existing_experiments", 0) * 1.0),
+        "no_signal_penalty": float(candidate.get("no_signal_penalty", 0) * 2.2),
+        "duplicate_active_signature": 5.0 if candidate.get("duplicate_active_signature") else 0.0,
+    }
+    bonuses = {
+        "discovery_priority": float(candidate.get("discovery_priority", 0) * 1.8),
+        "campaign_priority": float(candidate.get("campaign_priority", 0) * 1.5),
+        "signal_priority": float(candidate.get("signal_priority", 0) * 1.2),
+        "transfer_opportunity": float(candidate.get("transfer_opportunity", 0) * 1.1),
+        "reuse_potential": float(candidate.get("reuse_potential", 0) * 1.0),
+        "obstruction_targeting": float(candidate.get("obstruction_targeting", 0) * 1.0),
+        "semantic_novelty": float(candidate.get("semantic_novelty", 0) * 0.9),
+        "targets_recurring_structure": 1.5 if candidate.get("targets_recurring_structure") else 0.0,
+        "motif_reuse_count": float(candidate.get("motif_reuse_count", 0) * 0.8),
+        "signal_support": float(candidate.get("signal_support", 0) * 0.7),
+        "blocker_support": float(candidate.get("blocker_support", 0) * 0.45),
+        "witness_support": float(candidate.get("witness_support", 0) * 0.6),
+        "assumption_boundary_support": float(candidate.get("assumption_boundary_support", 0) * 0.6),
+        "recent_signal_velocity": float(candidate.get("recent_signal_velocity", 0) * 1.3),
+        "dominant_motif_bonus": float(candidate.get("dominant_motif_bonus", 0)),
+    }
+    move_bonus = max(0.0, float(5 - MOVE_PRIORITY.get(candidate["move"], 5)))
+    bonuses["move_family_priority"] = move_bonus
+    baseline_score = round(sum(bonuses.values()) - sum(penalties.values()), 4)
+    score = round(baseline_score, 4)
+    return {
+        "policy_version": MANAGER_POLICY_VERSION,
+        "bonuses": bonuses,
+        "penalties": penalties,
+        "baseline_score": baseline_score,
+        "score": score,
+    }
+
+
+def _heuristic_rank(frontier: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    return sorted(frontier, key=_frontier_sort_key)
+
+
+def _score_rank(frontier: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    return sorted(
+        frontier,
+        key=lambda candidate: (
+            -candidate_score_breakdown(candidate)["score"],
+            *_frontier_sort_key(candidate),
+        ),
+    )
+
+
+def _diversify_candidates(ranked: List[Dict[str, Any]], max_count: int, exploration_floor: int) -> List[Dict[str, Any]]:
+    if not ranked or max_count <= 0:
+        return []
+    unique_conjectures = {candidate["conjecture_id"] for candidate in ranked}
+    chosen: List[Dict[str, Any]] = [ranked[0]]
+    seen_conjectures: set[str] = {ranked[0]["conjecture_id"]}
+    minimum_unique = min(max_count, max(1, exploration_floor))
+    while len(chosen) < max_count:
+        remaining = [candidate for candidate in ranked if candidate not in chosen]
+        if not remaining:
+            break
+        if len(seen_conjectures) < minimum_unique:
+            unseen = [candidate for candidate in remaining if candidate["conjecture_id"] not in seen_conjectures]
+            if unseen:
+                chosen.append(unseen[0])
+                seen_conjectures.add(unseen[0]["conjecture_id"])
+                continue
+        unseen = [candidate for candidate in remaining if candidate["conjecture_id"] not in seen_conjectures]
+        if unseen:
+            chosen.append(unseen[0])
+            seen_conjectures.add(unseen[0]["conjecture_id"])
+            continue
+        if len(seen_conjectures) >= len(unique_conjectures):
+            if len(unique_conjectures) > 1:
+                break
+            if not any(item.get("dominant_motif_bonus", 0) > 0 for item in chosen):
+                break
+        chosen.append(remaining[0])
+    return chosen[:max_count]
+
+
+def _candidate_decision(candidate: Dict[str, Any], reason: str) -> CandidateDecision:
+    breakdown = candidate_score_breakdown(candidate)
+    return CandidateDecision(
+        experiment_id=candidate["experiment_id"],
+        conjecture_id=candidate["conjecture_id"],
+        move=candidate["move"],
+        reason=f"{reason}; move_family={candidate.get('move_family', candidate['move'])}; rationale={candidate.get('rationale', '')}".strip(),
+        expected_signal=candidate["expected_signal"],
+        modification=candidate["modification"],
+        workspace_dir=candidate["workspace_dir"],
+        lean_file=candidate["lean_file"],
+        phase=candidate["phase"],
+        policy_score=breakdown["score"],
+        score_breakdown=breakdown,
+    )
+
+
+def build_candidate_audits(
+    frontier: List[Dict[str, Any]],
+    selected_ids: List[str],
+    skipped: List[Dict[str, Any]],
+    final_ranking: List[Dict[str, Any]] | None = None,
+) -> List[Dict[str, Any]]:
+    skipped_by_id = {item["experiment_id"]: item["reason"] for item in skipped if item.get("experiment_id")}
+    ranked = _heuristic_rank(frontier)
+    final_ranking = final_ranking or ranked
+    final_positions = {item["experiment_id"]: index for index, item in enumerate(final_ranking, start=1)}
+    audits: List[Dict[str, Any]] = []
+    for index, candidate in enumerate(ranked, start=1):
+        breakdown = candidate_score_breakdown(candidate)
+        selection_reason = ""
+        if candidate["experiment_id"] in selected_ids:
+            selection_reason = "selected"
+        elif candidate["experiment_id"] in skipped_by_id:
+            selection_reason = skipped_by_id[candidate["experiment_id"]]
+        audits.append(
+            {
+                "experiment_id": candidate["experiment_id"],
+                "conjecture_id": candidate["conjecture_id"],
+                "rank_position": index,
+                "final_rank_position": final_positions.get(candidate["experiment_id"], index),
+                "selected": candidate["experiment_id"] in selected_ids,
+                "selection_reason": selection_reason,
+                "policy_score": breakdown["score"],
+                "score_breakdown": breakdown,
+                "candidate": candidate,
+            }
+        )
+    return audits
+
+
+def choose_candidates_for_submission(
+    db: Database,
+    project_id: str,
+    frontier: List[Dict[str, Any]],
+    max_count: int,
+    llm_manager_mode: str,
+    route_id: str | None = None,
+    route_context: Dict[str, Any] | None = None,
+) -> PolicyDecision:
+    filtered_frontier = frontier
+    if route_id:
+        filtered_frontier = [item for item in frontier if item.get("route_id") == route_id]
+    if route_id and not filtered_frontier:
+        filtered_frontier = frontier
+    charter = db.get_charter(project_id)
+    spec = db.get_campaign_spec(project_id)
+    active = db.list_active_experiments(project_id)
+    completed = db.list_completed_experiments(project_id, limit=10)
+    recurring = db.recurring_lemmas()
+    recurring_subgoals = db.recurring_subgoals(project_id)
+    sensitivity = db.assumption_sensitivity(project_id)
+    summary = db.project_summary(project_id)
+    capacity = {"requested_submissions": max_count, "current_active": len(active)}
+
+    prompt = build_manager_tick_prompt(
+        charter=charter,
+        state_summary=summary,
+        active_experiments=active,
+        completed_experiments=completed,
+        frontier=filtered_frontier,
+        recurring_lemmas=recurring,
+        recurring_subgoals=recurring_subgoals,
+        assumption_sensitivity=sensitivity,
+        capacity=capacity,
+        route_context=route_context,
+    )
+
+    branch_prune_after_no_signal = spec.budget_policy.branch_prune_after_no_signal if spec is not None else 3
+    duplicate_family_limit = spec.budget_policy.duplicate_frontier_family_limit if spec is not None else 2
+    per_conjecture_active_cap = spec.budget_policy.per_conjecture_active_cap if spec is not None else 2
+    per_motif_active_cap = spec.budget_policy.per_motif_active_cap if spec is not None else 2
+    exploration_floor = spec.budget_policy.exploration_floor if spec is not None else 1
+    active_conjecture_counts: Dict[str, int] = {}
+    active_motif_counts: Dict[str, int] = {}
+    for item in active:
+        active_conjecture_counts[item["conjecture_id"]] = active_conjecture_counts.get(item["conjecture_id"], 0) + 1
+        motif = item.get("candidate_metadata", {}).get("motif_id") if isinstance(item.get("candidate_metadata"), dict) else ""
+        if motif:
+            active_motif_counts[motif] = active_motif_counts.get(motif, 0) + 1
+    motif_signal_map: Dict[str, float] = {}
+    for candidate in filtered_frontier:
+        motif_id = candidate.get("motif_id") or ""
+        if not motif_id:
+            continue
+        score = (
+            float(candidate.get("motif_reuse_count", 0))
+            + float(candidate.get("recent_signal_velocity", 0)) * 1.4
+            + float(candidate.get("signal_support", 0))
+            + float(candidate.get("witness_support", 0)) * 0.5
+            + float(candidate.get("assumption_boundary_support", 0)) * 0.5
+        )
+        motif_signal_map[motif_id] = max(motif_signal_map.get(motif_id, 0.0), score)
+    dominant_motif_score = max(motif_signal_map.values(), default=0.0)
+    eligible: List[Dict[str, Any]] = []
+    skipped: List[Dict[str, Any]] = []
+    family_counts: Dict[tuple[str, str], int] = {}
+    for candidate in filtered_frontier:
+        candidate = dict(candidate)
+        motif_id = candidate.get("motif_id") or ""
+        dominant_motif_bonus = 0.0
+        if motif_id and motif_signal_map.get(motif_id, 0.0) >= dominant_motif_score and dominant_motif_score >= 3.5 and not candidate["duplicate_active_signature"]:
+            dominant_motif_bonus = 2.5
+        candidate["dominant_motif_bonus"] = dominant_motif_bonus
+        if candidate["duplicate_active_signature"]:
+            skipped.append(
+                {
+                    "experiment_id": candidate["experiment_id"],
+                    "conjecture_id": candidate["conjecture_id"],
+                    "reason": "duplicate active experiment signature",
+                }
+            )
+            continue
+        if active_conjecture_counts.get(candidate["conjecture_id"], 0) >= per_conjecture_active_cap:
+            skipped.append(
+                {
+                    "experiment_id": candidate["experiment_id"],
+                    "conjecture_id": candidate["conjecture_id"],
+                    "reason": "conjecture active cap reached",
+                }
+            )
+            continue
+        if motif_id and active_motif_counts.get(motif_id, 0) >= per_motif_active_cap:
+            skipped.append(
+                {
+                    "experiment_id": candidate["experiment_id"],
+                    "conjecture_id": candidate["conjecture_id"],
+                    "reason": "motif active cap reached",
+                }
+            )
+            continue
+        if candidate.get("no_signal_penalty", 0) >= branch_prune_after_no_signal:
+            skipped.append(
+                {
+                    "experiment_id": candidate["experiment_id"],
+                    "conjecture_id": candidate["conjecture_id"],
+                    "reason": "pruned after repeated no-signal outcomes",
+                }
+            )
+            continue
+        family_key = (candidate["conjecture_id"], candidate.get("move_family", candidate["move"]))
+        current = family_counts.get(family_key, 0)
+        if current >= duplicate_family_limit:
+            skipped.append(
+                {
+                    "experiment_id": candidate["experiment_id"],
+                    "conjecture_id": candidate["conjecture_id"],
+                    "reason": "frontier throttled for duplicate move-family pressure",
+                }
+            )
+            continue
+        family_counts[family_key] = current + 1
+        eligible.append(candidate)
+    heuristic_ranked = _heuristic_rank(eligible)
+    chosen = [
+        _candidate_decision(candidate, "chosen by deterministic policy")
+        for candidate in _diversify_candidates(heuristic_ranked, max_count, exploration_floor)
+    ]
+    selected_ids = [item.experiment_id for item in chosen]
+    return PolicyDecision(
+        chosen=chosen,
+        skipped=skipped,
+        policy_path="fallback",
+        manager_prompt=prompt,
+        raw_response="",
+        rationale="Fallback policy ranked candidates by motif reuse, recent signal velocity, boundary evidence, and an exploration floor.",
+        candidate_audits=build_candidate_audits(filtered_frontier, selected_ids, skipped, final_ranking=heuristic_ranked),
+    )

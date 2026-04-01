@@ -26,13 +26,6 @@ DEFAULT_ALLOWED_MOVES = [
     "counterexample_mode",
 ]
 
-DEFAULT_PHASE_ORDER = [
-    "mapping",
-    "excavation",
-    "stress_testing",
-    "consolidation",
-]
-
 
 def _canonicalize_prompt(prompt: str) -> str:
     normalized = prompt.strip()
@@ -141,7 +134,7 @@ def synthesize_campaign(prompt: str) -> tuple[CampaignSpec, ProjectCharter, list
             "Do not let text-only summaries outrun Lean or reproducible artifacts.",
         ],
         allowed_moves=DEFAULT_ALLOWED_MOVES[:],
-        phase_order=DEFAULT_PHASE_ORDER[:],
+        phase_order=[],
         domain_scope=domain_scope,
         budget_policy=budget_policy,
         runtime_policy=runtime_policy,
@@ -158,7 +151,7 @@ def synthesize_campaign(prompt: str) -> tuple[CampaignSpec, ProjectCharter, list
         success_criteria=spec.success_criteria[:],
         non_goals=spec.non_goals[:],
         allowed_moves=spec.allowed_moves[:],
-        phase_order=spec.phase_order[:],
+        phase_order=[],
         domain_scope=domain_scope,
         evaluator_weights={
             "information_gain": 1.3,
