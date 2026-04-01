@@ -76,6 +76,7 @@ TEMPLATES = {
         </p>
         <nav class="nav">
           <a href="/">Dashboard</a>
+          <a href="/project">Experiments</a>
           <a href="/health">Health</a>
           <a href="/api/dashboard">/api/dashboard</a>
         </nav>

@@ -523,9 +523,59 @@ That is how you keep “research quality” behavior from drifting.
 - The live Aristotle adapter is real but conservative; it is not a complete parser for every possible Aristotle output layout.
 - Lean statement transformation in this prototype is intentionally lightweight and metadata-driven rather than a full theorem parser.
 
+## Project Dashboard
+
+A FastAPI-based dashboard provides a clean, experiment-focused view of your research campaigns.
+
+### Features
+- **Problem filtering**: Switch between conjectures (e.g., erdos-123, erdos-181, erdos-44)
+- **Status filtering**: Filter by Proved/Stalled/Failed/All
+- **Experiment cards**: Each shows:
+  - LLM reasoning (why the manager sent this experiment)
+  - Raw results (duration, proof outcome, blockers)
+  - LLM summary of findings
+  - Knowledge graph contributions (+Node / +Edge format)
+- **Search**: Filter experiments by move type, status, or content
+- **Collapsible cards**: Most recent expanded by default
+- **Dark theme**: GitHub-style monospace typography
+
+### Run locally from SQLite
+```bash
+research-orchestrator dashboard \
+  --db ./outputs/erdos_live_async/state.sqlite \
+  --project erdos-combo-001 \
+  --port 8000
+```
+
+Then open: http://127.0.0.1:8000/project
+
+### Deploy to Vercel
+The dashboard can be deployed to Vercel for public access:
+
+```bash
+# 1. Export state bundle from SQLite
+research-orchestrator publish-state-bundle \
+  --db ./outputs/erdos_live_async/state.sqlite \
+  --project erdos-combo-001 \
+  --output-dir ./outputs/dashboard_bundle_live
+
+# 2. Deploy to Vercel
+vercel --prod
+```
+
+The Vercel deployment reads from `outputs/dashboard_bundle_live/` which contains:
+- `experiments.csv` - all experiment data
+- `campaign_summary.json` - project metadata
+- `manager_events.json` - timeline events
+
+### Files
+- `api/index.py` - Vercel serverless function (FastAPI)
+- `src/research_orchestrator/dashboard_project.py` - Local dashboard router
+- `vercel.json` - Vercel deployment config
+
 ## Recommended next upgrades
 
 - Add canonicalization with a Lean-aware normalizer
 - Add a richer evaluator using proof cost and recurrence gain
 - Add a proper result ingester for `aristotle result`
-- Add a dashboard over the SQLite database
+- Add candidate audit trail extraction from manager_events for real selection rationale

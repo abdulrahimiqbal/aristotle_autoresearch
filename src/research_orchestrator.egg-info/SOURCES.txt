@@ -7,10 +7,10 @@ src/research_orchestrator/campaign_planner.py
 src/research_orchestrator/charter.py
 src/research_orchestrator/cli.py
 src/research_orchestrator/dashboard_app.py
-src/research_orchestrator/dashboard_derivations.py
 src/research_orchestrator/dashboard_live_loader.py
 src/research_orchestrator/dashboard_loader.py
 src/research_orchestrator/dashboard_models.py
+src/research_orchestrator/dashboard_project.py
 src/research_orchestrator/dashboard_routes.py
 src/research_orchestrator/enhanced_ingestion.py
 src/research_orchestrator/evaluator.py
@@ -21,7 +21,6 @@ src/research_orchestrator/lemma_utils.py
 src/research_orchestrator/live_projections.py
 src/research_orchestrator/llm_manager.py
 src/research_orchestrator/manager.py
-src/research_orchestrator/manager_policy.py
 src/research_orchestrator/move_registry.py
 src/research_orchestrator/orchestrator.py
 src/research_orchestrator/prompt_linter.py
@@ -30,7 +29,6 @@ src/research_orchestrator/provider_registry.py
 src/research_orchestrator/replay.py
 src/research_orchestrator/reporter.py
 src/research_orchestrator/result_ingestion.py
-src/research_orchestrator/route_planner.py
 src/research_orchestrator/schema_versions.py
 src/research_orchestrator/semantic_memory.py
 src/research_orchestrator/theorem_families.py

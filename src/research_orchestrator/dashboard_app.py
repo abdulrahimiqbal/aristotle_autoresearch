@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from research_orchestrator.dashboard_routes import build_dashboard_router
+from research_orchestrator.dashboard_project import build_project_router
 
 
 def create_dashboard_app(
@@ -16,4 +17,5 @@ def create_dashboard_app(
         "project_id": project_id,
     }
     app.include_router(build_dashboard_router(config))
+    app.include_router(build_project_router(config))
     return app
