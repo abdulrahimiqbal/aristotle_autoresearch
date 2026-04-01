@@ -8,25 +8,17 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Summary
 
-- Experiments: 23
+- Experiments: 25
 - Succeeded: 1
-- Stalled: 20
-- Failed: 0
-- Pending: 2
+- Stalled: 21
+- Failed: 3
+- Pending: 0
 
-## Campaign Health
+## Convergence
 
-- active=2 pending=2 running=2 completed=21 failed=0
-- structured ingestion success rate: 1.0
-- semantic reuse rate: 0.268
-- transfer usage rate: 0.476
-- reusable structure rate: 0.571
-- obstruction discovery rate: 0.667
-- high-priority frontier share: 0.5
-- repeated no-signal streak: 0
-- duplicate frontier pressure: 1
-- move-family diversity: frontier=2 completed=11
-- open incidents: 15
+- convergence score: 73.2%
+- trend: `stalled`
+- distance to proof: 16 open obligations, 16 critical path length
 
 ## Version Drift
 
@@ -76,7 +68,11 @@ Map the hidden dependency structures shared by open Erdos problems in graph Rams
 
 ## Recently completed
 
-- None yet.
+- `ee596b1f-3100-4f36-998a-bf7ca7346e51` on `erdos-123` -> `failed`
+- `420fc6f5-b5e8-45b3-a77b-379b12c6abdc` on `erdos-123` -> `stalled`
+- `997b8c14-54cd-44d3-b724-7b4397ebb34f` on `erdos-123` -> `failed`
+- `e6aeafa2-d8b7-4492-b6e3-757eecdb7bfb` on `erdos-123` -> `stalled`
+- `ab8dcd05-af04-4f0b-9155-59b46bea632e` on `erdos-123` -> `stalled`
 
 ## Recurring lemmas
 
@@ -432,7 +428,7 @@ the formalization infrastructure. -/` — reuse=2
 - recurring lemmas: 284 clusters
 - recurring subgoals: 1 clusters
 - recurring proof traces: 19 motifs
-- no-signal branches: none crossed the backoff threshold
+- no-signal branch `erdos-123` / `counterexample_mode` repeated 2 times
 
 ## What we learned
 
@@ -444,6 +440,7 @@ the formalization infrastructure. -/` — reuse=2
 - move `perturb_assumption` repeatedly yields blocker `unknown` / `partial` (5 runs)
 - move `promote_lemma` repeatedly yields blocker `unknown` / `partial` (4 runs)
 - move `reformulate` repeatedly yields blocker `unknown` / `partial` (4 runs)
+- move `counterexample_mode` repeatedly yields blocker `unknown` / `malformed` (2 runs)
 - counterexample witness motif `above (`powtripleset 2 2 2`) shows the coprimality hypotheses` appeared 1 times
 
 ## Assumption sensitivity
@@ -466,7 +463,7 @@ the formalization infrastructure. -/` — reuse=2
 - proof outcome: `partial`
 - blocker: `unknown`
 - external job id: `72d3ca62-8ac6-4088-9d37-1d9f45d71fa4`
-- external status: `COMPLETE`
+- external status: `killed`
 - objective: Fill in all sorries. Strip imports to expose hidden dependencies. Report intermediate lemmas or unresolved goals. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?
 - rationale: Minimal context is the safest first pass for exposing missing structure.
 - learned summary: remote_status=COMPLETE; verification_status=partial; theorem_status=partially_verified; blocker=unknown; proved=15; generated=9; subgoals=1
@@ -576,7 +573,7 @@ the formalization infrastructure. -/` — reuse=2
 - proof outcome: `partial`
 - blocker: `unknown`
 - external job id: `67636ee5-eb7b-461b-9fcd-0f9d100ddba0`
-- external status: `COMPLETE`
+- external status: `killed`
 - objective: Fill in all sorries. Mine a reusable invariant or monotonicity principle that explains the recurring signal 'unknown'. Discovery question: Which d-completeness boundary cases fail because interval-style coverage cannot be upgraded to a divisibility antichain, and what is the sharpest witness?
 - rationale: Recurring semantic signal 'unknown' suggests a hidden invariant worth isolating.
 - campaign priority: 1.75
@@ -873,7 +870,7 @@ The sorry here represents the core open mathematical co`
 - proof outcome: `partial`
 - blocker: `unknown`
 - external job id: `a554206b-b500-4e66-8e51-469b5ef6a2f1`
-- external status: `COMPLETE`
+- external status: `killed`
 - objective: Fill in all sorries. The assumption 'no chosen summand divides another' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Assumption 'no chosen summand divides another' has not yet been stress-tested under verification pressure.
 - learned summary: remote_status=COMPLETE; verification_status=partial; theorem_status=partially_verified; blocker=unknown; proved=18; generated=6; subgoals=4
@@ -1178,7 +1175,7 @@ The sorry here represents the core open mathematical co`
 - proof outcome: `partial`
 - blocker: `unknown`
 - external job id: `33d6bd02-cbb8-4418-97f5-4b6732939093`
-- external status: `COMPLETE`
+- external status: `killed`
 - objective: Fill in all sorries. The assumption 'summands are distinct' has been removed. Determine whether the proof still closes and report the blocker if not. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Assumption 'summands are distinct' has not yet been stress-tested under verification pressure.
 - learned summary: remote_status=COMPLETE; verification_status=partial; theorem_status=partially_verified; blocker=unknown; proved=16; generated=5; subgoals=1
@@ -1363,7 +1360,7 @@ The sorry here represents the core open mathematical co`
 - proof outcome: `partial`
 - blocker: `unknown`
 - external job id: `e40f70d0-7196-479d-a916-b6b75a8f67b4`
-- external status: `COMPLETE_WITH_ERRORS`
+- external status: `killed`
 - objective: Fill in all sorries. Reformulate the current conjecture using the transferable artifact 'special-case covering lemmas can often be transferred by isolating the divisibility obstruction' from additive number theory. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Reusable signal from erdos-44 suggests a cross-family transfer opportunity.
 - campaign priority: 1.5
@@ -1540,7 +1537,7 @@ The sorry here represents the core open mathematical co`
 - proof outcome: `partial`
 - blocker: `unknown`
 - external job id: `46b495cf-4123-4142-b310-90875d1ce7e9`
-- external status: `COMPLETE_WITH_ERRORS`
+- external status: `killed`
 - objective: Fill in all sorries. This is a reformulation as every sufficiently large integer has an antichain sum representation drawn from the triple-power semigroup. Determine whether this form is easier or harder to prove and report intermediate progress. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Equivalent form 'every sufficiently large integer has an antichain sum representation drawn from the triple-power semigroup' may expose different proof obligations.
 - campaign priority: 1.45
@@ -1666,7 +1663,7 @@ The sorry here represents the core open mathematical co`
 - proof outcome: `partial`
 - blocker: `unknown`
 - external job id: `e042be8c-9387-48a5-a2d0-1679e92f28ba`
-- external status: `COMPLETE_WITH_ERRORS`
+- external status: `killed`
 - objective: Fill in all sorries. This is a reformulation as the set {a^k b^l c^m : k, l, m >= 0} is d-complete. Determine whether this form is easier or harder to prove and report intermediate progress. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Equivalent form 'the set {a^k b^l c^m : k, l, m >= 0} is d-complete' may expose different proof obligations.
 - campaign priority: 1.45
@@ -1777,7 +1774,7 @@ The sorry here represents the core open mathematical co`
 - proof outcome: `partial`
 - blocker: `unknown`
 - external job id: `dff6daf1-8238-46bf-8cc8-bc7d91bf32bf`
-- external status: `COMPLETE_WITH_ERRORS`
+- external status: `killed`
 - objective: Fill in all sorries. Reformulate the conjecture around the extremal or boundary case suggested by 'erdos_123_d_complete_sequences:       PairwiseCoprime3 a b c →
       IsDComplete (PowTripleSet a b c) := by
   sorry'. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
@@ -1900,7 +1897,7 @@ The sorry here represents the core open mathematical co`
 - proof outcome: `partial`
 - blocker: `unknown`
 - external job id: `4cca2bac-93a0-44bb-8545-1f6f61e12bb6`
-- external status: `COMPLETE_WITH_ERRORS`
+- external status: `killed`
 - objective: Fill in all sorries. Minimize the witness or blocker around 'least uncovered large integer for a special parameter triple' to identify the sharp boundary case. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Campaign seed 'least uncovered large integer for a special parameter triple' should be sharpened into the smallest meaningful obstruction.
 - campaign priority: 1.55
@@ -2038,7 +2035,7 @@ The sorry here represents the core open mathematical co`
 - proof outcome: `partial`
 - blocker: `unknown`
 - external job id: `fbc0c3e4-4029-42be-94ad-693f511fe3a8`
-- external status: `COMPLETE_WITH_ERRORS`
+- external status: `killed`
 - objective: Fill in all sorries. Construct an adversarial witness that sharpens or refutes the blocker pattern 'unknown'. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Observed witness/blocker 'unknown' can be sharpened with a targeted adversarial run.
 - campaign priority: 1.65
@@ -2166,7 +2163,7 @@ The sorry here represents the core open mathematical co`
 - proof outcome: `partial`
 - blocker: `unknown`
 - external job id: `d8764bb9-5bdc-4529-b85f-5b429602eb1f`
-- external status: `COMPLETE`
+- external status: `killed`
 - objective: Fill in all sorries. Search for a counterexample or independence witness for the minimal variant. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: A targeted counterexample pass helps separate true obstruction from solver drift.
 - campaign priority: -0.85
@@ -2285,7 +2282,7 @@ The sorry here represents the core open mathematical co`
 - proof outcome: `partial`
 - blocker: `unknown`
 - external job id: `06c3fbef-db57-4499-a70c-a769df042a02`
-- external status: `COMPLETE_WITH_ERRORS`
+- external status: `killed`
 - objective: Fill in all sorries. Search for a counterexample or independence witness for the negated weakening. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: A targeted counterexample pass helps separate true obstruction from solver drift.
 - campaign priority: -0.85
@@ -2387,7 +2384,7 @@ The sorry here represents the core open mathematical co`
 - proof outcome: `partial`
 - blocker: `unknown`
 - external job id: `904598b4-a54c-4456-8f34-f206521f7dcc`
-- external status: `COMPLETE_WITH_ERRORS`
+- external status: `killed`
 - objective: Fill in all sorries. Search for a counterexample or independence witness for the parameter extreme. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: A targeted counterexample pass helps separate true obstruction from solver drift.
 - campaign priority: -0.85
@@ -2503,25 +2500,19 @@ The sorry here represents the core open mathematical co`
 - move family: `witness_minimization`
 - theorem family: `erdos_problem`
 - phase: `consolidation`
-- status: `in_progress`
+- status: `failed`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `0e58a7bb-49fb-4e7a-ad4b-95eba5384643`
-- external status: `IN_PROGRESS`
+- external status: `killed`
 - objective: Fill in all sorries. Minimize the witness or blocker around 'above (`PowTripleSet 2 2 2`) shows the coprimality hypotheses' to identify the sharp boundary case. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: Witness 'above (`PowTripleSet 2 2 2`) shows the coprimality hypotheses' should be minimized before treating it as a decisive obstruction.
 - campaign priority: 1.55
 - transfer score: 0.2625
-- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- learned summary: remote_status=EXPIRED; proof_outcome=unknown; blocker=unknown
 - new signal count: 0
 - reused signal count: 0
-- artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/997b8c14-54cd-44d3-b724-7b4397ebb34f/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/997b8c14-54cd-44d3-b724-7b4397ebb34f/aristotle_list_stdout.txt` (8836 bytes)
-- artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/997b8c14-54cd-44d3-b724-7b4397ebb34f/aristotle_list_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/997b8c14-54cd-44d3-b724-7b4397ebb34f/aristotle_list_stderr.txt`
-- notes: Aristotle job 0e58a7bb-49fb-4e7a-ad4b-95eba5384643 is still in progress.
+- notes: Experiment 997b8c14-54cd-44d3-b724-7b4397ebb34f (external_id=0e58a7bb-49fb-4e7a-ad4b-95eba5384643) exceeded the stale active timeout after 54730s without a fresh sync. Marking as failed for campaign recovery.
 
 ### bb2a0ac5-79ad-4a78-b2c5-629894e0e115
 
@@ -2627,27 +2618,63 @@ The sorry here represents the core open mathematical co`
 - move family: `legacy.counterexample_mode`
 - theorem family: `erdos_problem`
 - phase: `consolidation`
-- status: `in_progress`
+- status: `failed`
 - proof outcome: `unknown`
 - blocker: `unknown`
 - external job id: `9577994e-666b-438d-8d5c-4d498aeca251`
-- external status: `IN_PROGRESS`
+- external status: `EXPIRED`
 - objective: Fill in all sorries. Search for a counterexample or independence witness for the minimal variant. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
 - rationale: A targeted counterexample pass helps separate true obstruction from solver drift.
 - campaign priority: -0.85
-- learned summary: remote_status=IN_PROGRESS; verification_status=unknown; theorem_status=unresolved; blocker=unknown
+- learned summary: remote_status=EXPIRED; proof_outcome=unknown; blocker=unknown
+- new signal count: 0
+- reused signal count: 0
+- notes: Experiment 6804e070-3e39-4139-94ef-60653d908d2f (external_id=9577994e-666b-438d-8d5c-4d498aeca251) exceeded the stale active timeout after 53228s without a fresh sync. Marking as failed for campaign recovery.
+
+### 420fc6f5-b5e8-45b3-a77b-379b12c6abdc
+
+- move: `counterexample_mode`
+- move family: `witness_minimization`
+- phase: `discovery`
+- status: `stalled`
+- proof outcome: `malformed`
+- blocker: `unknown`
+- objective: Fill in all sorries. Minimize the witness or blocker around 'above (`PowTripleSet 2 2 2`) shows the coprimality hypotheses' to identify the sharp boundary case. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
+- rationale: Witness 'above (`PowTripleSet 2 2 2`) shows the coprimality hypotheses' should be minimized before treating it as a decisive obstruction.
+- campaign priority: 1.55
+- transfer score: 0.2625
+- learned summary: Outcome: malformed; Artifacts: 0 total
 - new signal count: 0
 - reused signal count: 0
 - artifact inventory:
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/6804e070-3e39-4139-94ef-60653d908d2f/aristotle_list_stderr.txt` (58 bytes)
-  - `txt` `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/6804e070-3e39-4139-94ef-60653d908d2f/aristotle_list_stdout.txt` (8836 bytes)
-- artifacts:
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/6804e070-3e39-4139-94ef-60653d908d2f/aristotle_list_stdout.txt`
-  - `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/work/6804e070-3e39-4139-94ef-60653d908d2f/aristotle_list_stderr.txt`
-- notes: Aristotle job 9577994e-666b-438d-8d5c-4d498aeca251 is still in progress.
+  - `result_summary` `summary` (0 bytes)
+- evaluation total: -0.08
+- notes: Witness minimization compressed the obstruction into a sharper boundary candidate.
+
+### ee596b1f-3100-4f36-998a-bf7ca7346e51
+
+- move: `counterexample_mode`
+- move family: `witness_minimization`
+- phase: `discovery`
+- status: `failed`
+- proof outcome: `malformed`
+- blocker: `unknown`
+- objective: Fill in all sorries. Minimize the witness or blocker around 'above (`PowTripleSet 2 2 2`) shows the coprimality hypotheses' to identify the sharp boundary case. Discovery question: Which solved or partially solved special cases transfer to broader triples once we reformulate the obstruction in the right way?
+- rationale: Witness 'above (`PowTripleSet 2 2 2`) shows the coprimality hypotheses' should be minimized before treating it as a decisive obstruction.
+- campaign priority: 1.55
+- transfer score: 0.2625
+- learned summary: Outcome: malformed; Artifacts: 0 total
+- new signal count: 0
+- reused signal count: 0
+- artifact inventory:
+  - `result_summary` `summary` (0 bytes)
+- evaluation total: -0.18
+- notes: The variant appears malformed under the current assumptions.
 
 ## Incidents
 
+- `warning` `stale_active_timeout`: Experiment 6804e070-3e39-4139-94ef-60653d908d2f (external_id=9577994e-666b-438d-8d5c-4d498aeca251) exceeded the stale active timeout after 53228s without a fresh sync. Marking as failed for campaign recovery.
+- `warning` `stale_active_timeout`: Experiment 997b8c14-54cd-44d3-b724-7b4397ebb34f (external_id=0e58a7bb-49fb-4e7a-ad4b-95eba5384643) exceeded the stale active timeout after 54730s without a fresh sync. Marking as failed for campaign recovery.
 - `warning` `repeated_provider_failures`: Provider-side failures reached 21 in recent completed experiments.
 - `warning` `retry_budget_exhausted`: Experiment 997b8c14-54cd-44d3-b724-7b4397ebb34f reached retry budget (8 attempts).
 - `warning` `retry_budget_exhausted`: Experiment e6aeafa2-d8b7-4492-b6e3-757eecdb7bfb reached retry budget (9 attempts).
@@ -2656,42 +2683,48 @@ The sorry here represents the core open mathematical co`
 - `warning` `retry_budget_exhausted`: Experiment 5646d012-e09a-4f34-9968-cf102ffacf97 reached retry budget (17 attempts).
 - `warning` `retry_budget_exhausted`: Experiment dd1125b5-8d98-43f7-ae5b-4d8334b53522 reached retry budget (21 attempts).
 - `warning` `retry_budget_exhausted`: Experiment 2af6662f-930d-4743-b852-8aef0ed7417a reached retry budget (13 attempts).
-- `warning` `retry_budget_exhausted`: Experiment 9ba22b23-e3fe-4bc2-95f5-268b1add4af8 reached retry budget (13 attempts).
-- `warning` `retry_budget_exhausted`: Experiment 9365a70a-ddf8-4d4d-9bcc-ee3e0228b7b0 reached retry budget (25 attempts).
 
 ## Audit Trail
 
+- `experiment_finalized` at `2026-04-01T14:34:55.932567+00:00`
+- `result_ingested` at `2026-04-01T14:34:55.930340+00:00`
+- `experiment_finalized` at `2026-04-01T14:34:55.677054+00:00`
+- `result_ingested` at `2026-04-01T14:34:55.674614+00:00`
 - `experiment_finalized` at `2026-03-31T23:05:34.304743+00:00`
 - `result_ingested` at `2026-03-31T23:05:34.289451+00:00`
 - `experiment_finalized` at `2026-03-31T22:38:14.727021+00:00`
 - `result_ingested` at `2026-03-31T22:38:14.695731+00:00`
 - `experiment_finalized` at `2026-03-31T22:38:12.749321+00:00`
 - `result_ingested` at `2026-03-31T22:38:12.730666+00:00`
-- `experiment_finalized` at `2026-03-31T21:06:17.828565+00:00`
-- `result_ingested` at `2026-03-31T21:06:17.810654+00:00`
-- `experiment_finalized` at `2026-03-31T20:27:08.898655+00:00`
-- `result_ingested` at `2026-03-31T20:27:08.869886+00:00`
 
 ## Control Plane Status
 
-- Control plane projections not yet initialized. Run `db-refresh-projections` to populate.
+- manager status: `running`
+- last event: `2026-04-01T14:34:55.932479+00:00`
+- last projection: `2026-04-01T14:34:55.932790+00:00`
+- top routes:
+  - `erdos-123::motif:witness_minimization:{"mode": "minimize", "witness_target": "above (`PowTripleSet 2 2 2`) shows the coprimality hypotheses"}` status=`active` strength=53.7681 velocity=36.517
+  - `erdos-123::base` status=`active` strength=53.7681 velocity=36.517
+  - `erdos-123::motif:legacy.counterexample_mode:{"attempt": 9, "target": "negated_weakening"}` status=`active` strength=51.4533 velocity=36.517
 
 ## Latest manager decision
 
 - policy path: `fallback`
-- policy candidate audits: 2
+- policy candidate audits: 4
 - jobs synced: 0
-- jobs submitted: 0
+- jobs submitted: 2
 - active before: 0
 - active after: 0
 - report path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.md`
 - snapshot path: `/home/runner/work/aristotle_autoresearch/aristotle_autoresearch/outputs/erdos_123_live_async/report.manager_snapshot.json`
 - recurring structures considered: lemmas=10, subgoals=1, traces=10
-- considered `ee5e4e7d-8f6d-41ca-a494-290ff230ff22` rank=1 score=25.473
-- considered `0a6f596d-f798-415c-a333-0088eb778b33` rank=2 score=22.7133
-- skipped `ee5e4e7d-8f6d-41ca-a494-290ff230ff22` for `erdos-123` (duplicate active experiment signature)
-- skipped `0a6f596d-f798-415c-a333-0088eb778b33` for `erdos-123` (conjecture active cap reached)
+- queued `420fc6f5-b5e8-45b3-a77b-379b12c6abdc` for `erdos-123` via `counterexample_mode` / `witness_minimization` (chosen by deterministic policy; move_family=witness_minimization; scoring_factors=[transfer=0.29, reuse=1.22, novelty=1.28, velocity=42.25]; policy_score=28.15)
+- queued `ee596b1f-3100-4f36-998a-bf7ca7346e51` for `erdos-123` via `counterexample_mode` / `witness_minimization` (chosen by deterministic policy; move_family=witness_minimization; scoring_factors=[transfer=0.29, reuse=1.22, novelty=1.28, velocity=42.25]; policy_score=28.15)
+- selected `420fc6f5-b5e8-45b3-a77b-379b12c6abdc` rank=1 score=25.6509
+- selected `ee596b1f-3100-4f36-998a-bf7ca7346e51` rank=2 score=25.6509
+- considered `17f66baa-95de-4028-9471-52be74358756` rank=3 score=17.8911
+- considered `15eea82c-a6da-4e55-85fa-da507bf5739e` rank=4 score=17.8911
 
 ## Suggested next move
 
-- Promote the top recurring lemma into a standalone theorem if not already tested.
+- Let the queued jobs advance, then run another manager tick to sync results and refill capacity.
