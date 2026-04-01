@@ -22,20 +22,48 @@ It does **not** try to replace Aristotle. Instead, it adds the missing layers yo
 - A demo command that runs a full mini research cycle
 - Unit tests for the orchestration core
 
-## LLM Synthesis (Creative Research Partner)
+## LLM Synthesis & Gatekeeper (Deep Reasoning)
 
-The system can leverage Kimi K2.5 as a **creative research partner** that synthesizes verified discoveries and proposes new experiments and conjectures. This is not just an advisor for ranking candidates—it actively generates new research directions based on patterns found in Aristotle's 100% verified data.
+The system can leverage Kimi K2.5 as both a **gatekeeper** and a **creative research partner**. When enabled, **no experiment is submitted to Aristotle unless the LLM has deeply reasoned through it first**.
 
-### How it works
-1. The system gathers all verified discoveries (recurring lemmas, subgoals, proof traces, assumption boundaries)
-2. The LLM synthesizes these patterns to identify gaps and propose 2-3 novel experiment directions
-3. Each LLM-synthesized candidate includes:
-   - Synthesis rationale explaining the pattern connection
-   - Suggested move and target conjecture
-   - Novelty claim and expected verification outcome
-4. These candidates enter the frontier alongside heuristic candidates, marked with 🧠 in the dashboard
+### Two Modes of LLM Assistance
 
-### Enable LLM synthesis
+| Mode | Badge | Purpose |
+|------|-------|---------|
+| **Gatekeeper Review** | 🧠 LLM Deeply Reasoned | Every candidate is reviewed before submission |
+| **Synthesis** | ✨ LLM Synthesized | New conjectures created from verified patterns |
+
+### The Gatekeeper Mechanism
+
+When `RESEARCH_ORCHESTRATOR_LLM_SYNTHESIS=true`:
+
+1. **Generate Frontier** → Heuristic candidates created by the system
+2. **LLM Review** → Top 15 candidates presented to LLM with full context:
+   - Verified discoveries (100% mathematically true)
+   - Charter objectives
+   - Expected signals and risks
+3. **Deep Reasoning** → LLM provides for each candidate:
+   - `epistemic_score`: 0.0-1.0 (confidence in value)
+   - `strategic_priority`: high/medium/low
+   - `llm_reasoning`: Detailed strategic assessment
+   - `risk_assessment`: What could go wrong
+   - `connection_to_verified`: How it builds on known truths
+4. **Gatekeeper Decision** → `llm_reasoned: true/false`
+5. **Only Approved Submitted** → Rejected candidates are **dropped**, never sent to Aristotle
+
+### The Synthesis Mechanism
+
+The LLM also acts as a creative partner:
+
+1. **Gather Verified Discoveries** → Recurring lemmas, subgoals, proof traces, no-signal patterns
+2. **Synthesize Patterns** → LLM identifies gaps and connections
+3. **Propose New Conjectures** → 2-3 novel experiment directions with:
+   - `synthesis_observation`: Pattern noticed across verified results
+   - `novelty`: What's new vs existing approaches
+   - `expected_verification`: Clear criteria for confirmation
+4. **Pre-approved** → Synthesized candidates automatically pass gatekeeper review
+
+### Enable LLM Synthesis
 
 ```bash
 # Option 1: Environment variable
@@ -46,14 +74,34 @@ cp .env.example .env
 # Edit .env and set RESEARCH_ORCHESTRATOR_LLM_SYNTHESIS=true
 ```
 
-When enabled, you'll see experiments with the 🧠 badge in the dashboard, showing how verified discoveries led to new conjectures.
+### Dashboard Indicators
 
-### The epistemic separation
-- **Aristotle = Truth**: 100% mathematically verified data
-- **LLM = Creativity**: Generates hypotheses grounded in verified patterns
-- **Verification via Discovery**: LLM conjectures are validated by Aristotle before acceptance
+When LLM synthesis is enabled, the dashboard shows:
 
-This maintains the ethos of the repo: mathematical truth comes from verification, but LLM-driven creativity accelerates discovery.
+- **Green Badge (🧠 LLM Deeply Reasoned)**: Candidate passed gatekeeper review
+  - Epistemic score (0.0-1.0)
+  - Strategic reasoning text
+  - Priority level (high/medium/low)
+
+- **Purple Badge (✨ LLM Synthesized)**: Candidate created by LLM synthesis
+  - Synthesis observation
+  - Novelty claim
+
+### The Epistemic Separation
+
+| Component | Role | Confidence |
+|-----------|------|------------|
+| **Aristotle** | Mathematical verification | 100% (ground truth) |
+| **LLM Gatekeeper** | Strategic reasoning, risk assessment | Heuristic (filters candidates) |
+| **LLM Synthesis** | Creative hypothesis generation | Heuristic (proposes new directions) |
+
+This maintains the ethos: mathematical truth comes from Aristotle verification, but LLM-driven reasoning ensures only high-quality candidates are submitted, and LLM creativity accelerates discovery by proposing novel directions grounded in verified patterns.
+
+### Events Emitted
+
+When gatekeeper is active:
+- `llm.gatekeeper.reviewed` — Stats on reviewed candidates, epistemic scores, approval counts
+- `llm.synthesis.generated` — New conjectures proposed by LLM synthesis
 
 ## What is mocked vs live
 
@@ -103,6 +151,106 @@ Open:
 ```bash
 ./demo_run/report.md
 ```
+
+## Starting a New Experiment
+
+There are three ways to start experiments, depending on your workflow needs:
+
+### Method A: Single-Prompt Campaign (Recommended for New Research)
+
+Best when you have a research idea but no formal conjecture yet. The system will:
+- Generate a campaign spec from your prompt
+- Create an initial conjecture
+- Seed discovery questions
+- Start autonomous experimentation
+
+```bash
+# Step 1: Start from a natural language prompt
+research-orchestrator start-campaign \
+  --db ./state.sqlite \
+  --prompt "Study the hidden structure behind weighted monotone subsequence thresholds and discover which assumptions are truly necessary through formal verification."
+
+# This outputs a project ID (e.g., campaign-map-hidden-lemmas-xxx)
+
+# Step 2: Run autonomous cycles
+research-orchestrator run-cycle \
+  --db ./state.sqlite \
+  --project <project-id> \
+  --provider mock \
+  --workspace ./work \
+  --max-cycles 4
+
+# Step 3: View the dashboard
+research-orchestrator dashboard \
+  --db ./state.sqlite \
+  --project <project-id> \
+  --port 8000
+```
+
+### Method B: Manual Project Initialization (For Structured Conjectures)
+
+Best when you have a formal conjecture defined in a JSON file.
+
+```bash
+# Step 1: Create project charter and conjecture JSON files
+# See examples/ for templates
+
+# Step 2: Initialize the project
+research-orchestrator init-project \
+  --db ./state.sqlite \
+  --charter ./examples/project_charter.json \
+  --conjecture ./examples/conjectures/weighted_monotone.json
+
+# Step 3: Run cycles
+research-orchestrator run-cycle \
+  --db ./state.sqlite \
+  --project mono-001 \
+  --provider mock \
+  --workspace ./work \
+  --max-cycles 5
+```
+
+### Method C: Direct Experiment Submission (For Specific Moves)
+
+Best when you want to test a specific move on a specific conjecture.
+
+```bash
+# After initializing a project, use the manager-tick for direct control
+research-orchestrator manager-tick \
+  --db ./state.sqlite \
+  --project <project-id> \
+  --provider mock \
+  --workspace ./work \
+  --max-active 3 \
+  --max-submit 2
+```
+
+### Workflow Comparison
+
+| Workflow | Best For | Setup | Flexibility |
+|----------|----------|-------|-------------|
+| **Single-Prompt** | New research, exploration | One command | High - system generates everything |
+| **Manual Init** | Known conjectures, structured campaigns | JSON files | Medium - you define structure |
+| **Direct Tick** | Testing, debugging, specific moves | Existing project | Low - precise control |
+
+### With LLM Synthesis Enabled
+
+When `RESEARCH_ORCHESTRATOR_LLM_SYNTHESIS=true`, the workflow is the same, but:
+
+1. **Candidates are reviewed by LLM before submission**
+   - Each candidate gets an epistemic score
+   - Only approved candidates go to Aristotle
+   - Dashboard shows 🧠 LLM Deeply Reasoned badge
+
+2. **LLM may propose new conjectures**
+   - Synthesized from verified discoveries
+   - Dashboard shows ✨ LLM Synthesized badge
+
+3. **Manager events include gatekeeper stats**
+   ```bash
+   # Check LLM gatekeeper activity
+   sqlite3 ./state.sqlite "SELECT event_type, payload_json FROM manager_events WHERE event_type LIKE 'llm.%' ORDER BY sequence_no DESC LIMIT 10"
+   ```
 
 ## Single-prompt campaign workflow
 
