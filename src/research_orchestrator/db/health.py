@@ -192,125 +192,140 @@ class DatabaseHealthMixin:
             "mismatches": drifts,
         }
 
-    def campaign_health(
+    def convergence_metrics(
         self, project_id: str, frontier: Optional[List[Dict[str, Any]]] = None
     ) -> Dict[str, Any]:
-        """Calculate comprehensive campaign health metrics."""
+        """Calculate convergence metrics that measure progress toward proof.
+
+        Returns metrics focused on epistemic progress rather than activity counts.
+        """
+        from research_orchestrator.db.utils import utcnow
+
         summary = self.project_summary(project_id)
         completed = self.list_completed_experiments(project_id)
-        active = self.list_active_experiments(project_id)
-        incidents = self.list_incidents(project_id, status="open")
+        experiments = self.list_experiments(project_id)
+        discovery_nodes = self.list_discovery_nodes(project_id)
+        discovery_edges = self.list_discovery_edges(project_id)
+        bridge_hypotheses = self.list_bridge_hypotheses(project_id)
+
+        # Get obligation data from experiments
+        proved_lemmas = set()
+        total_obligations = 0
+        resolved_obligations = 0
+        recent_proofs = 0
+        recent_window_hours = 24
+
+        for exp in completed:
+            outcome = exp.get("outcome", {})
+            provider_result = outcome.get("provider_result", {})
+            for lemma in provider_result.get("proved_lemmas", []):
+                proved_lemmas.add(lemma)
+
+        # Count obligations from unresolved goals across experiments
+        open_obligations = set()
+        for exp in experiments:
+            outcome = exp.get("outcome", {})
+            provider_result = outcome.get("provider_result", {})
+            for goal in provider_result.get("unresolved_goals", []):
+                open_obligations.add(goal)
+                total_obligations += 1
+            for blocked in provider_result.get("blocked_on", []):
+                open_obligations.add(blocked)
+
+        resolved_obligations = len(proved_lemmas)
+        total_obligations = max(len(open_obligations) + resolved_obligations, 1)
+        obligation_resolution_rate = resolved_obligations / total_obligations
+
+        # Knowledge graph density
+        node_count = len(discovery_nodes)
+        edge_count = len(discovery_edges)
+        knowledge_graph_density = edge_count / max(node_count, 1)
+
+        # Calculate proof velocity (proved lemmas per hour from recent completions)
+        now = utcnow()
+        recent_proofs_count = 0
+        recent_completion_count = 0
+        for exp in completed:
+            completed_at = exp.get("completed_at")
+            if completed_at:
+                try:
+                    from datetime import datetime
+                    if isinstance(completed_at, str):
+                        completed_time = datetime.fromisoformat(completed_at.replace('Z', '+00:00'))
+                    else:
+                        completed_time = completed_at
+                    hours_ago = (now - completed_time).total_seconds() / 3600
+                    if hours_ago <= recent_window_hours:
+                        recent_completion_count += 1
+                        outcome = exp.get("outcome", {})
+                        provider_result = outcome.get("provider_result", {})
+                        recent_proofs_count += len(provider_result.get("proved_lemmas", []))
+                except (ValueError, TypeError):
+                    pass
+
+        proof_velocity = recent_proofs_count / max(recent_window_hours, 1)
+
+        # Obligation closure rate (resolved per total)
+        obligation_closure_rate = obligation_resolution_rate
+
+        # Critical path length estimation (longest chain of dependent obligations)
+        critical_path_length = len(open_obligations)
+
+        # Estimated remaining work (rough heuristic based on open obligations)
+        estimated_remaining_work = len(open_obligations)
+
+        # Calculate convergence score (0-1, higher = closer to proof)
+        # Components:
+        # 1. Proved lemmas ratio (30% weight)
+        # 2. Obligation resolution rate (30% weight)
+        # 3. Proof velocity factor (20% weight)
+        # 4. Critical path progress (20% weight)
+
+        proved_ratio = len(proved_lemmas) / max(total_obligations, 1)
+        velocity_factor = min(proof_velocity / 0.5, 1.0)  # Normalize: 0.5/hr = full score
+        critical_path_progress = resolved_obligations / max(resolved_obligations + critical_path_length, 1)
+
+        convergence_score = (
+            0.3 * proved_ratio +
+            0.3 * obligation_resolution_rate +
+            0.2 * velocity_factor +
+            0.2 * critical_path_progress
+        )
+
+        # Determine trend by comparing recent progress to historical average
         total_completed = len(completed)
-        structured_successes = sum(
-            1
-            for item in completed
-            if item.get("ingestion", {}).get("verification_record")
-        )
-        total_new = sum(item.get("new_signal_count") or 0 for item in completed)
-        total_reused = sum(item.get("reused_signal_count") or 0 for item in completed)
-        transfer_runs = sum(
-            1
-            for item in completed
-            if item.get("move_family") == "transfer_reformulation"
-            or (item.get("candidate_metadata", {}).get("transfer_score") or 0) > 0
-        )
-        frontier = frontier or []
-        reusable_structure_runs = sum(
-            1
-            for item in completed
-            if (item.get("candidate_metadata", {}).get("reuse_potential") or 0) >= 1.0
-            or item.get("move_family")
-            in {"legacy.promote_lemma", "decompose_subclaim", "invariant_mining"}
-        )
-        obstruction_runs = sum(
-            1
-            for item in completed
-            if (item.get("candidate_metadata", {}).get("obstruction_targeting") or 0) >= 1.0
-            or item.get("move_family")
-            in {"extremal_case", "adversarial_counterexample", "witness_minimization"}
-        )
-        high_priority_frontier = sum(
-            1 for item in frontier if (item.get("campaign_priority") or 0) > 0
-        )
-        move_families = {item.get("move_family", item["move"]) for item in completed}
-        duplicate_pressure = sum(
-            1 for item in frontier if item.get("duplicate_active_signature")
-        )
-        frontier_move_families = {item.get("move_family", item["move"]) for item in frontier}
-        incident_by_type: Dict[str, int] = {}
-        incident_by_severity: Dict[str, int] = {}
-        for incident in incidents:
-            incident_by_type[incident["incident_type"]] = incident_by_type.get(
-                incident["incident_type"], 0
-            ) + 1
-            incident_by_severity[incident["severity"]] = incident_by_severity.get(
-                incident["severity"], 0
-            ) + 1
-        no_signal = self.no_signal_branches(project_id)
-        max_no_signal_streak = max((item["observations"] for item in no_signal), default=0)
-        stuck_runs = self.detect_stuck_runs(
-            project_id,
-            stale_run_timeout_seconds=6 * 3600,
-            stuck_run_timeout_seconds=2 * 3600,
-        )
-        spec = self.get_campaign_spec(project_id)
-        retry_exhausted = [
-            item["experiment_id"]
-            for item in self.list_experiments(project_id)
-            if (item.get("attempt_count") or 0)
-            >= spec.budget_policy.max_attempts_per_experiment
-        ] if spec is not None else []
+        historical_rate = resolved_obligations / max(total_completed, 1) if total_completed > 0 else 0
+        recent_rate = recent_proofs_count / max(recent_completion_count, 1) if recent_completion_count > 0 else 0
+
+        if recent_completion_count == 0:
+            trend = "stalled"
+        elif recent_rate > historical_rate * 1.2:
+            trend = "improving"
+        elif recent_rate < historical_rate * 0.8:
+            trend = "declining"
+        else:
+            trend = "stable"
 
         return {
             "project_id": project_id,
-            "counts": {
-                "active": len(active),
-                "pending": summary.get("pending", 0),
-                "running": sum(1 for item in active if item["status"] == "in_progress"),
-                "completed": total_completed,
-                "failed": summary.get("failed", 0),
-                "succeeded": summary.get("solved", 0),
-                "stalled": summary.get("stalled", 0),
+            "convergence_score": round(convergence_score, 3),
+            "epistemic_progress": {
+                "proved_lemma_count": len(proved_lemmas),
+                "obligation_resolution_rate": round(obligation_resolution_rate, 3),
+                "knowledge_graph_density": round(knowledge_graph_density, 3),
             },
-            "incidents": {
-                "open_total": len(incidents),
-                "by_type": incident_by_type,
-                "by_severity": incident_by_severity,
+            "trend": trend,
+            "distance_to_proof": {
+                "open_obligations_count": len(open_obligations),
+                "critical_path_length": critical_path_length,
+                "estimated_remaining_work": estimated_remaining_work,
             },
-            "signals": {
-                "repeated_no_signal_streak": max_no_signal_streak,
-                "duplicate_frontier_pressure": duplicate_pressure,
-                "structured_ingestion_success_rate": round(
-                    structured_successes / total_completed, 3
-                )
-                if total_completed
-                else 0.0,
-                "semantic_reuse_rate": round(
-                    total_reused / max(1, total_reused + total_new), 3
-                ),
-                "transfer_usage_rate": round(transfer_runs / total_completed, 3)
-                if total_completed
-                else 0.0,
-                "reusable_structure_rate": round(reusable_structure_runs / total_completed, 3)
-                if total_completed
-                else 0.0,
-                "obstruction_discovery_rate": round(obstruction_runs / total_completed, 3)
-                if total_completed
-                else 0.0,
-                "high_priority_frontier_share": round(
-                    high_priority_frontier / max(1, len(frontier)), 3
-                )
-                if frontier
-                else 0.0,
-                "candidate_move_family_diversity": len(frontier_move_families),
-                "completed_move_family_diversity": len(move_families),
+            "key_indicators": {
+                "proof_velocity": round(proof_velocity, 3),
+                "obligation_closure_rate": round(obligation_closure_rate, 3),
+                "bridge_hypothesis_count": len(bridge_hypotheses),
             },
-            "runtime_controls": {
-                "stuck_runs": stuck_runs,
-                "retry_exhausted": retry_exhausted,
-            },
-            "no_signal_branches": no_signal,
-            "version_drift": self.version_drift_summary(project_id),
+            "snapshot_at": now.isoformat(),
         }
 
     def project_summary(self, project_id: str) -> Dict[str, Any]:

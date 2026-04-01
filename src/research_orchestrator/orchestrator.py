@@ -8,6 +8,7 @@ from research_orchestrator.db import Database
 from research_orchestrator.evaluator import score_result
 from research_orchestrator.manager import choose_next_experiment, generate_frontier
 from research_orchestrator.manager import choose_candidates_for_submission
+from research_orchestrator.manager import build_research_directive, materialize_from_directive
 from research_orchestrator.prompt_linter import lint_manager_prompt, lint_worker_prompt
 from research_orchestrator.prompts import build_worker_prompt
 from research_orchestrator.provider_registry import get_provider
@@ -15,6 +16,7 @@ from research_orchestrator.result_ingestion import (
     build_verification_signals,
     prepare_ingested_result,
     save_proved_lemmas_to_ledger,
+    extract_obligations_from_result,
 )
 from research_orchestrator.live_projections import refresh_live_projections
 from research_orchestrator.types import ExperimentBrief
@@ -218,6 +220,14 @@ def _finalize_result(
     )
     # Save proved lemmas to the cumulative proof ledger
     save_proved_lemmas_to_ledger(
+        db=db,
+        project_id=project_id,
+        conjecture_id=brief.conjecture_id,
+        experiment_id=brief.experiment_id,
+        result=result,
+    )
+    # Extract proof obligations from incomplete results
+    extract_obligations_from_result(
         db=db,
         project_id=project_id,
         conjecture_id=brief.conjecture_id,
@@ -600,6 +610,13 @@ def manager_tick(
     report_output: str | Path,
     snapshot_output: str | Path,
 ) -> Dict[str, object]:
+    """Execute a manager tick using directive-based decision making.
+
+    Simplified flow:
+    1. Build directive from current state
+    2. Materialize experiments from directive
+    3. Submit them
+    """
     import uuid
 
     run_id = str(uuid.uuid4())
@@ -607,6 +624,7 @@ def manager_tick(
     spec = db.get_campaign_spec(project_id)
     runtime_policy = spec.runtime_policy if spec is not None else None
     budget_policy = spec.budget_policy if spec is not None else None
+
     db.emit_manager_event(
         project_id=project_id,
         run_id=run_id,
@@ -618,6 +636,8 @@ def manager_tick(
             "max_submit_per_tick": max_submit_per_tick,
         },
     )
+
+    # Housekeeping: expire stale experiments, sync results, escalate incidents
     expired_stale = db.expire_stale_active_experiments(
         project_id,
         max_age_seconds=runtime_policy.stale_run_timeout_seconds if runtime_policy is not None else getattr(provider, "STALE_PROGRESS_TIMEOUT_SECONDS", 6 * 3600),
@@ -633,27 +653,65 @@ def manager_tick(
         max_attempts_per_experiment=budget_policy.max_attempts_per_experiment if budget_policy is not None else 6,
     )
     command_state = _apply_operator_commands(db, project_id, run_id)
+
     active_now = db.count_active_experiments(project_id, provider=provider.name)
     capacity_remaining = max(0, max_active - active_now)
     requested_submissions = min(capacity_remaining, max_submit_per_tick)
 
+    # === DIRECTIVE-BASED DECISION MAKING ===
+    # Step 1: Generate frontier and build directive from current state
     frontier = generate_frontier(db, project_id, workspace_root)
+
+    # Build runtime context for directive
+    from research_orchestrator.manager import _runtime_context
+    runtime = _runtime_context(db, project_id)
+
+    # Build the research directive
+    directive = build_research_directive(db, project_id, frontier, runtime)
+
     db.emit_manager_event(
         project_id=project_id,
         run_id=run_id,
-        event_type="frontier.generated",
+        event_type="directive.built",
         source_component="manager",
         payload={
+            "directive_id": directive.directive_id,
+            "strategy": directive.strategy,
+            "focus_conjectures": directive.focus_conjecture_ids,
+            "priority_moves": directive.priority_moves,
+            "rationale": directive.rationale,
             "frontier_count": len(frontier),
         },
     )
+
+    # Step 2: Materialize experiments from directive
+    directive_candidates = materialize_from_directive(db, directive, workspace_root)
+
+    # Merge directive candidates with frontier for maximum coverage
+    combined_frontier = directive_candidates + [f for f in frontier if f["experiment_id"] not in {c["experiment_id"] for c in directive_candidates}]
+
+    db.emit_manager_event(
+        project_id=project_id,
+        run_id=run_id,
+        event_type="experiments.materialized",
+        source_component="manager",
+        payload={
+            "directive_candidates": len(directive_candidates),
+            "combined_frontier": len(combined_frontier),
+        },
+    )
+
+    # Step 3: Use policy to select candidates for submission
     policy = choose_candidates_for_submission(
         db=db,
         project_id=project_id,
-        frontier=frontier,
+        frontier=combined_frontier,
         max_count=requested_submissions,
         llm_manager_mode=llm_manager_mode,
+        workspace_root=workspace_root,  # Enable directive-based generation as fallback
     )
+
+    # Apply pause policies
     if runtime_policy is not None and runtime_policy.pause_on_incident:
         open_errors = [item for item in db.list_incidents(project_id, status="open") if item["severity"] == "error"]
         if open_errors:
@@ -675,6 +733,7 @@ def manager_tick(
             }
         )
 
+    # Emit policy events
     submissions = []
     for audit in policy.candidate_audits[:20]:
         db.emit_manager_event(
@@ -701,42 +760,11 @@ def manager_tick(
                 "reason": skipped.get("reason", ""),
             },
         )
-    db.emit_manager_event(
-        project_id=project_id,
-        run_id=run_id,
-        event_type="policy.prompt.created",
-        source_component="policy",
-        payload={
-            "policy_path": policy.policy_path,
-            "prompt": policy.manager_prompt,
-        },
-    )
-    if policy.raw_response:
-        db.emit_manager_event(
-            project_id=project_id,
-            run_id=run_id,
-            event_type="policy.response.received",
-            source_component="policy",
-            payload={"raw_response": policy.raw_response},
-        )
-        db.emit_manager_event(
-            project_id=project_id,
-            run_id=run_id,
-            event_type="policy.response.parsed",
-            source_component="policy",
-            payload={"rationale": policy.rationale},
-        )
-    if policy.policy_path == "fallback":
-        db.emit_manager_event(
-            project_id=project_id,
-            run_id=run_id,
-            event_type="policy.fallback.used",
-            source_component="policy",
-            payload={"rationale": policy.rationale},
-        )
+
+    # Submit chosen experiments
     for decision in policy.chosen[:requested_submissions]:
         candidate = next(
-            item for item in frontier if item["experiment_id"] == decision.experiment_id
+            item for item in combined_frontier if item["experiment_id"] == decision.experiment_id
         )
         db.emit_manager_event(
             project_id=project_id,

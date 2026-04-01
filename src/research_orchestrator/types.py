@@ -106,6 +106,29 @@ class CampaignSpec:
 
 
 @dataclass
+class ResearchDirective:
+    """A directive issued by the manager to guide the research direction.
+
+    The directive captures the manager's strategic decision about what to focus on,
+    which conjectures to prioritize, what strategies to employ, and how many
+    experiments to run. It serves as a declarative instruction that can be
+    materialized into concrete experiment candidates.
+    """
+
+    project_id: str
+    directive_id: str
+    created_at: str
+    focus_conjecture_ids: List[str]  # which conjectures to focus on
+    strategy: str  # e.g., "explore", "exploit", "bridge", "blocker_resolution"
+    priority_moves: List[str]  # which move families to prioritize
+    target_obligation_ids: List[str] = field(default_factory=list)  # specific obligations to target
+    max_parallel_experiments: int = 3
+    exploration_budget: int = 5  # number of experiments to run
+    constraints: Dict[str, Any] = field(default_factory=dict)  # flexible constraints dict
+    rationale: str = ""  # why this directive was issued
+
+
+@dataclass
 class Conjecture:
     conjecture_id: str
     project_id: str

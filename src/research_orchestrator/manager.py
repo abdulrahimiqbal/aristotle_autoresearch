@@ -5,12 +5,16 @@ import shutil
 from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Tuple
 
+from datetime import datetime
+import uuid
+
 from research_orchestrator.db import Database
 from research_orchestrator.experiment_generator import generate_move_candidates, materialize_candidate
 from research_orchestrator.llm_manager import build_campaign_brief, render_campaign_brief
 from research_orchestrator.schema_versions import MANAGER_POLICY_VERSION
 from research_orchestrator.move_registry import MoveCandidate
 from research_orchestrator.prompts import build_manager_prompt, build_project_constitution
+from research_orchestrator.types import ResearchDirective
 
 
 MOVE_PRIORITY = {
@@ -159,6 +163,244 @@ def _runtime_context(db: Database, project_id: str) -> Dict[str, Any]:
     }
 
 
+def build_research_directive(
+    db: Database,
+    project_id: str,
+    frontier: List[Dict[str, Any]],
+    runtime: Dict[str, Any],
+) -> ResearchDirective:
+    """Build a research directive from the current state.
+
+    Analyzes the frontier, active experiments, and campaign state to determine
+    the optimal research strategy and focus areas for the next cycle.
+
+    Consults search coverage to avoid redundant searches and use negative
+    knowledge to inform strategy.
+    """
+    conjectures = runtime["conjectures"]
+    experiments = runtime["experiments"]
+    charter = runtime["charter"]
+
+    # Get active experiment counts per conjecture
+    active_counts = _counts_by_conjecture(conjectures, db.list_active_experiments(project_id))
+
+    # Determine which conjectures need attention
+    focus_conjecture_ids: List[str] = []
+    for conjecture in conjectures:
+        cid = conjecture.conjecture_id
+        exp_count = runtime["counts"].get(cid, 0)
+        active_count = active_counts.get(cid, 0)
+
+        # Prioritize conjectures with fewer experiments and no active runs
+        if exp_count < 3 and active_count == 0:
+            focus_conjecture_ids.append(cid)
+
+    # If no under-explored conjectures, focus on all of them
+    if not focus_conjecture_ids:
+        focus_conjecture_ids = [c.conjecture_id for c in conjectures]
+
+    # Determine strategy based on frontier characteristics
+    strategy = "explore"
+    if frontier:
+        # Check if we have high-signal candidates to exploit
+        high_signal_count = sum(
+            1 for f in frontier
+            if f.get("recent_signal_velocity", 0) > 1.0 or f.get("dominant_motif_bonus", 0) > 0
+        )
+        if high_signal_count >= 2:
+            strategy = "exploit"
+
+        # Check for bridge opportunities (transfer opportunities)
+        bridge_count = sum(1 for f in frontier if f.get("transfer_opportunity", 0) > 0.5)
+        if bridge_count >= 2:
+            strategy = "bridge"
+
+        # Check for blocker resolution opportunities
+        blocker_count = sum(1 for f in frontier if f.get("blocker_support", 0) > 0)
+        if blocker_count >= 3 and high_signal_count < 2:
+            strategy = "blocker_resolution"
+
+    # Consult search coverage to inform strategy and avoid redundant work
+    negative_knowledge = db.get_negative_knowledge(project_id)
+    not_found_by_conjecture: Dict[str, int] = {}
+    for nk in negative_knowledge:
+        cid = nk.get("conjecture_id", "")
+        if cid:
+            not_found_by_conjecture[cid] = not_found_by_conjecture.get(cid, 0) + 1
+
+    # Check what move families have already been searched for each conjecture
+    searched_moves_by_conjecture: Dict[str, set[str]] = {}
+    for cid in focus_conjecture_ids:
+        coverage = db.get_search_coverage(project_id, conjecture_id=cid, search_type="move_family")
+        searched_moves_by_conjecture[cid] = {c.get("search_key", "") for c in coverage}
+
+    # Use negative knowledge to inform strategy
+    total_not_found = len(negative_knowledge)
+    if total_not_found >= 5 and strategy != "explore":
+        # Many searches returned not_found, shift to exploration
+        strategy = "explore"
+
+    # Determine priority move families based on frontier and recurring structures
+    priority_moves: List[str] = []
+
+    # Always include moves that target recurring structures
+    recurring = runtime["recurring"]
+    recurring_subgoals = runtime["recurring_subgoals"]
+    if recurring or recurring_subgoals:
+        priority_moves.extend(["promote_lemma", "decompose_subgoal", "invariant_mining"])
+
+    # Add strategy-specific moves
+    if strategy == "explore":
+        priority_moves.extend(["underspecify", "reformulate", "perturb_assumption"])
+    elif strategy == "exploit":
+        priority_moves.extend(["counterexample_mode", "boundary_map_from_witness"])
+    elif strategy == "bridge":
+        priority_moves.extend(["transfer_reformulation", "cross_conjecture_analogy"])
+    elif strategy == "blocker_resolution":
+        priority_moves.extend(["boundary_map_from_missing_assumption", "promote_subgoal"])
+
+    # Filter out already-searched moves for each conjecture to avoid redundancy
+    # Keep moves that haven't been searched yet for any focus conjecture
+    filtered_priority_moves: List[str] = []
+    for move in priority_moves:
+        # Check if this move family has been searched for all focus conjectures
+        all_searched = all(
+            move in searched_moves_by_conjecture.get(cid, set())
+            for cid in focus_conjecture_ids
+        )
+        if not all_searched:
+            filtered_priority_moves.append(move)
+
+    # If all priority moves have been searched, keep the original list (don't block progress)
+    if filtered_priority_moves:
+        priority_moves = filtered_priority_moves
+
+    # Deduplicate while preserving order
+    seen: set[str] = set()
+    priority_moves = [m for m in priority_moves if not (m in seen or seen.add(m))]
+
+    # Get campaign spec for budget limits
+    spec = db.get_campaign_spec(project_id)
+    max_parallel = 3
+    exploration_budget = 5
+    if spec is not None:
+        max_parallel = spec.budget_policy.max_active_jobs
+        exploration_budget = spec.budget_policy.max_total_experiments
+
+    # Build rationale
+    rationale_parts: List[str] = []
+    rationale_parts.append(f"Strategy '{strategy}' selected based on")
+    if strategy == "exploit":
+        rationale_parts.append("high signal velocity candidates")
+    elif strategy == "bridge":
+        rationale_parts.append("transfer opportunities detected")
+    elif strategy == "blocker_resolution":
+        rationale_parts.append("blocker support signals present")
+    else:
+        rationale_parts.append("exploration phase needed")
+
+    if recurring:
+        rationale_parts.append(f"({len(recurring)} recurring structures)")
+    if priority_moves:
+        rationale_parts.append(f"Priority moves: {', '.join(priority_moves[:3])}")
+    if total_not_found > 0:
+        rationale_parts.append(f"({total_not_found} negative knowledge entries)")
+
+    return ResearchDirective(
+        project_id=project_id,
+        directive_id=f"directive-{uuid.uuid4().hex[:12]}",
+        created_at=datetime.utcnow().isoformat(),
+        focus_conjecture_ids=focus_conjecture_ids,
+        strategy=strategy,
+        priority_moves=priority_moves,
+        target_obligation_ids=[],  # Could be populated from obligation tracking
+        max_parallel_experiments=max_parallel,
+        exploration_budget=exploration_budget,
+        constraints={
+            "allowed_move_families": charter.allowed_moves if charter else [],
+            "per_conjecture_active_cap": 2,
+            "branch_prune_after_no_signal": 3,
+        },
+        rationale=" ".join(rationale_parts),
+    )
+
+
+def materialize_from_directive(
+    db: Database,
+    directive: ResearchDirective,
+    workspace_root: str,
+) -> List[Dict[str, Any]]:
+    """Generate experiment candidates from a research directive.
+
+    Takes a directive and materializes it into concrete experiment candidates,
+    filtering and prioritizing based on the directive's strategy and constraints.
+    """
+    project_id = directive.project_id
+    runtime = _runtime_context(db, project_id)
+
+    candidates: List[Dict[str, Any]] = []
+
+    # Generate candidates only for focus conjectures
+    focus_conjectures = [
+        c for c in runtime["conjectures"]
+        if c.conjecture_id in directive.focus_conjecture_ids
+    ]
+
+    for conjecture in focus_conjectures:
+        # Generate move candidates for this conjecture
+        move_candidates = generate_move_candidates(
+            charter=runtime["charter"],
+            conjecture=conjecture,
+            experiments=runtime["experiments"],
+            recurring_lemmas=runtime["recurring"],
+            recurring_subgoals=runtime["recurring_subgoals"],
+            recurring_proof_traces=runtime["recurring_proof_traces"],
+            no_signal_branches=db.no_signal_branches(project_id),
+            discovery_questions=runtime["questions_by_conjecture"].get(conjecture.conjecture_id, []),
+            all_conjectures=runtime["conjectures"],
+        )
+
+        # Filter by priority moves if specified
+        if directive.priority_moves:
+            move_candidates = [
+                mc for mc in move_candidates
+                if mc.move_family in directive.priority_moves
+                or mc.move in directive.priority_moves
+            ]
+
+        # Apply manager candidate slice logic
+        move_candidates = _manager_candidate_slice(conjecture, runtime["experiments"], move_candidates)
+
+        # Materialize each candidate
+        for move_candidate in move_candidates:
+            payload = _materialize_payload(
+                project_id,
+                workspace_root,
+                conjecture,
+                move_candidate,
+                runtime,
+            )
+            candidates.append(payload)
+
+    # Annotate with runtime fields for ranking
+    active = db.list_active_experiments(project_id)
+    active_counts = _counts_by_conjecture(runtime["conjectures"], active)
+    no_signal = {(item["conjecture_id"], item["move"]): item["observations"] for item in db.no_signal_branches(project_id)}
+    _annotate_runtime_fields(candidates, active, no_signal, active_counts)
+
+    # Clean up internal fields for return
+    cleaned = _strip_frontier_internal_fields(candidates)
+
+    # Apply directive constraints filtering
+    max_candidates = min(directive.exploration_budget, directive.max_parallel_experiments)
+
+    # Remove duplicates and sort by priority
+    sorted_candidates = sorted(cleaned, key=_frontier_sort_key)
+
+    # Return limited set based on budget
+    return sorted_candidates[:max_candidates]
+
+
 def _materialize_payload(
     project_id: str,
     workspace_root: str,
@@ -238,9 +480,16 @@ def _annotate_runtime_fields(frontier: List[Dict[str, Any]], active: List[Dict[s
 
 
 def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
+    """Choose the next experiment using the directive-based decision pattern.
+
+    This function:
+    1. Builds a research directive from current state
+    2. Materializes experiment candidates from the directive
+    3. Returns the single best experiment
+    """
+    # Step 1: Get runtime context and build frontier
     runtime = _runtime_context(db, project_id)
     frontier: List[Dict[str, Any]] = []
-    generated_candidates: Dict[str, List[MoveCandidate]] = {}
     for conjecture in runtime["conjectures"]:
         move_candidates = generate_move_candidates(
             charter=runtime["charter"],
@@ -254,9 +503,14 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
             all_conjectures=runtime["conjectures"],
         )
         move_candidates = _manager_candidate_slice(conjecture, runtime["experiments"], move_candidates)
-        generated_candidates[conjecture.conjecture_id] = move_candidates
         for move_candidate in move_candidates:
             frontier.append(_materialize_payload(project_id, workspace_root, conjecture, move_candidate, runtime))
+
+    # Annotate frontier with runtime fields for directive building
+    active = db.list_active_experiments(project_id)
+    active_counts = _counts_by_conjecture(runtime["conjectures"], active)
+    no_signal = {(item["conjecture_id"], item["move"]): item["observations"] for item in db.no_signal_branches(project_id)}
+    _annotate_runtime_fields(frontier, active, no_signal, active_counts)
 
     cleaned_frontier = _strip_frontier_internal_fields(frontier)
     for item in cleaned_frontier:
@@ -266,14 +520,61 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
     for item in cleaned_frontier:
         shutil.rmtree(item["workspace_dir"], ignore_errors=True)
 
+    # Step 2: Build directive from current state
+    directive = build_research_directive(db, project_id, cleaned_frontier, runtime)
+
+    # Step 3: Materialize experiments from directive
+    candidates = materialize_from_directive(db, directive, workspace_root)
+
+    # Step 4: Return single best experiment
     manager_prompt = build_manager_prompt(
         charter=runtime["charter"],
         state_summary=db.project_summary(project_id),
-        frontier=cleaned_frontier,
+        frontier=candidates,
     )
-    chosen_payload = min(cleaned_frontier, key=_frontier_sort_key)
-    chosen_conjecture = next(item for item in runtime["conjectures"] if item.conjecture_id == chosen_payload["conjecture_id"])
-    chosen_move_candidate = next(item["_frontier_candidate"]["move_candidate"] for item in frontier if item["experiment_id"] == chosen_payload["experiment_id"])
+
+    if not candidates:
+        # Fallback: use the original frontier if directive produces nothing
+        candidates = cleaned_frontier
+
+    chosen_payload = min(candidates, key=_frontier_sort_key)
+
+    # Re-materialize the chosen experiment with fresh workspace
+    chosen_conjecture = next(
+        item for item in runtime["conjectures"]
+        if item.conjecture_id == chosen_payload["conjecture_id"]
+    )
+
+    # Find the original move candidate from frontier for re-materialization
+    chosen_move_candidate = None
+    for item in frontier:
+        if item["experiment_id"] == chosen_payload["experiment_id"]:
+            chosen_move_candidate = item["_frontier_candidate"]["move_candidate"]
+            break
+
+    if chosen_move_candidate is None:
+        # If not found in frontier, we need to regenerate
+        move_candidates = generate_move_candidates(
+            charter=runtime["charter"],
+            conjecture=chosen_conjecture,
+            experiments=runtime["experiments"],
+            recurring_lemmas=runtime["recurring"],
+            recurring_subgoals=runtime["recurring_subgoals"],
+            recurring_proof_traces=runtime["recurring_proof_traces"],
+            no_signal_branches=db.no_signal_branches(project_id),
+            discovery_questions=runtime["questions_by_conjecture"].get(chosen_conjecture.conjecture_id, []),
+            all_conjectures=runtime["conjectures"],
+        )
+        for mc in move_candidates:
+            if mc.move == chosen_payload["move"]:
+                chosen_move_candidate = mc
+                break
+        if chosen_move_candidate is None:
+            chosen_move_candidate = move_candidates[0] if move_candidates else None
+
+    if chosen_move_candidate is None:
+        raise ValueError(f"Could not find move candidate for experiment {chosen_payload['experiment_id']}")
+
     chosen = materialize_candidate(
         charter=runtime["charter"],
         conjecture=chosen_conjecture,
@@ -283,7 +584,8 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
         discovery_questions=runtime["questions_by_conjecture"].get(chosen_conjecture.conjecture_id, []),
     )
     chosen.route_id = ""
-    return chosen, manager_prompt, cleaned_frontier
+
+    return chosen, manager_prompt, candidates
 
 
 def generate_frontier(db: Database, project_id: str, workspace_root: str) -> List[Dict[str, object]]:
@@ -528,12 +830,31 @@ def choose_candidates_for_submission(
     llm_manager_mode: str,
     route_id: str | None = None,
     route_context: Dict[str, Any] | None = None,
+    workspace_root: str | None = None,
 ) -> PolicyDecision:
+    """Choose candidates for submission with optional directive-based generation.
+
+    If workspace_root is provided and the frontier is empty or stale, this function
+    will use directive-based generation to create fresh candidates.
+    """
     filtered_frontier = frontier
     if route_id:
         filtered_frontier = [item for item in frontier if item.get("route_id") == route_id]
     if route_id and not filtered_frontier:
         filtered_frontier = frontier
+
+    # Directive-based generation: if frontier is empty and workspace_root provided,
+    # generate fresh candidates from a directive
+    if not filtered_frontier and workspace_root:
+        runtime = _runtime_context(db, project_id)
+        # Build a minimal frontier for directive building
+        directive = build_research_directive(db, project_id, [], runtime)
+        # Override with more aggressive exploration since we have no candidates
+        directive.strategy = "explore"
+        directive.exploration_budget = max_count * 2
+        directive.rationale += " (Emergency exploration mode: frontier was empty)"
+        filtered_frontier = materialize_from_directive(db, directive, workspace_root)
+
     charter = db.get_charter(project_id)
     spec = db.get_campaign_spec(project_id)
     active = db.list_active_experiments(project_id)
@@ -648,12 +969,18 @@ def choose_candidates_for_submission(
         for candidate in _diversify_candidates(heuristic_ranked, max_count, exploration_floor)
     ]
     selected_ids = [item.experiment_id for item in chosen]
+
+    # Build rationale with directive awareness
+    base_rationale = "Fallback policy ranked candidates by motif reuse, recent signal velocity, boundary evidence, and an exploration floor."
+    if not frontier and workspace_root and filtered_frontier:
+        base_rationale = f"Directive-based generation was used to create {len(filtered_frontier)} candidates. " + base_rationale
+
     return PolicyDecision(
         chosen=chosen,
         skipped=skipped,
         policy_path="fallback",
         manager_prompt=prompt,
         raw_response="",
-        rationale="Fallback policy ranked candidates by motif reuse, recent signal velocity, boundary evidence, and an exploration floor.",
+        rationale=base_rationale,
         candidate_audits=build_candidate_audits(filtered_frontier, selected_ids, skipped, final_ranking=heuristic_ranked),
     )

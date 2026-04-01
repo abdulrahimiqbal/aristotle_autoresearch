@@ -422,6 +422,59 @@ SCHEMA: List[str] = [
     """
     CREATE INDEX IF NOT EXISTS idx_proof_ledger_hash ON proof_ledger(lemma_hash)
     """,
+    """
+    CREATE TABLE IF NOT EXISTS proof_obligations (
+        obligation_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        conjecture_id TEXT NOT NULL,
+        parent_obligation_id TEXT,
+        statement TEXT NOT NULL,
+        statement_hash TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'open',
+        source_experiment_id TEXT NOT NULL,
+        priority INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        resolved_at TEXT,
+        resolution_proof_id TEXT,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id),
+        FOREIGN KEY(conjecture_id) REFERENCES conjectures(conjecture_id),
+        FOREIGN KEY(parent_obligation_id) REFERENCES proof_obligations(obligation_id),
+        FOREIGN KEY(source_experiment_id) REFERENCES experiments(experiment_id)
+    )
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_obligations_conjecture ON proof_obligations(conjecture_id)
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_obligations_status ON proof_obligations(status)
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_obligations_parent ON proof_obligations(parent_obligation_id)
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS search_coverage (
+        coverage_id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        conjecture_id TEXT NOT NULL,
+        search_type TEXT NOT NULL,
+        search_key TEXT NOT NULL,
+        outcome TEXT NOT NULL,
+        found_count INTEGER DEFAULT 0,
+        details TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(project_id) REFERENCES projects(project_id),
+        FOREIGN KEY(conjecture_id) REFERENCES conjectures(conjecture_id)
+    )
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_search_coverage_project_conjecture ON search_coverage(project_id, conjecture_id)
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_search_coverage_type_key ON search_coverage(search_type, search_key)
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_search_coverage_outcome ON search_coverage(outcome)
+    """,
 ]
 
 VIEWS: List[str] = [

@@ -307,4 +307,214 @@ class DatabaseCoreMixin:
             (lemma_hash,),
         ).fetchone()
         return row is not None
-        return item
+
+    # Obligation DAG operations
+    def add_obligation(
+        self,
+        obligation_id: str,
+        project_id: str,
+        conjecture_id: str,
+        statement: str,
+        statement_hash: str,
+        source_experiment_id: str,
+        parent_obligation_id: Optional[str] = None,
+        priority: int = 0,
+    ) -> None:
+        """Add a new proof obligation to the DAG."""
+        self.conn.execute(
+            """
+            INSERT INTO proof_obligations (
+                obligation_id, project_id, conjecture_id, parent_obligation_id,
+                statement, statement_hash, status, source_experiment_id,
+                priority, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, 'open', ?, ?, ?)
+            """,
+            (
+                obligation_id,
+                project_id,
+                conjecture_id,
+                parent_obligation_id,
+                statement,
+                statement_hash,
+                source_experiment_id,
+                priority,
+                utcnow(),
+            ),
+        )
+        self.conn.commit()
+
+    def resolve_obligation(
+        self,
+        obligation_id: str,
+        resolution_proof_id: str,
+    ) -> None:
+        """Mark an obligation as resolved with a proof."""
+        self.conn.execute(
+            """
+            UPDATE proof_obligations
+            SET status = 'proved', resolved_at = ?, resolution_proof_id = ?
+            WHERE obligation_id = ?
+            """,
+            (utcnow(), resolution_proof_id, obligation_id),
+        )
+        self.conn.commit()
+
+    def get_obligation_dag(self, conjecture_id: str) -> List[Dict[str, Any]]:
+        """Get the full obligation DAG for a conjecture."""
+        rows = self.conn.execute(
+            """
+            SELECT * FROM proof_obligations
+            WHERE conjecture_id = ?
+            ORDER BY parent_obligation_id NULLS FIRST, created_at ASC
+            """,
+            (conjecture_id,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_open_obligations(self, conjecture_id: str) -> List[Dict[str, Any]]:
+        """Get all open (unresolved) obligations for a conjecture."""
+        rows = self.conn.execute(
+            """
+            SELECT * FROM proof_obligations
+            WHERE conjecture_id = ? AND status = 'open'
+            ORDER BY priority DESC, created_at ASC
+            """,
+            (conjecture_id,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_obligation_chain(self, obligation_id: str) -> List[Dict[str, Any]]:
+        """Get the chain of obligations from root to this obligation."""
+        chain = []
+        current_id = obligation_id
+        visited = set()
+
+        while current_id and current_id not in visited:
+            visited.add(current_id)
+            row = self.conn.execute(
+                "SELECT * FROM proof_obligations WHERE obligation_id = ?",
+                (current_id,),
+            ).fetchone()
+
+            if row is None:
+                break
+
+            item = dict(row)
+            chain.append(item)
+            current_id = item.get("parent_obligation_id")
+
+        return list(reversed(chain))
+
+    # Search coverage operations
+    def record_search_coverage(
+        self,
+        coverage_id: str,
+        project_id: str,
+        conjecture_id: str,
+        search_type: str,
+        search_key: str,
+        outcome: str,
+        found_count: int = 0,
+        details: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Record a search coverage entry to track what has been searched."""
+        self.conn.execute(
+            """
+            INSERT INTO search_coverage (
+                coverage_id, project_id, conjecture_id, search_type,
+                search_key, outcome, found_count, details, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(coverage_id) DO UPDATE SET
+                outcome = excluded.outcome,
+                found_count = excluded.found_count,
+                details = excluded.details
+            """,
+            (
+                coverage_id,
+                project_id,
+                conjecture_id,
+                search_type,
+                search_key,
+                outcome,
+                found_count,
+                json.dumps(details) if details else None,
+                utcnow(),
+            ),
+        )
+        self.conn.commit()
+
+    def get_search_coverage(
+        self,
+        project_id: str,
+        conjecture_id: Optional[str] = None,
+        search_type: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """Get search coverage records for a project."""
+        query = "SELECT * FROM search_coverage WHERE project_id = ?"
+        params: List[Any] = [project_id]
+
+        if conjecture_id is not None:
+            query += " AND conjecture_id = ?"
+            params.append(conjecture_id)
+        if search_type is not None:
+            query += " AND search_type = ?"
+            params.append(search_type)
+
+        query += " ORDER BY created_at DESC"
+
+        rows = self.conn.execute(query, params).fetchall()
+        result = []
+        for row in rows:
+            item = dict(row)
+            if item.get("details"):
+                try:
+                    item["details"] = json.loads(item["details"])
+                except json.JSONDecodeError:
+                    item["details"] = None
+            result.append(item)
+        return result
+
+    def has_been_searched(
+        self,
+        project_id: str,
+        conjecture_id: str,
+        search_type: str,
+        search_key: str,
+    ) -> bool:
+        """Check if a specific search has already been performed."""
+        row = self.conn.execute(
+            """
+            SELECT 1 FROM search_coverage
+            WHERE project_id = ? AND conjecture_id = ? AND search_type = ? AND search_key = ?
+            LIMIT 1
+            """,
+            (project_id, conjecture_id, search_type, search_key),
+        ).fetchone()
+        return row is not None
+
+    def get_negative_knowledge(
+        self,
+        project_id: str,
+        conjecture_id: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """Get searches with 'not_found' outcome (negative knowledge)."""
+        query = "SELECT * FROM search_coverage WHERE project_id = ? AND outcome = 'not_found'"
+        params: List[Any] = [project_id]
+
+        if conjecture_id is not None:
+            query += " AND conjecture_id = ?"
+            params.append(conjecture_id)
+
+        query += " ORDER BY created_at DESC"
+
+        rows = self.conn.execute(query, params).fetchall()
+        result = []
+        for row in rows:
+            item = dict(row)
+            if item.get("details"):
+                try:
+                    item["details"] = json.loads(item["details"])
+                except json.JSONDecodeError:
+                    item["details"] = None
+            result.append(item)
+        return result
