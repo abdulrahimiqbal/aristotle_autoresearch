@@ -403,12 +403,24 @@ def render_experiment_card(exp: Dict, num: int, expanded: bool) -> str:
     # Build manager rationale HTML
     manager_html = ""
 
-    # Show LLM synthesis badge if applicable
+    # Show LLM reasoned badge (green) - this is the gatekeeper approval
+    if candidate_meta.get("llm_reasoned"):
+        epistemic_score = candidate_meta.get("epistemic_score", 0)
+        llm_reasoning = candidate_meta.get("llm_reasoning", "")
+        strategic_priority = candidate_meta.get("strategic_priority", "")
+        manager_html += f'''<div class="llm-reasoned-badge" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #34d399;">
+          <strong style="color: #d1fae5;">🧠 LLM Deeply Reasoned</strong>
+          {f'<span style="color: #a7f3d0; margin-left: 8px; font-size: 11px;">Epistemic Score: {epistemic_score:.2f}</span>' if epistemic_score else ""}
+          {f'<div style="color: #d1fae5; margin-top: 6px; font-size: 12px;">{llm_reasoning[:250]}{"..." if len(llm_reasoning) > 250 else ""}</div>' if llm_reasoning else ""}
+          {f'<div style="color: #a7f3d0; margin-top: 4px; font-size: 11px;">Priority: {strategic_priority}</div>' if strategic_priority else ""}
+        </div>'''
+
+    # Show LLM synthesis badge (purple) - this is for LLM-generated candidates
     if candidate_meta.get("llm_synthesized"):
         synthesis_obs = candidate_meta.get("synthesis_observation", "")
         novelty = candidate_meta.get("novelty", "")
         manager_html += f'''<div class="llm-synthesis-badge" style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #a78bfa;">
-          <strong style="color: #e9d5ff;">🧠 LLM Synthesized Conjecture</strong>
+          <strong style="color: #e9d5ff;">✨ LLM Synthesized Conjecture</strong>
           <div style="color: #f3e8ff; margin-top: 6px; font-size: 12px;">{synthesis_obs[:200]}{"..." if len(synthesis_obs) > 200 else ""}</div>
           {f'<div style="color: #ddd6fe; margin-top: 4px; font-size: 11px; font-style: italic;">Novelty: {novelty[:100]}</div>' if novelty else ""}
         </div>'''

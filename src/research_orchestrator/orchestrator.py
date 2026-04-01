@@ -669,19 +669,51 @@ def manager_tick(
         llm_client = get_synthesis_client()
         frontier = generate_frontier_with_synthesis(db, project_id, workspace_root, llm_client=llm_client)
 
-        # Count LLM-synthesized candidates
-        llm_candidates = [f for f in frontier if f.get("candidate_metadata", {}).get("llm_synthesized")]
-        if llm_candidates:
+        # Log LLM gatekeeper activity
+        llm_reasoned = [f for f in frontier if f.get("candidate_metadata", {}).get("llm_reasoned")]
+        llm_synthesized = [f for f in frontier if f.get("candidate_metadata", {}).get("llm_synthesized")]
+
+        if llm_reasoned:
+            # Calculate statistics
+            epistemic_scores = [
+                c.get("candidate_metadata", {}).get("epistemic_score", 0)
+                for c in llm_reasoned
+            ]
+            avg_epistemic = sum(epistemic_scores) / len(epistemic_scores) if epistemic_scores else 0
+
+            db.emit_manager_event(
+                project_id=project_id,
+                run_id=run_id,
+                event_type="llm.gatekeeper.reviewed",
+                source_component="manager",
+                payload={
+                    "total_reviewed": len(llm_reasoned),
+                    "llm_synthesized": len(llm_synthesized),
+                    "avg_epistemic_score": round(avg_epistemic, 3),
+                    "high_priority_count": sum(
+                        1 for c in llm_reasoned
+                        if c.get("candidate_metadata", {}).get("strategic_priority") == "high"
+                    ),
+                    "synthesis_insights": list(set(
+                        c.get("candidate_metadata", {}).get("synthesis_insight", "")
+                        for c in llm_reasoned
+                        if c.get("candidate_metadata", {}).get("synthesis_insight")
+                    ))[:3],
+                },
+            )
+
+        # Log any synthesis observations
+        if llm_synthesized:
             db.emit_manager_event(
                 project_id=project_id,
                 run_id=run_id,
                 event_type="llm.synthesis.generated",
                 source_component="manager",
                 payload={
-                    "synthesized_candidates": len(llm_candidates),
+                    "synthesized_candidates": len(llm_synthesized),
                     "synthesis_observations": list(set(
                         c.get("candidate_metadata", {}).get("synthesis_observation", "")
-                        for c in llm_candidates
+                        for c in llm_synthesized
                     )),
                 },
             )

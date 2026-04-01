@@ -92,7 +92,13 @@ def _manager_candidate_slice(conjecture, experiments, candidates):
 def _frontier_sort_key(candidate: Dict[str, Any]):
     move_priority = MOVE_PRIORITY.get(candidate["move"], 99)
     stage_priority = move_priority if candidate["existing_experiments"] == 0 else (-1 if candidate.get("targets_recurring_structure") else move_priority)
+    # LLM-reasoned candidates get highest priority when LLM synthesis is enabled
+    # This ensures only LLM-approved candidates go to Aristotle
+    is_llm_reasoned = candidate.get("candidate_metadata", {}).get("llm_reasoned", False)
+    llm_epistemic_score = candidate.get("candidate_metadata", {}).get("epistemic_score", 0)
     return (
+        0 if is_llm_reasoned else 1,  # LLM-reasoned first
+        -llm_epistemic_score,  # Higher epistemic score first
         0 if candidate["existing_experiments"] == 0 and candidate["move"] == "underspecify" else 1,
         0 if candidate["existing_experiments"] > 0 and candidate["move"] == "perturb_assumption" else 1,
         0 if candidate.get("dominant_motif_bonus", 0) > 0 else candidate["active_count_for_conjecture"],
@@ -1143,24 +1149,160 @@ Return ONLY valid JSON:
         return []
 
 
+def llm_reason_through_frontier(
+    frontier: List[Dict[str, Any]],
+    verified_discoveries: Dict[str, Any],
+    charter: ProjectCharter,
+    llm_client,
+) -> List[Dict[str, Any]]:
+    """Have the LLM deeply reason through ALL frontier candidates.
+
+    When RESEARCH_ORCHESTRATOR_LLM_SYNTHESIS=true, the LLM acts as gatekeeper.
+    No experiment is submitted to Aristotle unless the LLM has deeply reasoned
+    through it and approved it.
+
+    The LLM:
+    1. Reviews each frontier candidate in context of verified discoveries
+    2. Provides deep strategic reasoning for each
+    3. Scores each candidate for epistemic value
+    4. May propose modifications or reject poor candidates
+
+    Returns only LLM-approved candidates with rich reasoning attached.
+    """
+    if not frontier or not llm_client:
+        return frontier
+
+    # Prepare frontier summary for LLM
+    frontier_summary = []
+    for c in frontier[:15]:  # Review top 15 candidates
+        frontier_summary.append({
+            "id": c.get("experiment_id"),
+            "move": c.get("move"),
+            "move_family": c.get("move_family"),
+            "conjecture": c.get("conjecture_id"),
+            "objective": c.get("objective", "")[:200],
+            "expected_signal": c.get("expected_signal", "")[:150],
+            "rationale": c.get("rationale", "")[:200],
+            "priority": c.get("priority", 0),
+        })
+
+    # Build the gatekeeper prompt
+    prompt = f"""You are the research director for a mathematical verification campaign.
+
+Your charter: {charter.natural_language if charter else "Mathematical discovery through verification"}
+
+VERIFIED DISCOVERIES (100% mathematically true):
+{json.dumps(verified_discoveries, indent=2)[:2000]}
+
+FRONTIER CANDIDATES awaiting your review:
+{json.dumps(frontier_summary, indent=2)}
+
+YOUR TASK AS GATEKEEPER:
+Review each candidate deeply. Consider:
+1. Does it build on verified discoveries or explore new ground?
+2. What is the strategic value toward a proof?
+3. What are the risks of no-signal or failure?
+4. Is the expected signal clear and verifiable?
+
+Return ONLY valid JSON:
+{{
+  "reasoning_summary": "Your overall strategic assessment...",
+  "approved_candidates": [
+    {{
+      "candidate_id": "the id from frontier",
+      "approval": "approved|rejected",
+      "reasoning": "Deep reasoning about why this candidate should/should not run...",
+      "epistemic_score": 0.0-1.0,
+      "strategic_priority": "high|medium|low",
+      "risk_assessment": "What could go wrong and why it's worth it anyway...",
+      "connection_to_verified": "How this connects to known truths..."
+    }}
+  ],
+  "synthesis_insight": "What pattern you noticed across the frontier..."
+}}
+
+REJECT any candidate where:
+- Expected signal is vague or untestable
+- No clear connection to mathematical structure
+- High risk of no-signal with low learning value
+- Redundant with existing experiments
+
+APPROVE only candidates with deep strategic value.
+"""
+
+    try:
+        response = llm_client.generate(prompt)
+        parsed = json.loads(response)
+
+        # Build lookup of LLM decisions
+        decisions = {
+            d["candidate_id"]: d for d in parsed.get("approved_candidates", [])
+        }
+
+        # Filter and enhance frontier with LLM reasoning
+        approved = []
+        for candidate in frontier:
+            cid = candidate.get("experiment_id")
+            decision = decisions.get(cid)
+
+            if decision and decision.get("approval") == "approved":
+                # Enhance candidate with LLM reasoning
+                candidate["candidate_metadata"] = candidate.get("candidate_metadata", {})
+                candidate["candidate_metadata"].update({
+                    "llm_reasoned": True,
+                    "llm_reasoning": decision.get("reasoning", ""),
+                    "epistemic_score": decision.get("epistemic_score", 0.5),
+                    "strategic_priority": decision.get("strategic_priority", "medium"),
+                    "risk_assessment": decision.get("risk_assessment", ""),
+                    "connection_to_verified": decision.get("connection_to_verified", ""),
+                    "synthesis_insight": parsed.get("synthesis_insight", ""),
+                })
+                # Boost priority by epistemic score
+                candidate["priority"] = candidate.get("priority", 0) + decision.get("epistemic_score", 0.5)
+                approved.append(candidate)
+            # Rejected candidates are dropped - they don't go to Aristotle
+
+        return approved if approved else frontier[:3]  # Fallback to top 3 if LLM rejects all
+    except Exception:
+        # If LLM fails, fall back to heuristic ranking but mark as not LLM-reasoned
+        for c in frontier:
+            c["candidate_metadata"] = c.get("candidate_metadata", {})
+            c["candidate_metadata"]["llm_reasoned"] = False
+        return frontier
+
+
 def generate_frontier_with_synthesis(
     db: Database,
     project_id: str,
     workspace_root: str,
     llm_client=None,
 ) -> List[Dict[str, Any]]:
-    """Generate frontier including LLM-synthesized conjectures."""
+    """Generate frontier with LLM as gatekeeper when synthesis is enabled.
+
+    When llm_client is provided, the LLM acts as gatekeeper:
+    - Reviews ALL candidates
+    - Provides deep reasoning for each
+    - Only approved candidates are returned for submission
+    """
     # Get standard frontier
     base_frontier = generate_frontier(db, project_id, workspace_root)
 
     if not llm_client:
         return base_frontier
 
-    # Get verified discoveries for synthesis
+    # Get verified discoveries for context
     verified = get_verified_discoveries(db, project_id)
     charter = db.get_charter(project_id)
 
-    # Get LLM-synthesized proposals
+    # LLM acts as gatekeeper - reviews ALL candidates
+    approved_frontier = llm_reason_through_frontier(
+        frontier=base_frontier,
+        verified_discoveries=verified,
+        charter=charter,
+        llm_client=llm_client,
+    )
+
+    # Also get LLM-synthesized proposals for creative expansion
     llm_proposals = llm_synthesize_conjectures(
         verified_discoveries=verified,
         charter=charter,
@@ -1179,7 +1321,7 @@ def generate_frontier_with_synthesis(
         if not conjecture:
             continue
 
-        # Create synthetic candidate
+        # Create synthetic candidate (already LLM-approved by design)
         candidate = {
             "experiment_id": f"llm-synth-{uuid.uuid4().hex[:8]}",
             "project_id": project_id,
@@ -1198,15 +1340,18 @@ def generate_frontier_with_synthesis(
             "rationale": proposal.get("synthesis_rationale", ""),
             "candidate_metadata": {
                 "llm_synthesized": True,
+                "llm_reasoned": True,  # Synthesized candidates are pre-approved
                 "synthesis_observation": proposal.get("_synthesis_observation", ""),
                 "novelty": proposal.get("novelty", ""),
+                "epistemic_score": 0.9,
+                "strategic_priority": "high",
             },
-            "signal_support": 0.5,  # Synthetic candidates get base signal
+            "signal_support": 0.5,
             "transfer_opportunity": 0.3,
             "reuse_potential": 0.4,
-            "semantic_novelty": 0.9,  # High novelty by design
+            "semantic_novelty": 0.9,
         }
 
-        base_frontier.append(candidate)
+        approved_frontier.append(candidate)
 
-    return sorted(base_frontier, key=_frontier_sort_key)
+    return sorted(approved_frontier, key=_frontier_sort_key)

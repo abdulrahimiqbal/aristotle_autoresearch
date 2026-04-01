@@ -516,10 +516,26 @@ TEMPLATES = {
             <div class="section">
               <div class="section-title">Manager Selection Rationale</div>
               <div class="section-content">
-                <!-- LLM Synthesis Badge -->
+                <!-- LLM Reasoning Badge -->
+                {% if exp.candidate_metadata and exp.candidate_metadata.llm_reasoned %}
+                <div class="llm-reasoned-badge" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #34d399;">
+                  <strong style="color: #d1fae5;">🧠 LLM Deeply Reasoned</strong>
+                  {% if exp.candidate_metadata.epistemic_score %}
+                  <span style="color: #a7f3d0; margin-left: 8px; font-size: 11px;">Epistemic Score: {{ "%.2f"|format(exp.candidate_metadata.epistemic_score) }}</span>
+                  {% endif %}
+                  {% if exp.candidate_metadata.llm_reasoning %}
+                  <div style="color: #d1fae5; margin-top: 6px; font-size: 12px;">{{ exp.candidate_metadata.llm_reasoning[:250] }}{% if exp.candidate_metadata.llm_reasoning|length > 250 %}...{% endif %}</div>
+                  {% endif %}
+                  {% if exp.candidate_metadata.strategic_priority %}
+                  <div style="color: #a7f3d0; margin-top: 4px; font-size: 11px;">Priority: {{ exp.candidate_metadata.strategic_priority }}</div>
+                  {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- LLM Synthesis Badge (for synthesized candidates) -->
                 {% if exp.candidate_metadata and exp.candidate_metadata.llm_synthesized %}
                 <div class="llm-synthesis-badge" style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #a78bfa;">
-                  <strong style="color: #e9d5ff;">🧠 LLM Synthesized Conjecture</strong>
+                  <strong style="color: #e9d5ff;">✨ LLM Synthesized Conjecture</strong>
                   {% if exp.candidate_metadata.synthesis_observation %}
                   <div style="color: #f3e8ff; margin-top: 6px; font-size: 12px;">{{ exp.candidate_metadata.synthesis_observation[:200] }}{% if exp.candidate_metadata.synthesis_observation|length > 200 %}...{% endif %}</div>
                   {% endif %}
