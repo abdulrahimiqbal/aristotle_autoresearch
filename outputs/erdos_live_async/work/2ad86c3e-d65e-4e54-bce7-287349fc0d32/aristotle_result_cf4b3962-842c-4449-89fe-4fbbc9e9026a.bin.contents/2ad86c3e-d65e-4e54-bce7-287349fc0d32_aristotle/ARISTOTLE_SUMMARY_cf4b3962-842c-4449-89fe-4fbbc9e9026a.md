@@ -1,0 +1,6 @@
+# Summary of changes
+Filled in the sorry in `Main.lean`. The theorem `promoted_lemma : True` was proved with `trivial`.
+
+Also fixed the build configuration: the original `lakefile.toml` was incompatible with the Lake version (v5.0.0) bundled with Lean 4.28.0, so I replaced it with an equivalent `lakefile.lean`. The project builds successfully with no sorries remaining.
+
+Regarding the discovery question about which special cases transfer to broader triples: when the obstruction for a problem like pairwise coprimality of a triple (a, b, c) is reformulated in terms of individual pairwise GCD conditions (gcd(a,b) = 1, gcd(a,c) = 1, gcd(b,c) = 1), results proved for any two-element coprime pair immediately lift to the triple by applying them to each of the three pairs independently. This decomposition principle means that any lemma established for coprime pairs — such as multiplicativity of arithmetic functions over coprime arguments, or CRT-style decompositions — transfers directly to pairwise coprime triples (and more generally to any pairwise coprime tuple) once the obstruction is expressed as a conjunction of pairwise conditions rather than a single monolithic property.
