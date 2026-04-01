@@ -516,6 +516,19 @@ TEMPLATES = {
             <div class="section">
               <div class="section-title">Manager Selection Rationale</div>
               <div class="section-content">
+                <!-- LLM Synthesis Badge -->
+                {% if exp.candidate_metadata and exp.candidate_metadata.llm_synthesized %}
+                <div class="llm-synthesis-badge" style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #a78bfa;">
+                  <strong style="color: #e9d5ff;">🧠 LLM Synthesized Conjecture</strong>
+                  {% if exp.candidate_metadata.synthesis_observation %}
+                  <div style="color: #f3e8ff; margin-top: 6px; font-size: 12px;">{{ exp.candidate_metadata.synthesis_observation[:200] }}{% if exp.candidate_metadata.synthesis_observation|length > 200 %}...{% endif %}</div>
+                  {% endif %}
+                  {% if exp.candidate_metadata.novelty %}
+                  <div style="color: #ddd6fe; margin-top: 4px; font-size: 11px; font-style: italic;">Novelty: {{ exp.candidate_metadata.novelty[:100] }}</div>
+                  {% endif %}
+                </div>
+                {% endif %}
+
                 {% if exp.manager_reason %}
                 <div class="manager-reason" style="background: #1f2937; padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #3b82f6;">
                   <strong style="color: #60a5fa;">Selection Reason:</strong>

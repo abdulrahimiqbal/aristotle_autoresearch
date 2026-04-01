@@ -500,6 +500,7 @@ VIEWS: List[str] = [
         COALESCE(json_extract(e.candidate_metadata_json, '$.motif_signature'), '') AS motif_signature,
         COALESCE(json_extract(e.candidate_metadata_json, '$.campaign_priority'), 0) AS campaign_priority,
         COALESCE(json_extract(e.candidate_metadata_json, '$.signal_support'), 0) AS signal_support,
+        e.candidate_metadata_json,
         e.discovery_question_id,
         e.created_at,
         e.completed_at

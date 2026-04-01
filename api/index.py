@@ -71,11 +71,16 @@ def load_experiments() -> List[Dict[str, Any]]:
             for row in reader:
                 exp_id = row.get("experiment_id", "unknown")
                 mod_json = row.get("modification_json", "{}")
+                cand_json = row.get("candidate_metadata_json", "{}")
                 try:
                     modification = json.loads(mod_json) if mod_json else {}
                 except:
                     modification = {}
-                
+                try:
+                    candidate_metadata = json.loads(cand_json) if cand_json else {}
+                except:
+                    candidate_metadata = {}
+
                 exp = {
                     "experiment_id": exp_id,
                     "conjecture_id": row.get("conjecture_id", ""),
@@ -92,7 +97,7 @@ def load_experiments() -> List[Dict[str, Any]]:
                     "conjecture_name": "",
                     "conjecture_domain": "",
                     "modification": modification,
-                    "candidate_metadata": {k: v for k, v in row.items() if k not in ["modification_json"]},
+                    "candidate_metadata": candidate_metadata,
                     "ingestion": {},
                     "outcome": {},
                     "manager_reason": "",

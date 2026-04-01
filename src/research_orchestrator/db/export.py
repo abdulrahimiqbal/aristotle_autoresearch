@@ -63,6 +63,7 @@ class DatabaseExportMixin:
             "motif_signature",
             "campaign_priority",
             "signal_support",
+            "candidate_metadata_json",
             "discovery_question_id",
             "created_at",
             "completed_at",
