@@ -12,7 +12,6 @@ src/research_orchestrator/dashboard_live_loader.py
 src/research_orchestrator/dashboard_loader.py
 src/research_orchestrator/dashboard_models.py
 src/research_orchestrator/dashboard_routes.py
-src/research_orchestrator/db.py
 src/research_orchestrator/enhanced_ingestion.py
 src/research_orchestrator/evaluator.py
 src/research_orchestrator/experiment_generator.py
@@ -48,6 +47,18 @@ src/research_orchestrator/dashboard_templates/experiment.html
 src/research_orchestrator/dashboard_templates/health.html
 src/research_orchestrator/dashboard_templates/overview.html
 src/research_orchestrator/dashboard_templates/problem.html
+src/research_orchestrator/db/__init__.py
+src/research_orchestrator/db/core.py
+src/research_orchestrator/db/discovery.py
+src/research_orchestrator/db/experiments.py
+src/research_orchestrator/db/export.py
+src/research_orchestrator/db/health.py
+src/research_orchestrator/db/incidents.py
+src/research_orchestrator/db/manager_state.py
+src/research_orchestrator/db/projects.py
+src/research_orchestrator/db/routes.py
+src/research_orchestrator/db/schema.py
+src/research_orchestrator/db/utils.py
 src/research_orchestrator/providers/aristotle_cli.py
 src/research_orchestrator/providers/base.py
 src/research_orchestrator/providers/mock.py

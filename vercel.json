@@ -11,6 +11,10 @@
       "src": "/(.*)",
       "dest": "api/index.py"
     }
-  ]
+  ],
+  "env": {
+    "STATE_DIR": "outputs/dashboard_bundle_live",
+    "PROJECT_ID": "erdos-combo-001",
+    "PYTHONPATH": "src"
+  }
 }
-
