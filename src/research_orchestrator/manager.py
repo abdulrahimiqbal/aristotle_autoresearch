@@ -146,7 +146,7 @@ def _runtime_context(db: Database, project_id: str) -> Dict[str, Any]:
     questions = db.list_discovery_questions(project_id)
     questions_by_conjecture: Dict[str, List[Any]] = {}
     for question in questions:
-        cid = question.conjecture_id
+        cid = question["conjecture_id"]
         if cid not in questions_by_conjecture:
             questions_by_conjecture[cid] = []
         questions_by_conjecture[cid].append(question)
@@ -365,7 +365,7 @@ def materialize_from_directive(
             move_candidates = [
                 mc for mc in move_candidates
                 if mc.move_family in directive.priority_moves
-                or mc.move in directive.priority_moves
+                or mc.legacy_move in directive.priority_moves
             ]
 
         # Apply manager candidate slice logic
@@ -566,7 +566,7 @@ def choose_next_experiment(db: Database, project_id: str, workspace_root: str):
             all_conjectures=runtime["conjectures"],
         )
         for mc in move_candidates:
-            if mc.move == chosen_payload["move"]:
+            if mc.legacy_move == chosen_payload["move"]:
                 chosen_move_candidate = mc
                 break
         if chosen_move_candidate is None:
@@ -1061,3 +1061,152 @@ def choose_candidates_for_submission(
         rationale=base_rationale,
         candidate_audits=build_candidate_audits(filtered_frontier, selected_ids, skipped, final_ranking=heuristic_ranked),
     )
+
+
+def get_verified_discoveries(db: Database, project_id: str) -> Dict[str, Any]:
+    """Gather verified discoveries (confidence=1) for LLM synthesis."""
+    return {
+        "recurring_lemmas": db.recurring_lemmas()[:10],
+        "recurring_subgoals": db.recurring_subgoals(project_id)[:10],
+        "recurring_proof_traces": db.recurring_proof_traces(project_id)[:10],
+        "no_signal_patterns": db.no_signal_branches(project_id)[:10],
+        "completed_experiments": db.list_completed_experiments(project_id, limit=10),
+    }
+
+
+def llm_synthesize_conjectures(
+    verified_discoveries: Dict[str, Any],
+    charter,
+    frontier: List[Dict[str, Any]],
+    llm_client=None,
+) -> List[Dict[str, Any]]:
+    """Use LLM to synthesize verified discoveries and propose new conjectures.
+
+    Simple but powerful: give LLM verified truths, let it propose new directions.
+    """
+    if llm_client is None:
+        # No LLM available, return empty
+        return []
+
+    # Build synthesis prompt
+    prompt = f"""You are a research partner analyzing verified mathematical results.
+
+VERIFIED DISCOVERIES (mathematically proven):
+- Recurring lemmas: {json.dumps(verified_discoveries.get("recurring_lemmas", []), indent=2)[:800]}
+- Recurring subgoals: {json.dumps(verified_discoveries.get("recurring_subgoals", []), indent=2)[:800]}
+- No-signal patterns (what failed): {json.dumps(verified_discoveries.get("no_signal_patterns", []), indent=2)[:600]}
+
+CURRENT FRONTIER (candidates to analyze):
+{json.dumps([{"id": c.get("experiment_id"), "move": c.get("move"), "conjecture": c.get("conjecture_id")} for c in frontier[:5]], indent=2)}
+
+YOUR TASK:
+Synthesize these verified patterns. What connections do you see? What gaps exist?
+
+Propose 2-3 NEW experiment directions that:
+1. Build on verified discoveries (grounded in truth)
+2. Test novel hypotheses (creative extension)
+3. Have clear verification criteria
+
+Return ONLY valid JSON:
+{{
+  "synthesis_observation": "What pattern you noticed across verified results...",
+  "proposed_experiments": [
+    {{
+      "synthesis_rationale": "Why this experiment follows from verified patterns...",
+      "suggested_move": "counterexample_mode|boundary_map|promote_lemma|etc",
+      "target_conjecture": "which conjecture to apply this to",
+      "novelty": "What's new vs existing approaches",
+      "expected_verification": "What result would confirm/disconfirm"
+    }}
+  ]
+}}
+"""
+
+    try:
+        response = llm_client.generate(prompt)
+        parsed = json.loads(response)
+
+        experiments = []
+        for exp in parsed.get("proposed_experiments", []):
+            experiments.append({
+                "_synthesized_by_llm": True,
+                "_synthesis_observation": parsed.get("synthesis_observation", ""),
+                "synthesis_rationale": exp.get("synthesis_rationale", ""),
+                "suggested_move": exp.get("suggested_move", "reformulate"),
+                "target_conjecture": exp.get("target_conjecture", ""),
+                "novelty": exp.get("novelty", ""),
+                "expected_verification": exp.get("expected_verification", ""),
+            })
+        return experiments
+    except Exception:
+        # If LLM fails, return empty - system continues with regular frontier
+        return []
+
+
+def generate_frontier_with_synthesis(
+    db: Database,
+    project_id: str,
+    workspace_root: str,
+    llm_client=None,
+) -> List[Dict[str, Any]]:
+    """Generate frontier including LLM-synthesized conjectures."""
+    # Get standard frontier
+    base_frontier = generate_frontier(db, project_id, workspace_root)
+
+    if not llm_client:
+        return base_frontier
+
+    # Get verified discoveries for synthesis
+    verified = get_verified_discoveries(db, project_id)
+    charter = db.get_charter(project_id)
+
+    # Get LLM-synthesized proposals
+    llm_proposals = llm_synthesize_conjectures(
+        verified_discoveries=verified,
+        charter=charter,
+        frontier=base_frontier,
+        llm_client=llm_client,
+    )
+
+    # Convert LLM proposals to frontier candidates
+    for proposal in llm_proposals:
+        target_cid = proposal.get("target_conjecture")
+        if not target_cid:
+            continue
+
+        # Find target conjecture
+        conjecture = db.get_conjecture(target_cid)
+        if not conjecture:
+            continue
+
+        # Create synthetic candidate
+        candidate = {
+            "experiment_id": f"llm-synth-{uuid.uuid4().hex[:8]}",
+            "project_id": project_id,
+            "conjecture_id": target_cid,
+            "move": proposal.get("suggested_move", "reformulate"),
+            "move_family": proposal.get("suggested_move", "reformulate"),
+            "phase": "exploration",
+            "objective": f"Synthesized: {proposal.get('synthesis_rationale', '')[:100]}",
+            "expected_signal": proposal.get("expected_verification", ""),
+            "modification": {"synthesis_origin": True},
+            "workspace_dir": "",
+            "lean_file": "",
+            "route_id": "",
+            "existing_experiments": 0,
+            "priority": 10,  # High priority for novel synthesis
+            "rationale": proposal.get("synthesis_rationale", ""),
+            "candidate_metadata": {
+                "llm_synthesized": True,
+                "synthesis_observation": proposal.get("_synthesis_observation", ""),
+                "novelty": proposal.get("novelty", ""),
+            },
+            "signal_support": 0.5,  # Synthetic candidates get base signal
+            "transfer_opportunity": 0.3,
+            "reuse_potential": 0.4,
+            "semantic_novelty": 0.9,  # High novelty by design
+        }
+
+        base_frontier.append(candidate)
+
+    return sorted(base_frontier, key=_frontier_sort_key)

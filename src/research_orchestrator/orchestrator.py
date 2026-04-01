@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -9,6 +10,7 @@ from research_orchestrator.evaluator import score_result
 from research_orchestrator.manager import choose_next_experiment, generate_frontier
 from research_orchestrator.manager import choose_candidates_for_submission
 from research_orchestrator.manager import build_research_directive, materialize_from_directive
+from research_orchestrator.manager import generate_frontier_with_synthesis
 from research_orchestrator.prompt_linter import lint_manager_prompt, lint_worker_prompt
 from research_orchestrator.prompts import build_worker_prompt
 from research_orchestrator.provider_registry import get_provider
@@ -659,8 +661,32 @@ def manager_tick(
     requested_submissions = min(capacity_remaining, max_submit_per_tick)
 
     # === DIRECTIVE-BASED DECISION MAKING ===
-    # Step 1: Generate frontier and build directive from current state
-    frontier = generate_frontier(db, project_id, workspace_root)
+    # Step 1: Generate frontier (optionally with LLM synthesis) and build directive
+    use_llm_synthesis = os.getenv("RESEARCH_ORCHESTRATOR_LLM_SYNTHESIS", "false").lower() in ("1", "true", "yes")
+
+    if use_llm_synthesis:
+        from research_orchestrator.llm_manager import get_synthesis_client
+        llm_client = get_synthesis_client()
+        frontier = generate_frontier_with_synthesis(db, project_id, workspace_root, llm_client=llm_client)
+
+        # Count LLM-synthesized candidates
+        llm_candidates = [f for f in frontier if f.get("candidate_metadata", {}).get("llm_synthesized")]
+        if llm_candidates:
+            db.emit_manager_event(
+                project_id=project_id,
+                run_id=run_id,
+                event_type="llm.synthesis.generated",
+                source_component="manager",
+                payload={
+                    "synthesized_candidates": len(llm_candidates),
+                    "synthesis_observations": list(set(
+                        c.get("candidate_metadata", {}).get("synthesis_observation", "")
+                        for c in llm_candidates
+                    )),
+                },
+            )
+    else:
+        frontier = generate_frontier(db, project_id, workspace_root)
 
     # Build runtime context for directive
     from research_orchestrator.manager import _runtime_context

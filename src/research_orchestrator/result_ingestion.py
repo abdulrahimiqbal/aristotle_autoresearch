@@ -361,14 +361,21 @@ def prepare_ingested_result(result: ProviderResult) -> PreparedIngestion:
     enriched.generated_lemmas = [lemma.text for lemma in record.generated_lemmas]
     enriched.proof_trace_fragments = [trace.text for trace in record.proof_traces]
     enriched.counterexample_witnesses = [cx.text for cx in record.counterexamples]
-    enriched.artifact_inventory = {
-        "proved_lemmas": len(record.proved_lemmas),
-        "generated_lemmas": len(record.generated_lemmas),
-        "unsolved_goals": len(record.unsolved_goals),
-        "blockers": len(record.blocker_observations),
-        "counterexamples": len(record.counterexamples),
-        "proof_traces": len(record.proof_traces),
-    }
+    enriched.artifact_inventory = [
+        {
+            "path": "summary",
+            "kind": "result_summary",
+            "size_bytes": 0,
+            "summary": {
+                "proved_lemmas": len(record.proved_lemmas),
+                "generated_lemmas": len(record.generated_lemmas),
+                "unsolved_goals": len(record.unsolved_goals),
+                "blockers": len(record.blocker_observations),
+                "counterexamples": len(record.counterexamples),
+                "proof_traces": len(record.proof_traces),
+            },
+        }
+    ]
     enriched.new_signal_count = sum(1 for item in semantic_summary.artifacts if item["canonical_id"])
     enriched.reused_signal_count = semantic_summary.normalized_equivalent_count + semantic_summary.exact_reuse_count
     enriched.signal_summary = _summary_for(enriched, record, semantic_summary)

@@ -14,6 +14,24 @@ from research_orchestrator.dashboard_models import DashboardState, DataProvenanc
 
 
 
+def summarize_recent_result(exp: dict) -> str:
+    """Summarize a recent experiment result for dashboard display."""
+    move = exp.get("move", "unknown")
+    status = exp.get("status", "unknown")
+    proof_outcome = exp.get("proof_outcome", "unknown")
+    new_signals = exp.get("new_signal_count", 0) or 0
+
+    parts = [f"Move: {move}", f"Status: {status}"]
+
+    if proof_outcome and proof_outcome != "unknown":
+        parts.append(f"Outcome: {proof_outcome}")
+
+    if new_signals > 0:
+        parts.append(f"New signals: {new_signals}")
+
+    return " | ".join(parts)
+
+
 def _parse_ts(value: str | None) -> datetime | None:
     if not value:
         return None

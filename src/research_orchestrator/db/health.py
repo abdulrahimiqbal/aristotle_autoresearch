@@ -325,7 +325,7 @@ class DatabaseHealthMixin:
                 "obligation_closure_rate": round(obligation_closure_rate, 3),
                 "bridge_hypothesis_count": len(bridge_hypotheses),
             },
-            "snapshot_at": now.isoformat(),
+            "snapshot_at": now,
         }
 
     def project_summary(self, project_id: str) -> Dict[str, Any]:
@@ -379,4 +379,111 @@ class DatabaseHealthMixin:
                 ),
             },
             "open_incidents": incidents,
+        }
+
+    def campaign_health(
+        self, project_id: str, frontier: Optional[List[Dict[str, Any]]] = None
+    ) -> Dict[str, Any]:
+        """Get comprehensive campaign health metrics.
+
+        Returns a dict with counts, signals, and incidents for monitoring
+        campaign progress and detecting issues.
+        """
+        # Get experiment counts by status
+        experiments = self.list_experiments(project_id)
+
+        active = sum(1 for e in experiments if e.get("status") in {"submitted", "in_progress", "running"})
+        pending = sum(1 for e in experiments if e.get("status") == "planned")
+        running = sum(1 for e in experiments if e.get("status") in {"in_progress", "running"})
+        completed = sum(1 for e in experiments if e.get("status") in {"succeeded", "stalled", "failed"})
+        failed = sum(1 for e in experiments if e.get("status") == "failed")
+
+        # Calculate signal metrics
+        completed_experiments = [e for e in experiments if e.get("status") in {"succeeded", "stalled", "failed"}]
+
+        # Ingestion success rate
+        structured_count = sum(
+            1 for e in completed_experiments
+            if e.get("outcome", {}).get("semantic_summary") is not None
+        )
+        ingestion_success_rate = structured_count / max(len(completed_experiments), 1)
+
+        # Semantic reuse rate (experiments with canonical matches)
+        reuse_count = sum(
+            1 for e in completed_experiments
+            if e.get("outcome", {}).get("semantic_summary", {}).get("canonical_reuse_count", 0) > 0
+        )
+        semantic_reuse_rate = reuse_count / max(len(completed_experiments), 1)
+
+        # Transfer usage rate (experiments using transfer moves)
+        transfer_moves = {"transfer_reformulation", "cross_conjecture", "lemma_reuse"}
+        transfer_count = sum(
+            1 for e in experiments
+            if e.get("move") in transfer_moves or e.get("move_family") in transfer_moves
+        )
+        transfer_usage_rate = transfer_count / max(len(experiments), 1)
+
+        # Reusable structure rate (experiments generating lemmas)
+        lemma_count = sum(
+            1 for e in completed_experiments
+            if len(e.get("outcome", {}).get("provider_result", {}).get("generated_lemmas", [])) > 0
+        )
+        reusable_structure_rate = lemma_count / max(len(completed_experiments), 1)
+
+        # Obstruction discovery rate (experiments finding blockers)
+        blocker_count = sum(
+            1 for e in completed_experiments
+            if e.get("outcome", {}).get("provider_result", {}).get("blocker_type") not in {"unknown", None, ""}
+        )
+        obstruction_discovery_rate = blocker_count / max(len(completed_experiments), 1)
+
+        # High priority frontier share
+        frontier_len = len(frontier) if frontier else 0
+        high_priority_count = sum(
+            1 for c in (frontier or [])
+            if c.get("priority", 0) > 0.7
+        )
+        high_priority_frontier_share = high_priority_count / max(frontier_len, 1)
+
+        # Repeated no-signal streak detection
+        no_signal_streak = 0
+        for e in sorted(experiments, key=lambda x: x.get("created_at", ""), reverse=True):
+            if e.get("new_signal_count", 0) == 0 and e.get("status") in {"stalled", "failed"}:
+                no_signal_streak += 1
+            else:
+                break
+
+        # Duplicate frontier pressure
+        seen_signatures = set()
+        duplicates = 0
+        for e in experiments:
+            sig = (e.get("conjecture_id"), e.get("move"), str(e.get("modification", {})))
+            if sig in seen_signatures:
+                duplicates += 1
+            seen_signatures.add(sig)
+        duplicate_frontier_pressure = duplicates / max(len(experiments), 1)
+
+        # Get open incidents
+        incidents = self.list_incidents(project_id, status="open")
+
+        return {
+            "counts": {
+                "active": active,
+                "pending": pending,
+                "running": running,
+                "completed": completed,
+                "failed": failed,
+                "total": len(experiments),
+            },
+            "signals": {
+                "structured_ingestion_success_rate": round(ingestion_success_rate, 3),
+                "semantic_reuse_rate": round(semantic_reuse_rate, 3),
+                "transfer_usage_rate": round(transfer_usage_rate, 3),
+                "reusable_structure_rate": round(reusable_structure_rate, 3),
+                "obstruction_discovery_rate": round(obstruction_discovery_rate, 3),
+                "high_priority_frontier_share": round(high_priority_frontier_share, 3),
+                "repeated_no_signal_streak": no_signal_streak,
+                "duplicate_frontier_pressure": round(duplicate_frontier_pressure, 3),
+            },
+            "incidents": incidents,
         }

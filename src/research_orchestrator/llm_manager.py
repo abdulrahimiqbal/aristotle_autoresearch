@@ -263,3 +263,42 @@ def render_campaign_brief(brief: CampaignBrief) -> Dict[str, Any]:
             for section in brief.narrative_summary
         ],
     }
+
+
+class SimpleLLMClient:
+    """Simple LLM client for synthesis tasks.
+
+    Uses environment-configured LLM command (e.g., kimi, llm, openai).
+    Falls back gracefully if no LLM configured.
+    """
+
+    def __init__(self):
+        self.command = llm_command()
+        self.model = llm_model_version()
+
+    def is_available(self) -> bool:
+        return bool(self.command)
+
+    def generate(self, prompt: str, max_tokens: int = 2000) -> str:
+        """Generate text from LLM. Returns empty string on failure."""
+        if not self.command:
+            return ""
+
+        # Add system context for synthesis tasks
+        full_prompt = f"""You are a mathematical research assistant.
+You synthesize verified results and propose new conjectures.
+Be creative but grounded in the provided data.
+
+{prompt}"""
+
+        response, success = run_llm_json(full_prompt)
+
+        if not success:
+            return ""
+
+        return response
+
+
+def get_synthesis_client() -> SimpleLLMClient:
+    """Get LLM client configured for synthesis tasks."""
+    return SimpleLLMClient()

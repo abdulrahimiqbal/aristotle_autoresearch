@@ -22,6 +22,39 @@ It does **not** try to replace Aristotle. Instead, it adds the missing layers yo
 - A demo command that runs a full mini research cycle
 - Unit tests for the orchestration core
 
+## LLM Synthesis (Creative Research Partner)
+
+The system can leverage Kimi K2.5 as a **creative research partner** that synthesizes verified discoveries and proposes new experiments and conjectures. This is not just an advisor for ranking candidates—it actively generates new research directions based on patterns found in Aristotle's 100% verified data.
+
+### How it works
+1. The system gathers all verified discoveries (recurring lemmas, subgoals, proof traces, assumption boundaries)
+2. The LLM synthesizes these patterns to identify gaps and propose 2-3 novel experiment directions
+3. Each LLM-synthesized candidate includes:
+   - Synthesis rationale explaining the pattern connection
+   - Suggested move and target conjecture
+   - Novelty claim and expected verification outcome
+4. These candidates enter the frontier alongside heuristic candidates, marked with 🧠 in the dashboard
+
+### Enable LLM synthesis
+
+```bash
+# Option 1: Environment variable
+export RESEARCH_ORCHESTRATOR_LLM_SYNTHESIS=true
+
+# Option 2: Copy the example env file and edit
+cp .env.example .env
+# Edit .env and set RESEARCH_ORCHESTRATOR_LLM_SYNTHESIS=true
+```
+
+When enabled, you'll see experiments with the 🧠 badge in the dashboard, showing how verified discoveries led to new conjectures.
+
+### The epistemic separation
+- **Aristotle = Truth**: 100% mathematically verified data
+- **LLM = Creativity**: Generates hypotheses grounded in verified patterns
+- **Verification via Discovery**: LLM conjectures are validated by Aristotle before acceptance
+
+This maintains the ethos of the repo: mathematical truth comes from verification, but LLM-driven creativity accelerates discovery.
+
 ## What is mocked vs live
 
 ### Working now

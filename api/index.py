@@ -393,9 +393,21 @@ def render_experiment_card(exp: Dict, num: int, expanded: bool) -> str:
     manager_reason = exp.get("manager_reason", "")
     score_breakdown = exp.get("score_breakdown", {})
     expected_signal = exp.get("expected_signal", "")
+    candidate_meta = exp.get("candidate_metadata", {})
 
     # Build manager rationale HTML
     manager_html = ""
+
+    # Show LLM synthesis badge if applicable
+    if candidate_meta.get("llm_synthesized"):
+        synthesis_obs = candidate_meta.get("synthesis_observation", "")
+        novelty = candidate_meta.get("novelty", "")
+        manager_html += f'''<div class="llm-synthesis-badge" style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #a78bfa;">
+          <strong style="color: #e9d5ff;">🧠 LLM Synthesized Conjecture</strong>
+          <div style="color: #f3e8ff; margin-top: 6px; font-size: 12px;">{synthesis_obs[:200]}{"..." if len(synthesis_obs) > 200 else ""}</div>
+          {f'<div style="color: #ddd6fe; margin-top: 4px; font-size: 11px; font-style: italic;">Novelty: {novelty[:100]}</div>' if novelty else ""}
+        </div>'''
+
     if manager_reason:
         manager_html += f'''<div class="manager-reason" style="background: #1f2937; padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #3b82f6;">
           <strong style="color: #60a5fa;">Selection Reason:</strong>
